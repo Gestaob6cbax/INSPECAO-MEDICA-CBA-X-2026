@@ -5,106 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>INSPEÇÃO DE SAÚDE – CBA X</title>
 
-<style>
-  .logo {
-    max-width: 180px;
-    width: 100%;
-    margin-bottom: 15px;
-  }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f4f8;
+      margin: 0;
+      padding: 0;
+    }
 
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f4f8;
-    margin: 0;
-    padding: 0;
-  }
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
 
-  .container {
-    max-width: 600px;
-    margin: 30px auto;
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-  }
-  .form-agendamento {
-    margin-top: 20px;
-    text-align: left;
-  }
+    .logo {
+      max-width: 180px;
+      width: 100%;
+      margin-bottom: 15px;
+    }
 
-  .form-agendamento input,
-  .form-agendamento select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-  }
+    .form-agendamento {
+      margin-top: 20px;
+      text-align: left;
+    }
 
-  .form-agendamento button {
-    width: 100%;
-    padding: 12px;
-    background-color: #0b3c5d;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-  }
+    .form-agendamento input,
+    .form-agendamento select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
 
-  .form-agendamento button:hover {
-    background-color: #092f49;
-  }
-</style>
+    .form-agendamento button {
+      width: 100%;
+      padding: 12px;
+      background-color: #0b3c5d;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
+    .form-agendamento button:hover {
+      background-color: #092f49;
+    }
   </style>
 </head>
+
 <body>
 
   <div class="container">
     <img src="logo-cbax.png" alt="Logo CBA X" class="logo">
+
     <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
     <p>Sistema de Agendamento de Inspeção de Saúde</p>
+
     <form class="form-agendamento">
 
-  <input type="text" placeholder="Nome completo" required>
+      <input type="text" placeholder="Nome completo" required>
 
-  <input type="text" placeholder="RG" required>
+      <input type="text" placeholder="RG" required>
 
-  <input type="text" placeholder="Posto / Graduação" required>
+      <input type="text" placeholder="Posto / Graduação" required>
 
- <select id="unidade" required>
-  <option value="">Selecione a Unidade</option>
-  <option value="turno">1º GMar - Botafogo</option>
-  <option value="livre">2º GMar - Barra da Tijuca</option>
-  <option value="livre">3º GMar - Copacabana</option>
-  <option value="turno">4º GMar - Itaipu</option>
-  <option value="turno">CBA X</option>
-  <option value="livre">CER</option>
-  <option value="turno">DBM 1/M - Paquetá</option>
-  <option value="turno">DBM 2/M - Piscinão de Ramos</option>
-  <option value="turno">DBM 3/M - Recreio</option>
-  <option value="turno">DBM 4/M - Barra de Guaratiba</option>
-  <option value="turno">DBM 5/M - Sepetiba</option>
-  <option value="turno">DBM 6/M - Itaipu</option>
-</select>
+      <select id="unidade" required>
+        <option value="">Selecione a Unidade</option>
+        <option value="turno">1º GMar - Botafogo</option>
+        <option value="livre">2º GMar - Barra da Tijuca</option>
+        <option value="livre">3º GMar - Copacabana</option>
+        <option value="turno">4º GMar - Itaipu</option>
+        <option value="turno">CBA X</option>
+        <option value="livre">CER</option>
+        <option value="turno">DBM 1/M - Paquetá</option>
+        <option value="turno">DBM 2/M - Piscinão de Ramos</option>
+        <option value="turno">DBM 3/M - Recreio</option>
+        <option value="turno">DBM 4/M - Barra de Guaratiba</option>
+        <option value="turno">DBM 5/M - Sepetiba</option>
+        <option value="turno">DBM 6/M - Itaipu</option>
+      </select>
 
-  <input type="date" required>
+      <!-- DATA COMEÇA EM 23/02/2026 -->
+      <input type="date" min="2026-02-23" required>
 
- <div id="campo-turno">
-  <select id="turno">
-    <option value="">Selecione o Turno</option>
-    <option>Manhã</option>
-    <option>Tarde</option>
-  </select>
-</div>
+      <!-- TURNO -->
+      <div id="campo-turno">
+        <select id="turno">
+          <option value="">Selecione o Turno</option>
+          <option>Manhã</option>
+          <option>Tarde</option>
+        </select>
+      </div>
 
-  <button type="submit">Agendar</button>
-</form>
-    
-    </div>
+      <button type="submit">Agendar</button>
 
+    </form>
+  </div>
+
+  <!-- SCRIPT NO FINAL DO BODY -->
   <script>
     const unidade = document.getElementById("unidade");
     const campoTurno = document.getElementById("campo-turno");
@@ -120,4 +125,5 @@
 
 </body>
 </html>
+
 
