@@ -69,8 +69,8 @@
     <p>Sistema de Agendamento de Inspeção de Saúde</p>
 
     <form class="form-agendamento"
-          action="https://formsubmit.co/b6cbax2023@gmail.com"
-          method="POST">
+      action="https://formsubmit.co/38b9d9bd004a4b726a22e3b8752bc499"
+      method="POST">
 
       <input type="text" name="nome" placeholder="Nome completo" required>
 
@@ -78,7 +78,21 @@
 
       <input type="email" name="email" placeholder="E-mail institucional" required>
 
-      <input type="text" name="posto" placeholder="Posto / Graduação" required>
+      <select name="posto" required>
+        <option value="">Selecione o Posto / Graduação</option>
+        <option>SDBM</option>
+        <option>CB BM</option>
+        <option>3º SGT BM</option>
+        <option>2º SGT BM</option>
+        <option>1º SGT BM</option>
+        <option>SUBTEN BM</option>
+        <option>2º TEN BM</option>
+        <option>1º TEN BM</option>
+        <option>CAP BM</option>
+        <option>MAJ BM</option>
+        <option>TEN CEL BM</option>
+        <option>CEL BM</option>
+      </select>
 
       <select id="unidade" name="unidade" required>
         <option value="">Selecione a Unidade</option>
@@ -98,20 +112,32 @@
 
       <input type="date" name="data" min="2026-02-23" required>
 
-      <!-- TURNO (inicia oculto) -->
-      <div id="campo-turno" style="display:none;">
-        <select id="turno" name="turno">
+      <div id="campo-turno">
+        <select name="turno">
           <option value="">Selecione o Turno</option>
           <option>Manhã</option>
           <option>Tarde</option>
         </select>
       </div>
 
-      <!-- FORM SUBMIT CONFIG -->
+      <!-- CONFIGURAÇÕES FORM SUBMIT -->
       <input type="hidden" name="_subject" value="Novo Agendamento – Inspeção de Saúde CBA X">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_next" value="https://gestaob6cbax.github.io/inspecao-saude-cbax/">
+
+      <input type="hidden" name="_autoresponse"
+      value="Seu agendamento de Inspeção de Saúde foi realizado com sucesso.
+
+Unidade: {{unidade}}
+Data: {{data}}
+Turno: {{turno}}
+
+Apresente-se no dia e horário selecionados com documento oficial.
+
+CBA X – Inspeção de Saúde">
+
+      <input type="hidden" name="_next"
+      value="https://gestaob6cbax.github.io/inspecao-saude-cbax/">
 
       <button type="submit">Agendar</button>
 
@@ -121,20 +147,11 @@
   <script>
     const unidade = document.getElementById("unidade");
     const campoTurno = document.getElementById("campo-turno");
-    const turno = document.getElementById("turno");
 
     unidade.addEventListener("change", function () {
-      if (this.value === "livre") {
-        campoTurno.style.display = "none";
-        turno.removeAttribute("required");
-      } else {
-        campoTurno.style.display = "block";
-        turno.setAttribute("required", "required");
-      }
+      campoTurno.style.display = (this.value === "livre") ? "none" : "block";
     });
   </script>
 
 </body>
 </html>
-
-
