@@ -68,7 +68,6 @@
     <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
     <p>Sistema de Agendamento de Inspeção de Saúde</p>
 
-    <!-- FORMULÁRIO -->
     <form class="form-agendamento"
           action="https://formsubmit.co/b6cbax2023@gmail.com"
           method="POST">
@@ -99,7 +98,8 @@
 
       <input type="date" name="data" min="2026-02-23" required>
 
-      <div id="campo-turno">
+      <!-- TURNO (inicia oculto) -->
+      <div id="campo-turno" style="display:none;">
         <select id="turno" name="turno">
           <option value="">Selecione o Turno</option>
           <option>Manhã</option>
@@ -107,7 +107,7 @@
         </select>
       </div>
 
-      <!-- CAMPOS OCULTOS (FORM SUBMIT) -->
+      <!-- FORM SUBMIT CONFIG -->
       <input type="hidden" name="_subject" value="Novo Agendamento – Inspeção de Saúde CBA X">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_captcha" value="false">
@@ -118,22 +118,23 @@
     </form>
   </div>
 
-  <!-- SCRIPT -->
   <script>
     const unidade = document.getElementById("unidade");
     const campoTurno = document.getElementById("campo-turno");
+    const turno = document.getElementById("turno");
 
     unidade.addEventListener("change", function () {
       if (this.value === "livre") {
         campoTurno.style.display = "none";
+        turno.removeAttribute("required");
       } else {
         campoTurno.style.display = "block";
+        turno.setAttribute("required", "required");
       }
     });
   </script>
 
 </body>
 </html>
-
 
 
