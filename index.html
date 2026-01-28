@@ -87,7 +87,53 @@
         <option value="livre">2º GMar - Barra da Tijuca</option>
         <option value="livre">3º GMar - Copacabana</option>
         <option value="turno">4º GMar - Itaipu</option>
-        <option value="turno
+        <option value="turno">CBA X</option>
+        <option value="livre">CER</option>
+        <option value="turno">DBM 1/M - Paquetá</option>
+        <option value="turno">DBM 2/M - Piscinão de Ramos</option>
+        <option value="turno">DBM 3/M - Recreio</option>
+        <option value="turno">DBM 4/M - Barra de Guaratiba</option>
+        <option value="turno">DBM 5/M - Sepetiba</option>
+        <option value="turno">DBM 6/M - Itaipu</option>
+      </select>
+
+      <input type="date" name="data" min="2026-02-23" required>
+
+      <div id="campo-turno">
+        <select id="turno" name="turno">
+          <option value="">Selecione o Turno</option>
+          <option>Manhã</option>
+          <option>Tarde</option>
+        </select>
+      </div>
+
+      <!-- CAMPOS OCULTOS (FORM SUBMIT) -->
+      <input type="hidden" name="_subject" value="Novo Agendamento – Inspeção de Saúde CBA X">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_next" value="https://gestaob6cbax.github.io/inspecao-saude-cbax/">
+
+      <button type="submit">Agendar</button>
+
+    </form>
+  </div>
+
+  <!-- SCRIPT -->
+  <script>
+    const unidade = document.getElementById("unidade");
+    const campoTurno = document.getElementById("campo-turno");
+
+    unidade.addEventListener("change", function () {
+      if (this.value === "livre") {
+        campoTurno.style.display = "none";
+      } else {
+        campoTurno.style.display = "block";
+      }
+    });
+  </script>
+
+</body>
+</html>
 
 
 
