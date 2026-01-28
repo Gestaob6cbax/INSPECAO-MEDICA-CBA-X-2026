@@ -25,7 +25,36 @@
       border-radius: 8px;
       text-align: center;
     }
-  </style>
+  </style>.form-agendamento {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.form-agendamento input,
+.form-agendamento select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.form-agendamento button {
+  width: 100%;
+  padding: 12px;
+  background-color: #0b3c5d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.form-agendamento button:hover {
+  background-color: #092f49;
+}
+
 </head>
 <body>
 
@@ -33,6 +62,42 @@
     <img src="logo-cbax.png" alt="Logo CBA X" class="logo">
     <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
     <p>Sistema de Agendamento de Inspeção de Saúde</p>
+    <form class="form-agendamento">
+
+  <input type="text" placeholder="Nome completo" required>
+
+  <input type="text" placeholder="RG" required>
+
+  <input type="text" placeholder="Posto / Graduação" required>
+
+  <select required>
+    <option value="">Selecione a Unidade</option>
+    <option>1º GMar - Botafogo</option>
+    <option>2º GMar - Barra da Tijuca</option>
+    <option>3º GMar - Copacabana</option>
+    <option>4º GMar - Itaipu</option>
+    <option>CBA X</option>
+    <option>CER</option>
+    <option>DBM 1/M - Paquetá</option>
+    <option>DBM 2/M - Piscinão de Ramos</option>
+    <option>DBM 3/M - Recreio</option>
+    <option>DBM 4/M - Barra de Guaratiba</option>
+    <option>DBM 5/M - Sepetiba</option>
+    <option>DBM 6/M - Itaipu</option>
+  </select>
+
+  <input type="date" required>
+
+  <select required>
+    <option value="">Selecione o Turno</option>
+    <option>Manhã</option>
+    <option>Tarde</option>
+  </select>
+
+  <button type="submit">Agendar</button>
+</form>
+
+
   </div>
 
 </body>
