@@ -68,62 +68,26 @@
     <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
     <p>Sistema de Agendamento de Inspeção de Saúde</p>
 
-    <form class="form-agendamento">
+    <!-- FORMULÁRIO -->
+    <form class="form-agendamento"
+          action="https://formsubmit.co/b6cbax2023@gmail.com"
+          method="POST">
 
-      <input type="text" placeholder="Nome completo" required>
+      <input type="text" name="nome" placeholder="Nome completo" required>
 
-      <input type="text" placeholder="RG" required>
+      <input type="text" name="rg" placeholder="RG" required>
 
-      <input type="text" placeholder="Posto / Graduação" required>
+      <input type="email" name="email" placeholder="E-mail institucional" required>
 
-      <select id="unidade" required>
+      <input type="text" name="posto" placeholder="Posto / Graduação" required>
+
+      <select id="unidade" name="unidade" required>
         <option value="">Selecione a Unidade</option>
         <option value="turno">1º GMar - Botafogo</option>
         <option value="livre">2º GMar - Barra da Tijuca</option>
         <option value="livre">3º GMar - Copacabana</option>
         <option value="turno">4º GMar - Itaipu</option>
-        <option value="turno">CBA X</option>
-        <option value="livre">CER</option>
-        <option value="turno">DBM 1/M - Paquetá</option>
-        <option value="turno">DBM 2/M - Piscinão de Ramos</option>
-        <option value="turno">DBM 3/M - Recreio</option>
-        <option value="turno">DBM 4/M - Barra de Guaratiba</option>
-        <option value="turno">DBM 5/M - Sepetiba</option>
-        <option value="turno">DBM 6/M - Itaipu</option>
-      </select>
+        <option value="turno
 
-      <!-- DATA COMEÇA EM 23/02/2026 -->
-      <input type="date" min="2026-02-23" required>
-
-      <!-- TURNO -->
-      <div id="campo-turno">
-        <select id="turno">
-          <option value="">Selecione o Turno</option>
-          <option>Manhã</option>
-          <option>Tarde</option>
-        </select>
-      </div>
-
-      <button type="submit">Agendar</button>
-
-    </form>
-  </div>
-
-  <!-- SCRIPT NO FINAL DO BODY -->
-  <script>
-    const unidade = document.getElementById("unidade");
-    const campoTurno = document.getElementById("campo-turno");
-
-    unidade.addEventListener("change", function () {
-      if (this.value === "livre") {
-        campoTurno.style.display = "none";
-      } else {
-        campoTurno.style.display = "block";
-      }
-    });
-  </script>
-
-</body>
-</html>
 
 
