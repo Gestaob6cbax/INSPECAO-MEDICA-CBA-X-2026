@@ -1,138 +1,136 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>INSPEÇÃO DE SAÚDE – CBA X</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>INSPEÇÃO DE SAÚDE – CBA X</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f8;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 30px auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-    }
-    h1 {
-      text-align: center;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      font-size: 14px;
-    }
-    button {
-      background: #0b3c5d;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:hover {
-      background: #092f49;
-    }
-  </style>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f4f8;
+  margin: 0;
+}
+.container {
+  max-width: 600px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+h1, p { text-align: center; }
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+button {
+  background: #0b3c5d;
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+button:hover {
+  background: #092f49;
+}
+#sucesso {
+  display: none;
+  color: green;
+  font-weight: bold;
+  text-align: center;
+}
+</style>
 </head>
 
 <body>
 <div class="container">
-  <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
+<h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
+<p>Agendamento</p>
 
-  <form id="formAgendamento">
+<form id="formAgendamento">
 
-    <input type="text" name="nome" placeholder="Nome completo" required />
-    <input type="text" name="rg" placeholder="RG" required />
-    <input type="email" name="email" placeholder="E-mail" required />
+<input type="text" name="nome" placeholder="Nome completo" required>
+<input type="text" name="rg" placeholder="RG" required>
+<input type="email" name="email" placeholder="E-mail" required>
 
-    <select name="posto" required>
-      <option value="">Posto / Graduação</option>
-      <option>SDBM</option>
-      <option>CB BM</option>
-      <option>3º SGT BM</option>
-      <option>2º SGT BM</option>
-      <option>1º SGT BM</option>
-      <option>SUBTEN BM</option>
-      <option>2º TEN BM</option>
-      <option>1º TEN BM</option>
-      <option>CAP BM</option>
-      <option>MAJ BM</option>
-      <option>TEN CEL BM</option>
-      <option>CEL BM</option>
-    </select>
+<select name="posto" required>
+<option value="">Posto / Graduação</option>
+<option>SDBM</option>
+<option>CB BM</option>
+<option>3º SGT BM</option>
+<option>2º SGT BM</option>
+<option>1º SGT BM</option>
+<option>SUBTEN BM</option>
+<option>2º TEN BM</option>
+<option>1º TEN BM</option>
+<option>CAP BM</option>
+<option>MAJ BM</option>
+<option>TEN CEL BM</option>
+<option>CEL BM</option>
+</select>
 
-    <select name="unidade" required>
-      <option value="">Unidade</option>
-      <option>1º GMar - Botafogo</option>
-      <option>2º GMar - Barra da Tijuca</option>
-      <option>3º GMar - Copacabana</option>
-      <option>4º GMar - Itaipu</option>
-      <option>CBA X</option>
-      <option>CER</option>
-      <option>DBM 1/M - Paquetá</option>
-      <option>DBM 2/M - Piscinão de Ramos</option>
-      <option>DBM 3/M - Recreio</option>
-      <option>DBM 4/M - Barra de Guaratiba</option>
-      <option>DBM 5/M - Sepetiba</option>
-      <option>DBM 6/M - Itaipu</option>
-    </select>
+<select name="unidade" id="unidade" required>
+<option value="">Unidade</option>
+<option value="turno">1º GMar - Botafogo</option>
+<option value="livre">2º GMar - Barra</option>
+<option value="livre">3º GMar - Copacabana</option>
+<option value="turno">4º GMar - Itaipu</option>
+<option value="turno">CBA X</option>
+<option value="livre">CER</option>
+</select>
 
-    <input type="date" name="data" required />
+<input type="date" name="data" required>
 
-    <select name="turno" required>
-      <option value="">Turno</option>
-      <option>Manhã</option>
-      <option>Tarde</option>
-    </select>
-
-    <button type="submit">Agendar Inspeção</button>
-  </form>
+<div id="campoTurno">
+<select name="turno">
+<option value="">Turno</option>
+<option>Manhã</option>
+<option>Tarde</option>
+</select>
 </div>
 
+<button type="submit">Agendar</button>
+
+<p id="sucesso">✅ Agendamento realizado com sucesso!</p>
+</form>
+</div>
+
+<!-- EMAILJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
 <script>
-  (function () {
-    emailjs.init("SUA_PUBLIC_KEY_AQUI"); // ⚠️ vamos preencher já já
-  })();
+/* ===== CONFIGURAÇÃO ===== */
+const EMAILJS_PUBLIC_KEY = "SUA_PUBLIC_KEY";
+const EMAILJS_SERVICE_ID = "service_57r7wmp";
+const TEMPLATE_ADM_ID = "SEU_TEMPLATE_ADM_ID";
+const TEMPLATE_MILITAR_ID = "SEU_TEMPLATE_MILITAR_ID";
 
-  document.getElementById("formAgendamento").addEventListener("submit", function (e) {
-    e.preventDefault();
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
-    const dados = {
-      nome: this.nome.value,
-      rg: this.rg.value,
-      email: this.email.value,
-      posto: this.posto.value,
-      unidade: this.unidade.value,
-      data: this.data.value,
-      turno: this.turno.value
-    };
+/* ===== TURNO ===== */
+const unidade = document.getElementById("unidade");
+const campoTurno = document.getElementById("campoTurno");
 
-    // EMAIL PARA O ADM
-    emailjs.send(
-      "service_57r7wmp",
-      "TEMPLATE_ADM_ID",
-      dados
-    );
+unidade.addEventListener("change", () => {
+  campoTurno.style.display = unidade.value === "livre" ? "none" : "block";
+});
 
-    // EMAIL PARA O MILITAR
-    emailjs.send(
-      "service_57r7wmp",
-      "TEMPLATE_MILITAR_ID",
-      dados
-    );
+/* ===== SUBMIT ===== */
+document.getElementById("formAgendamento").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-    alert("Agendamento realizado com sucesso! Verifique seu e-mail.");
-    this.reset();
-  });
+  const dados = Object.fromEntries(new FormData(this));
+
+  // ENVIA PARA ADM
+  emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, dados);
+
+  // ENVIA PARA MILITAR
+  emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_MILITAR_ID, dados);
+
+  document.getElementById("sucesso").style.display = "block";
+  this.reset();
+});
 </script>
 
 </body>
