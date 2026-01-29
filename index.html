@@ -2,66 +2,51 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>INSPEÇÃO DE SAÚDE – CBA X</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f2f4f8;
+      background: #f2f4f8;
       margin: 0;
       padding: 0;
     }
-
     .container {
       max-width: 600px;
       margin: 30px auto;
-      background: #ffffff;
+      background: #fff;
       padding: 20px;
       border-radius: 8px;
+    }
+    h1 {
       text-align: center;
     }
-
-    .logo {
-      max-width: 180px;
-      margin-bottom: 15px;
-    }
-
-    form {
-      text-align: left;
-      margin-top: 20px;
-    }
-
     input, select, button {
       width: 100%;
       padding: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       font-size: 14px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
     }
-
     button {
-      background-color: #0b3c5d;
+      background: #0b3c5d;
       color: #fff;
-      font-size: 16px;
       border: none;
       cursor: pointer;
+      border-radius: 5px;
     }
-
     button:hover {
-      background-color: #092f49;
+      background: #092f49;
     }
   </style>
 </head>
 
 <body>
-
 <div class="container">
-  <img src="logo-cbax.png" class="logo" alt="Logo CBA X" />
-
   <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
-  <p>Sistema de Agendamento de Inspeção de Saúde</p>
 
   <form id="formAgendamento">
 
@@ -85,89 +70,72 @@
       <option>CEL BM</option>
     </select>
 
-    <select name="unidade" id="unidade" required>
+    <select name="unidade" required>
       <option value="">Unidade</option>
-      <option value="turno">1º GMar - Botafogo</option>
-      <option value="livre">2º GMar - Barra da Tijuca</option>
-      <option value="livre">3º GMar - Copacabana</option>
-      <option value="turno">4º GMar - Itaipu</option>
-      <option value="turno">CBA X</option>
-      <option value="livre">CER</option>
-      <option value="turno">DBM 1/M - Paquetá</option>
-      <option value="turno">DBM 2/M - Piscinão de Ramos</option>
-      <option value="turno">DBM 3/M - Recreio</option>
-      <option value="turno">DBM 4/M - Barra de Guaratiba</option>
-      <option value="turno">DBM 5/M - Sepetiba</option>
-      <option value="turno">DBM 6/M - Itaipu</option>
+      <option>1º GMar - Botafogo</option>
+      <option>2º GMar - Barra da Tijuca</option>
+      <option>3º GMar - Copacabana</option>
+      <option>4º GMar - Itaipu</option>
+      <option>CBA X</option>
+      <option>CER</option>
+      <option>DBM 1/M - Paquetá</option>
+      <option>DBM 2/M - Piscinão de Ramos</option>
+      <option>DBM 3/M - Recreio</option>
+      <option>DBM 4/M - Barra de Guaratiba</option>
+      <option>DBM 5/M - Sepetiba</option>
+      <option>DBM 6/M - Itaipu</option>
     </select>
 
-    <input type="date" name="data" min="2026-02-23" required />
+    <input type="date" name="data" required />
 
-    <div id="campoTurno">
-      <select name="turno">
-        <option value="">Turno</option>
-        <option>Manhã</option>
-        <option>Tarde</option>
-      </select>
-    </div>
+    <select name="turno" required>
+      <option value="">Turno</option>
+      <option>Manhã</option>
+      <option>Tarde</option>
+    </select>
 
-    <button type="submit">Agendar</button>
-
+    <button type="submit">Agendar Inspeção</button>
   </form>
 </div>
 
-<!-- FIREBASE APP -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp }
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script>
+  (function () {
+    emailjs.init("SUA_PUBLIC_KEY_AQUI"); // ⚠️ vamos preencher já já
+  })();
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-    authDomain: "inspecao-saude-cbax.firebaseapp.com",
-    projectId: "inspecao-saude-cbax",
-    storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-    messagingSenderId: "1011281662526",
-    appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const form = document.getElementById("formAgendamento");
-  const unidade = document.getElementById("unidade");
-  const campoTurno = document.getElementById("campoTurno");
-
-  unidade.addEventListener("change", () => {
-    campoTurno.style.display = unidade.value === "livre" ? "none" : "block";
-  });
-
-  form.addEventListener("submit", async (e) => {
+  document.getElementById("formAgendamento").addEventListener("submit", function (e) {
     e.preventDefault();
 
     const dados = {
-      nome: form.nome.value,
-      rg: form.rg.value,
-      email: form.email.value,
-      posto: form.posto.value,
-      unidade: form.unidade.value,
-      data: form.data.value,
-      turno: form.turno ? form.turno.value : "Livre demanda",
-      criadoEm: serverTimestamp()
+      nome: this.nome.value,
+      rg: this.rg.value,
+      email: this.email.value,
+      posto: this.posto.value,
+      unidade: this.unidade.value,
+      data: this.data.value,
+      turno: this.turno.value
     };
 
-    try {
-      await addDoc(collection(db, "agendamentos"), dados);
-      alert("Agendamento realizado com sucesso!");
-      form.reset();
-      campoTurno.style.display = "block";
-    } catch (erro) {
-      alert("Erro ao realizar agendamento.");
-      console.error(erro);
-    }
+    // EMAIL PARA O ADM
+    emailjs.send(
+      "service_57r7wmp",
+      "TEMPLATE_ADM_ID",
+      dados
+    );
+
+    // EMAIL PARA O MILITAR
+    emailjs.send(
+      "service_57r7wmp",
+      "TEMPLATE_MILITAR_ID",
+      dados
+    );
+
+    alert("Agendamento realizado com sucesso! Verifique seu e-mail.");
+    this.reset();
   });
 </script>
 
 </body>
 </html>
+
 
