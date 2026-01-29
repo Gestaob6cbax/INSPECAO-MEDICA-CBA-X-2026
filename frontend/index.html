@@ -1,174 +1,140 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>INSPEÇÃO DE SAÚDE – CBA X</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f2f4f8;
+      background: #f2f4f8;
       margin: 0;
       padding: 0;
     }
-
     .container {
       max-width: 600px;
       margin: 30px auto;
-      background: #ffffff;
+      background: #fff;
       padding: 20px;
       border-radius: 8px;
+    }
+    h1 {
       text-align: center;
     }
-
-    .logo {
-      max-width: 180px;
-      width: 100%;
-      margin-bottom: 15px;
-    }
-
-    .form-agendamento {
-      margin-top: 20px;
-      text-align: left;
-    }
-
-    .form-agendamento input,
-    .form-agendamento select {
+    input, select, button {
       width: 100%;
       padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      margin-bottom: 12px;
       font-size: 14px;
     }
-
-    .form-agendamento button {
-      width: 100%;
-      padding: 12px;
-      background-color: #0b3c5d;
-      color: white;
+    button {
+      background: #0b3c5d;
+      color: #fff;
       border: none;
-      border-radius: 5px;
-      font-size: 16px;
       cursor: pointer;
+      border-radius: 5px;
     }
-
-    .form-agendamento button:hover {
-      background-color: #092f49;
+    button:hover {
+      background: #092f49;
     }
   </style>
 </head>
 
 <body>
+<div class="container">
+  <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
 
-  <div class="container">
-    <img src="logo-cbax.png" alt="Logo CBA X" class="logo">
+  <form id="formAgendamento">
 
-    <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
-    <p>Sistema de Agendamento de Inspeção de Saúde</p>
+    <input type="text" name="nome" placeholder="Nome completo" required />
+    <input type="text" name="rg" placeholder="RG" required />
+    <input type="email" name="email" placeholder="E-mail" required />
 
-    <form class="form-agendamento"
-     action="https://formsubmit.co/b6cbax2023@gmail.com"
+    <select name="posto" required>
+      <option value="">Posto / Graduação</option>
+      <option>SDBM</option>
+      <option>CB BM</option>
+      <option>3º SGT BM</option>
+      <option>2º SGT BM</option>
+      <option>1º SGT BM</option>
+      <option>SUBTEN BM</option>
+      <option>2º TEN BM</option>
+      <option>1º TEN BM</option>
+      <option>CAP BM</option>
+      <option>MAJ BM</option>
+      <option>TEN CEL BM</option>
+      <option>CEL BM</option>
+    </select>
 
-      method="POST">
+    <select name="unidade" required>
+      <option value="">Unidade</option>
+      <option>1º GMar - Botafogo</option>
+      <option>2º GMar - Barra da Tijuca</option>
+      <option>3º GMar - Copacabana</option>
+      <option>4º GMar - Itaipu</option>
+      <option>CBA X</option>
+      <option>CER</option>
+      <option>DBM 1/M - Paquetá</option>
+      <option>DBM 2/M - Piscinão de Ramos</option>
+      <option>DBM 3/M - Recreio</option>
+      <option>DBM 4/M - Barra de Guaratiba</option>
+      <option>DBM 5/M - Sepetiba</option>
+      <option>DBM 6/M - Itaipu</option>
+    </select>
 
-      <input type="text" name="nome" placeholder="Nome completo" required>
+    <input type="date" name="data" required />
 
-      <input type="text" name="rg" placeholder="RG" required>
+    <select name="turno" required>
+      <option value="">Turno</option>
+      <option>Manhã</option>
+      <option>Tarde</option>
+    </select>
 
-   <input type="email" name="email" placeholder="E-mail" required>
+    <button type="submit">Agendar Inspeção</button>
+  </form>
+</div>
 
-      <select name="posto" required>
-        <option value="">Selecione o Posto / Graduação</option>
-        <option>SDBM</option>
-        <option>CB BM</option>
-        <option>3º SGT BM</option>
-        <option>2º SGT BM</option>
-        <option>1º SGT BM</option>
-        <option>SUBTEN BM</option>
-        <option>2º TEN BM</option>
-        <option>1º TEN BM</option>
-        <option>CAP BM</option>
-        <option>MAJ BM</option>
-        <option>TEN CEL BM</option>
-        <option>CEL BM</option>
-      </select>
+<script>
+  (function () {
+    emailjs.init("SUA_PUBLIC_KEY_AQUI"); // ⚠️ vamos preencher já já
+  })();
 
-      <select id="unidade" name="unidade" required>
-        <option value="">Selecione a Unidade</option>
-        <option value="turno">1º GMar - Botafogo</option>
-        <option value="livre">2º GMar - Barra da Tijuca</option>
-        <option value="livre">3º GMar - Copacabana</option>
-        <option value="turno">4º GMar - Itaipu</option>
-        <option value="turno">CBA X</option>
-        <option value="livre">CER</option>
-        <option value="turno">DBM 1/M - Paquetá</option>
-        <option value="turno">DBM 2/M - Piscinão de Ramos</option>
-        <option value="turno">DBM 3/M - Recreio</option>
-        <option value="turno">DBM 4/M - Barra de Guaratiba</option>
-        <option value="turno">DBM 5/M - Sepetiba</option>
-        <option value="turno">DBM 6/M - Itaipu</option>
-      </select>
+  document.getElementById("formAgendamento").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-      <input type="date" name="data" min="2026-02-23" required>
+    const dados = {
+      nome: this.nome.value,
+      rg: this.rg.value,
+      email: this.email.value,
+      posto: this.posto.value,
+      unidade: this.unidade.value,
+      data: this.data.value,
+      turno: this.turno.value
+    };
 
-      <div id="campo-turno">
-        <select name="turno">
-          <option value="">Selecione o Turno</option>
-          <option>Manhã</option>
-          <option>Tarde</option>
-        </select>
-      </div>
+    // EMAIL PARA O ADM
+    emailjs.send(
+      "service_57r7wmp",
+      "TEMPLATE_ADM_ID",
+      dados
+    );
 
-      <!-- CONFIGURAÇÕES FORM SUBMIT -->
-      <input type="hidden" name="_subject" value="Novo Agendamento – Inspeção de Saúde CBA X">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_captcha" value="false">
+    // EMAIL PARA O MILITAR
+    emailjs.send(
+      "service_57r7wmp",
+      "TEMPLATE_MILITAR_ID",
+      dados
+    );
 
-      <input type="hidden" name="_autoresponse"
-      value="Seu agendamento de Inspeção de Saúde foi realizado com sucesso.
-
-Unidade: {{unidade}}
-Data: {{data}}
-Turno: {{turno}}
-
-Apresente-se no dia e horário selecionados com documento oficial.
-
-CBA X – Inspeção de Saúde">
-
-      <input type="hidden" name="_next"
-      value="https://gestaob6cbax.github.io/inspecao-saude-cbax/">
-
-      <button type="submit">Agendar</button>
-
-    </form>
-  </div>
-
-  <script>
-    const unidade = document.getElementById("unidade");
-    const campoTurno = document.getElementById("campo-turno");
-
-    unidade.addEventListener("change", function () {
-      campoTurno.style.display = (this.value === "livre") ? "none" : "block";
-    });
-  </script>
-
-</body>
-  
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-    authDomain: "inspecao-saude-cbax.firebaseapp.com",
-    projectId: "inspecao-saude-cbax",
-    storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-    messagingSenderId: "1011281662526",
-    appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-  };
-
-  const app = initializeApp(firebaseConfig);
+    alert("Agendamento realizado com sucesso! Verifique seu e-mail.");
+    this.reset();
+  });
 </script>
 
+</body>
 </html>
+
