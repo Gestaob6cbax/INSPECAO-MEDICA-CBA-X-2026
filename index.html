@@ -1,138 +1,376 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>INSPEÇÃO DE SAÚDE – CBA X</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INSPEÇÃO DE SAÚDE – CBA X</title>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f2f4f8;
-  margin: 0;
-}
-.container {
-  max-width: 600px;
-  margin: 30px auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-}
-h1, p { text-align: center; }
-input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-button {
-  background: #0b3c5d;
-  color: #fff;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-}
-button:hover {
-  background: #092f49;
-}
-#sucesso {
-  display: none;
-  color: green;
-  font-weight: bold;
-  text-align: center;
-}
-</style>
+  <style>
+    body { font-family: Arial, sans-serif; background-color:#f2f4f8; margin:0; padding:0; }
+    .container { max-width:700px; margin:30px auto; background:#fff; padding:20px; border-radius:8px; text-align:center; }
+    .logo { max-width:180px; width:100%; margin-bottom:15px; }
+
+    .form-agendamento { margin-top:20px; text-align:left; }
+    .form-agendamento input, .form-agendamento select {
+      width:100%; padding:10px; margin-bottom:10px;
+      border-radius:5px; border:1px solid #ccc; font-size:14px;
+      box-sizing:border-box;
+    }
+
+    .form-agendamento button {
+      width:100%; padding:12px; background-color:#0b3c5d; color:#fff;
+      border:none; border-radius:5px; font-size:16px; cursor:pointer;
+    }
+    .form-agendamento button:hover { background-color:#092f49; }
+
+    .info-agenda {
+      background:#f6f8fb; border:1px solid #e1e6ef; border-radius:8px;
+      padding:10px 12px; margin:10px 0 12px 0; font-size:13px; color:#243042;
+    }
+    .hidden { display:none; }
+
+    .msg {
+      display:none; margin-top:12px; padding:10px 12px; border-radius:8px;
+      background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold;
+      text-align:center;
+    }
+    .err {
+      display:none; margin-top:12px; padding:10px 12px; border-radius:8px;
+      background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold;
+      text-align:center;
+    }
+  </style>
 </head>
 
 <body>
-<div class="container">
-<h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
-<p>Agendamento</p>
+  <div class="container">
+    <img src="logo-cbax.png" alt="Logo CBA X" class="logo" />
+    <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
+    <p>Sistema de Agendamento de Inspeção de Saúde</p>
 
-<form id="formAgendamento">
+    <form class="form-agendamento" id="formAgendamento">
+      <input type="text" name="nome" placeholder="Nome completo" required />
+      <input type="text" name="rg" placeholder="RG" required />
+      <input type="email" name="email" placeholder="E-mail" required autocomplete="off" />
 
-<input type="text" name="nome" placeholder="Nome completo" required>
-<input type="text" name="rg" placeholder="RG" required>
-<input type="email" name="email" placeholder="E-mail" required>
+      <select name="posto" required>
+        <option value="">Selecione o Posto / Graduação</option>
+        <option>SDBM</option>
+        <option>CB BM</option>
+        <option>3º SGT BM</option>
+        <option>2º SGT BM</option>
+        <option>1º SGT BM</option>
+        <option>SUBTEN BM</option>
+        <option>2º TEN BM</option>
+        <option>1º TEN BM</option>
+        <option>CAP BM</option>
+        <option>MAJ BM</option>
+        <option>TEN CEL BM</option>
+        <option>CEL BM</option>
+      </select>
 
-<select name="posto" required>
-<option value="">Posto / Graduação</option>
-<option>SD BM</option>
-<option>CB BM</option>
-<option>3º SGT BM</option>
-<option>2º SGT BM</option>
-<option>1º SGT BM</option>
-<option>SUBTEN BM</option>
-<option>2º TEN BM</option>
-<option>1º TEN BM</option>
-<option>CAP BM</option>
-<option>MAJ BM</option>
-<option>TEN CEL BM</option>
-<option>CEL BM</option>
-</select>
+      <!-- UNIDADE -->
+      <select id="unidade" name="unidade" required>
+        <option value="">Selecione a Unidade</option>
 
-<select name="unidade" id="unidade" required>
-<option value="">Unidade</option>
-<option value="turno">1º GMar - Botafogo</option>
-<option value="livre">2º GMar - Barra</option>
-<option value="livre">3º GMar - Copacabana</option>
-<option value="turno">4º GMar - Itaipu</option>
-<option value="turno">CBA X</option>
-<option value="livre">CER</option>
-</select>
+        <option value="1º GMar - Botafogo" data-tipo="turno">1º GMar - Botafogo</option>
+        <option value="DBM 1/M - Paquetá" data-tipo="turno">DBM 1/M - Paquetá</option>
+        <option value="DBM 2/M - Piscinão de Ramos" data-tipo="turno">DBM 2/M - Piscinão de Ramos</option>
 
-<input type="date" name="data" required>
+        <option value="2º GMar - Barra da Tijuca" data-tipo="livre">2º GMar - Barra da Tijuca</option>
+        <option value="CER" data-tipo="livre">CER</option>
 
-<div id="campoTurno">
-<select name="turno">
-<option value="">Turno</option>
-<option>Manhã</option>
-<option>Tarde</option>
-</select>
-</div>
+        <option value="3º GMar - Copacabana" data-tipo="livre">3º GMar - Copacabana</option>
 
-<button type="submit">Agendar</button>
+        <option value="4º GMar - Itaipu" data-tipo="turno">4º GMar - Itaipu</option>
+        <option value="DBM 6/M - Itaipu" data-tipo="turno">DBM 6/M - Itaipu</option>
 
-<p id="sucesso">✅ Agendamento realizado com sucesso!</p>
-</form>
-</div>
+        <option value="CBA X" data-tipo="turno">CBA X</option>
 
-<!-- EMAILJS -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+        <option value="DBM 3/M - Recreio" data-tipo="turno">DBM 3/M - Recreio</option>
+        <option value="DBM 4/M - Barra de Guaratiba" data-tipo="turno">DBM 4/M - Barra de Guaratiba</option>
+        <option value="DBM 5/M - Sepetiba" data-tipo="turno">DBM 5/M - Sepetiba</option>
+      </select>
 
-<script>
-/* ===== CONFIGURAÇÃO ===== */
-const EMAILJS_PUBLIC_KEY = "GySnRXpCdioddGW-7";
-const EMAILJS_SERVICE_ID = "service_57r7wmp";
-const TEMPLATE_ADM_ID = "template_q4u6ul6";
-const TEMPLATE_MILITAR_ID = "template_zjjttya";
+      <!-- RESUMO DA AGENDA -->
+      <div class="info-agenda hidden" id="infoAgenda"></div>
 
-emailjs.init(EMAILJS_PUBLIC_KEY);
+      <!-- DATA (select com datas permitidas) -->
+      <select id="data" name="data" required>
+        <option value="">Selecione a Data</option>
+      </select>
 
-/* ===== TURNO ===== */
-const unidade = document.getElementById("unidade");
-const campoTurno = document.getElementById("campoTurno");
+      <!-- TURNO -->
+      <div id="campo-turno">
+        <select id="turno" name="turno">
+          <option value="">Selecione o Turno</option>
+          <option value="Manhã">Manhã</option>
+          <option value="Tarde">Tarde</option>
+          <option value="Livre demanda">Livre demanda</option>
+        </select>
+      </div>
 
-unidade.addEventListener("change", () => {
-  campoTurno.style.display = unidade.value === "livre" ? "none" : "block";
-});
+      <button type="submit" id="btnAgendar">Agendar</button>
 
-/* ===== SUBMIT ===== */
-document.getElementById("formAgendamento").addEventListener("submit", function(e) {
-  e.preventDefault();
+      <div class="msg" id="msgOk">✅ Agendamento realizado com sucesso!</div>
+      <div class="err" id="msgErr">❌ Não foi possível concluir. Tente novamente.</div>
+    </form>
+  </div>
 
-  const dados = Object.fromEntries(new FormData(this));
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
-  // ENVIA PARA ADM
-  emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, dados);
+  <script>
+    /***********************
+     * 1) CONFIGURE O FIREBASE
+     * Cole aqui sua configuração do Firebase (aquela do console)
+     ***********************/
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
 
-  // ENVIA PARA MILITAR
-  emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_MILITAR_ID, dados);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  document.getElementById("sucesso").style.display = "block";
-  this.reset();
-});
-</script>
+    /***********************
+     * 2) FERIADOS 2026 – Nacionais + Município do Rio de Janeiro
+     * (Bloqueados SOMENTE nas agendas TER/SEX)
+     ***********************/
+    const FERIADOS = new Set([
+      // NACIONAIS
+      "2026-01-01",
+      "2026-02-16",
+      "2026-02-17",
+      "2026-04-03",
+      "2026-04-21",
+      "2026-05-01",
+      "2026-06-04",
+      "2026-09-07",
+      "2026-10-12",
+      "2026-11-02",
+      "2026-11-15",
+      "2026-12-25",
 
+      // MUNICIPAIS – RIO DE JANEIRO
+      "2026-01-20",
+      "2026-04-23"
+    ]);
+
+    /***********************
+     * 3) AGENDAS 1 a 7 (unidades + períodos + dias)
+     ***********************/
+    const AGENDAS = [
+      // Agenda 1: 17/03 a 15/05 - TER/SEX - 1ºGMar + DBM1 + DBM2
+      { id: 1, nome: "Agenda 1", unidades: ["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"],
+        inicio:"2026-03-17", fim:"2026-05-15", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
+
+      // Agenda 2: 19/05 a 26/06 - TER/SEX - 4ºGMar + DBM6
+      { id: 2, nome: "Agenda 2", unidades: ["4º GMar - Itaipu","DBM 6/M - Itaipu"],
+        inicio:"2026-05-19", fim:"2026-06-26", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
+
+      // Agenda 3: 23/02 a 31/07 - SEG/SEX - CER + 2ºGMar (livre demanda)
+      { id: 3, nome: "Agenda 3", unidades: ["CER","2º GMar - Barra da Tijuca"],
+        inicio:"2026-02-23", fim:"2026-07-31", diasSemana:[1,2,3,4,5], tipoTurno:"livre", bloqueiaFeriado:false },
+
+      // Agenda 4: 23/02 a 31/07 - SEG/SEX - 3ºGMar (livre demanda)
+      { id: 4, nome: "Agenda 4", unidades: ["3º GMar - Copacabana"],
+        inicio:"2026-02-23", fim:"2026-07-31", diasSemana:[1,2,3,4,5], tipoTurno:"livre", bloqueiaFeriado:false },
+
+      // Agenda 5: 10/03 a 13/03 - TER/SEX - CBA X
+      { id: 5, nome: "Agenda 5", unidades: ["CBA X"],
+        inicio:"2026-03-10", fim:"2026-03-13", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
+
+      // Agenda 6: 30/06 a 31/07 - TER/SEX - DBM4 + DBM3
+      { id: 6, nome: "Agenda 6", unidades: ["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio"],
+        inicio:"2026-06-30", fim:"2026-07-31", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
+
+      // Agenda 7: 23/02 a 05/03 - TER/SEX - DBM5
+      { id: 7, nome: "Agenda 7", unidades: ["DBM 5/M - Sepetiba"],
+        inicio:"2026-02-23", fim:"2026-03-05", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
+    ];
+
+    /***********************
+     * 4) ELEMENTOS
+     ***********************/
+    const form = document.getElementById("formAgendamento");
+    const unidadeEl = document.getElementById("unidade");
+    const dataEl = document.getElementById("data");
+    const campoTurno = document.getElementById("campo-turno");
+    const turnoEl = document.getElementById("turno");
+    const infoAgendaEl = document.getElementById("infoAgenda");
+    const btnAgendar = document.getElementById("btnAgendar");
+    const msgOk = document.getElementById("msgOk");
+    const msgErr = document.getElementById("msgErr");
+
+    function getAgendaDaUnidade(unidade) {
+      return AGENDAS.find(a => a.unidades.includes(unidade));
+    }
+
+    function formatBR(ymd) {
+      const [y,m,d] = ymd.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function addDays(dateObj, days) {
+      const d = new Date(dateObj);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    function toYMD(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth()+1).padStart(2,"0");
+      const d = String(dateObj.getDate()).padStart(2,"0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function preencherDatasPermitidas(agenda) {
+      dataEl.innerHTML = `<option value="">Selecione a Data</option>`;
+      if (!agenda) return;
+
+      const inicio = new Date(agenda.inicio + "T12:00:00");
+      const fim = new Date(agenda.fim + "T12:00:00");
+
+      let atual = inicio;
+      let count = 0;
+
+      while (atual <= fim) {
+        const ymd = toYMD(atual);
+        const dow = atual.getDay(); // dom=0 ... sáb=6
+
+        const diaPermitido = agenda.diasSemana.includes(dow);
+        const ehFeriado = FERIADOS.has(ymd);
+        const passaFeriado = agenda.bloqueiaFeriado ? !ehFeriado : true;
+
+        if (diaPermitido && passaFeriado) {
+          const opt = document.createElement("option");
+          opt.value = ymd;             // salva YYYY-MM-DD no Firestore
+          opt.textContent = formatBR(ymd); // mostra DD/MM/AAAA
+          dataEl.appendChild(opt);
+          count++;
+        }
+        atual = addDays(atual, 1);
+      }
+
+      if (count === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Nenhuma data disponível";
+        dataEl.appendChild(opt);
+      }
+    }
+
+    function atualizarUIporAgenda() {
+      const unidade = unidadeEl.value;
+      const agenda = getAgendaDaUnidade(unidade);
+
+      msgOk.style.display = "none";
+      msgErr.style.display = "none";
+
+      if (!agenda) {
+        infoAgendaEl.classList.add("hidden");
+        preencherDatasPermitidas(null);
+        campoTurno.style.display = "block";
+        turnoEl.value = "";
+        return;
+      }
+
+      const diasTxt = (agenda.diasSemana.length === 2) ? "Terça e Sexta" : "Segunda a Sexta";
+      infoAgendaEl.innerHTML =
+        `<b>${agenda.nome}</b><br>` +
+        `Período: <b>${formatBR(agenda.inicio)}</b> até <b>${formatBR(agenda.fim)}</b><br>` +
+        `Dias permitidos: <b>${diasTxt}</b>` +
+        (agenda.bloqueiaFeriado ? "<br><b>⚠️ Sem feriados</b>" : "");
+
+      infoAgendaEl.classList.remove("hidden");
+
+      // Turno x Livre demanda
+      if (agenda.tipoTurno === "livre") {
+        campoTurno.style.display = "none";
+        turnoEl.value = "Livre demanda";
+      } else {
+        campoTurno.style.display = "block";
+        if (turnoEl.value === "Livre demanda") turnoEl.value = "";
+      }
+
+      // Datas permitidas (mostra SOMENTE o que pode)
+      preencherDatasPermitidas(agenda);
+      dataEl.value = "";
+    }
+
+    unidadeEl.addEventListener("change", atualizarUIporAgenda);
+    atualizarUIporAgenda();
+
+    /***********************
+     * 5) SUBMIT: grava no Firestore em "agendamentos"
+     * (a Cloud Function envia e-mail para ADM e MILITAR)
+     ***********************/
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      msgOk.style.display = "none";
+      msgErr.style.display = "none";
+
+      const formData = new FormData(form);
+
+      const nome = (formData.get("nome") || "").toString().trim();
+      const rg = (formData.get("rg") || "").toString().trim();
+      const email = (formData.get("email") || "").toString().trim();
+      const posto = (formData.get("posto") || "").toString().trim();
+      const unidade = (formData.get("unidade") || "").toString().trim();
+      const data = (formData.get("data") || "").toString().trim();
+
+      // turno: se livre demanda, já está como "Livre demanda"
+      let turno = (formData.get("turno") || "").toString().trim();
+      const agenda = getAgendaDaUnidade(unidade);
+      if (agenda && agenda.tipoTurno === "livre") turno = "Livre demanda";
+
+      // validações simples
+      if (!nome || !rg || !email || !posto || !unidade || !data) {
+        msgErr.textContent = "❌ Preencha todos os campos obrigatórios.";
+        msgErr.style.display = "block";
+        return;
+      }
+      if (agenda && agenda.tipoTurno !== "livre" && !turno) {
+        msgErr.textContent = "❌ Selecione o turno (Manhã ou Tarde).";
+        msgErr.style.display = "block";
+        return;
+      }
+
+      btnAgendar.disabled = true;
+      btnAgendar.textContent = "Enviando...";
+
+      try {
+        await db.collection("agendamentos").add({
+          nome,
+          rg,
+          email,
+          posto,
+          unidade,
+          data,   // YYYY-MM-DD
+          turno: turno || "Livre demanda",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        form.reset();
+        atualizarUIporAgenda(); // recarrega datas/turno conforme unidade (reseta visual)
+        msgOk.style.display = "block";
+      } catch (err) {
+        console.error(err);
+        msgErr.textContent = "❌ Não foi possível concluir. Verifique a conexão e tente novamente.";
+        msgErr.style.display = "block";
+      } finally {
+        btnAgendar.disabled = false;
+        btnAgendar.textContent = "Agendar";
+      }
+    });
+  </script>
 </body>
 </html>
 
