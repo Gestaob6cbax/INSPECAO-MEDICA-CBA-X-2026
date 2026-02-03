@@ -96,19 +96,10 @@
           <option value="DBM 5/M - Sepetiba">DBM 5/M - Sepetiba</option>
         </select>
 
-        <!-- Data: lista só as datas disponíveis (não lotadas) -->
-        <select id="data" name="data" required>
-          <option value="">Selecione a Data</option>
+        <!-- Data + Turno numa única lista -->
+        <select id="dataTurno" name="dataTurno" required>
+          <option value="">Selecione a Data e o Turno</option>
         </select>
-
-        <!-- Turno: só aparece nas agendas de Ter/Sex -->
-        <div id="campo-turno">
-          <select id="turno" name="turno">
-            <option value="">Selecione o Turno</option>
-            <option value="Manhã">Manhã</option>
-            <option value="Tarde">Tarde</option>
-          </select>
-        </div>
       </div>
 
       <button type="submit" id="btnAgendar">Agendar</button>
@@ -169,7 +160,7 @@
 
   </div>
 
-  <!-- EmailJS (carrega normal) -->
+  <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
   <script type="module">
@@ -178,7 +169,7 @@
      ***********************************************************/
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, serverTimestamp,
+      getFirestore, collection, serverTimestamp,
       doc, runTransaction, getDocs, query, where, orderBy, limit
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
@@ -217,9 +208,9 @@
     ]);
 
     /***********************************************************
-     * 4) AGENDAS 1 a 7 (com regras de vagas)
-     *    - Seg–Sex (3 e 4): 5 vagas/dia, 23/02/26 a 31/07/26
-     *    - Ter/Sex: 10 manhã + 10 tarde
+     * 4) AGENDAS 1 a 7 (regras de vagas)
+     *    - Seg–Sex (3 e 4): 5 vagas/dia (mas mostra manhã/tarde), 23/02/26 a 31/07/26
+     *    - Ter/Sex: 10 manhã + 10 tarde (opções somem por turno)
      ***********************************************************/
     const AGENDAS = [
       { id:1, nome:"Agenda 1", unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"],
@@ -228,7 +219,6 @@
       { id:2, nome:"Agenda 2", unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"],
         inicio:"2026-05-19", fim:"2026-06-26", diasSemana:[2,5], tipo:"TER_SEX", bloqueiaFeriado:true },
 
-      // Seg–Sex período fixo solicitado
       { id:3, nome:"Agenda 3", unidades:["CER","2º GMar - Barra da Tijuca"],
         inicio:"2026-02-23", fim:"2026-07-31", diasSemana:[1,2,3,4,5], tipo:"SEG_SEX", bloqueiaFeriado:false },
 
@@ -265,14 +255,20 @@
       return `${y}-${m}-${d}`;
     }
 
+    function diaPermitido(agenda, ymd){
+      const d = new Date(ymd + "T12:00:00");
+      const dow = d.getDay(); // 0-6
+      if (!agenda.diasSemana.includes(dow)) return false;
+      if (agenda.bloqueiaFeriado && FERIADOS.has(ymd)) return false;
+      return true;
+    }
+
     /***********************************************************
      * 5) UI refs
      ***********************************************************/
     const form = document.getElementById("formAgendamento");
     const unidadeEl = document.getElementById("unidade");
-    const dataEl = document.getElementById("data");
-    const campoTurno = document.getElementById("campo-turno");
-    const turnoEl = document.getElementById("turno");
+    const dataTurnoEl = document.getElementById("dataTurno");
     const infoAgendaEl = document.getElementById("infoAgenda");
     const btnAgendar = document.getElementById("btnAgendar");
     const msgOk = document.getElementById("msgOk");
@@ -289,48 +285,29 @@
     const tbodyAgendamentos = document.getElementById("tbodyAgendamentos");
 
     /***********************************************************
-     * 6) CONTADORES DE VAGAS (Firestore)
-     *
+     * 6) COUNTERS
      * Coleção: counters
      * Doc ID: agendaId_YYYY-MM-DD
-     * Ex:
-     *   {
-     *     agendaId: 3,
-     *     date: "2026-02-23",
-     *     total: 0,
-     *     manha: 0,
-     *     tarde: 0
-     *   }
+     * Campos:
+     * { agendaId, date, total, manha, tarde }
      ***********************************************************/
     function counterDocId(agendaId, ymd){
       return `${agendaId}_${ymd}`;
     }
 
-    function getLimite(agenda, turno){
-      if (agenda.tipo === "SEG_SEX") return 5;               // 5 por dia
-      if (agenda.tipo === "TER_SEX") return 10;              // 10 por turno
-      return 0;
-    }
-
-    function diaPermitido(agenda, ymd){
-      const d = new Date(ymd + "T12:00:00");
-      const dow = d.getDay(); // 0-6
-      if (!agenda.diasSemana.includes(dow)) return false;
-      if (agenda.bloqueiaFeriado && FERIADOS.has(ymd)) return false;
-      return true;
-    }
-
     /***********************************************************
-     * 7) Preencher datas disponíveis (já removendo as lotadas)
+     * 7) Preencher datas disponíveis:
+     *   - SEG_SEX: sempre mostra "Data – Manhã" e "Data – Tarde",
+     *             mas ambas somem quando total >= 5 no dia
+     *   - TER_SEX: mostra opção por turno (some quando manha>=10 ou tarde>=10)
      ***********************************************************/
     async function preencherDatasDisponiveis(agenda){
-      dataEl.innerHTML = `<option value="">Selecione a Data</option>`;
+      dataTurnoEl.innerHTML = `<option value="">Selecione a Data e o Turno</option>`;
       if (!agenda) return;
 
       const inicio = new Date(agenda.inicio + "T12:00:00");
       const fim = new Date(agenda.fim + "T12:00:00");
 
-      // para reduzir leituras, listamos as datas possíveis no frontend
       const datasPossiveis = [];
       let atual = inicio;
       while (atual <= fim){
@@ -339,28 +316,19 @@
         atual = addDays(atual, 1);
       }
 
-      // Se não tem datas possíveis:
       if (datasPossiveis.length === 0){
         const opt = document.createElement("option");
         opt.value = "";
         opt.textContent = "Nenhuma data disponível";
-        dataEl.appendChild(opt);
+        dataTurnoEl.appendChild(opt);
         return;
       }
 
-      // Vamos filtrar as lotadas consultando counters
-      // (Como as datas podem ser muitas, fazemos uma estratégia simples: consulta geral dos counters da agenda)
-      // Para manter simples: mostramos tudo e ao selecionar a data validamos na transaction.
-      // MAS você pediu "a data sair do sistema quando lotar", então vamos remover as lotadas com base nos counters existentes.
-
-      // Busca todos os counters desta agenda (limitado – suficiente para nosso período)
-      const qCounters = query(
-        collection(db, "counters"),
-        where("agendaId", "==", agenda.id)
-      );
+      // Buscar counters da agenda para remover lotados
+      const qCounters = query(collection(db, "counters"), where("agendaId", "==", agenda.id));
       const snap = await getDocs(qCounters);
 
-      const mapa = new Map(); // ymd -> {manha,tarde,total}
+      const mapa = new Map(); // ymd -> counter
       snap.forEach(docu => {
         const v = docu.data();
         if (v?.date) mapa.set(v.date, v);
@@ -369,29 +337,39 @@
       for (const ymd of datasPossiveis){
         const c = mapa.get(ymd);
 
-        let disponivel = true;
         if (agenda.tipo === "SEG_SEX"){
           const total = c?.total || 0;
-          if (total >= 5) disponivel = false;
+          if (total >= 5) continue; // dia lotado => remove manhã e tarde
+          for (const t of ["Manhã", "Tarde"]) {
+            const opt = document.createElement("option");
+            opt.value = `${ymd}|${t}`;
+            opt.textContent = `${formatBR(ymd)} – ${t}`;
+            dataTurnoEl.appendChild(opt);
+          }
         } else {
           const manha = c?.manha || 0;
           const tarde = c?.tarde || 0;
-          if (manha >= 10 && tarde >= 10) disponivel = false; // dia completamente lotado
-        }
 
-        if (disponivel){
-          const opt = document.createElement("option");
-          opt.value = ymd;
-          opt.textContent = formatBR(ymd);
-          dataEl.appendChild(opt);
+          if (manha < 10){
+            const optM = document.createElement("option");
+            optM.value = `${ymd}|Manhã`;
+            optM.textContent = `${formatBR(ymd)} – Manhã`;
+            dataTurnoEl.appendChild(optM);
+          }
+          if (tarde < 10){
+            const optT = document.createElement("option");
+            optT.value = `${ymd}|Tarde`;
+            optT.textContent = `${formatBR(ymd)} – Tarde`;
+            dataTurnoEl.appendChild(optT);
+          }
         }
       }
 
-      if (dataEl.options.length === 1){
+      if (dataTurnoEl.options.length === 1){
         const opt = document.createElement("option");
         opt.value = "";
         opt.textContent = "Nenhuma data disponível";
-        dataEl.appendChild(opt);
+        dataTurnoEl.appendChild(opt);
       }
     }
 
@@ -401,7 +379,9 @@
         return;
       }
       const diasTxt = (agenda.tipo === "TER_SEX") ? "Terça e Sexta" : "Segunda a Sexta";
-      const vagasTxt = (agenda.tipo === "TER_SEX") ? "10 vagas (manhã) + 10 vagas (tarde)" : "5 vagas por dia (livre demanda)";
+      const vagasTxt = (agenda.tipo === "TER_SEX")
+        ? "10 vagas (manhã) + 10 vagas (tarde)"
+        : "5 vagas por dia (aparece manhã/tarde apenas para organização)";
       const feriadoTxt = agenda.bloqueiaFeriado ? "Sem feriados" : "Feriados permitidos";
 
       infoAgendaEl.innerHTML =
@@ -424,29 +404,21 @@
       atualizarInfoAgenda(agenda);
 
       if (!agenda){
-        campoTurno.style.display = "block";
-        turnoEl.value = "";
-        dataEl.innerHTML = `<option value="">Selecione a Data</option>`;
+        dataTurnoEl.innerHTML = `<option value="">Selecione a Data e o Turno</option>`;
         return;
       }
 
-      if (agenda.tipo === "SEG_SEX"){
-        campoTurno.style.display = "none";
-        turnoEl.value = "Livre demanda";
-      } else {
-        campoTurno.style.display = "block";
-        turnoEl.value = "";
-      }
-
       await preencherDatasDisponiveis(agenda);
-      dataEl.value = "";
+      dataTurnoEl.value = "";
     }
 
     unidadeEl.addEventListener("change", () => { atualizarUI(); });
     atualizarUI();
 
     /***********************************************************
-     * 8) Salvar agendamento com TRAVA DE VAGAS (transaction)
+     * 8) Criar agendamento com trava de vaga (transaction)
+     *    - SEG_SEX: incrementa total (limite 5/dia), independente de "manhã/tarde"
+     *    - TER_SEX: incrementa manha ou tarde (limite 10/turno)
      ***********************************************************/
     async function criarAgendamentoComVaga(dados){
       const agenda = dados.agendaObj;
@@ -458,20 +430,21 @@
 
       await runTransaction(db, async (tx) => {
         const counterSnap = await tx.get(counterRef);
-        const current = counterSnap.exists() ? counterSnap.data() : { agendaId: agenda.id, date: ymd, total: 0, manha: 0, tarde: 0 };
+        const current = counterSnap.exists()
+          ? counterSnap.data()
+          : { agendaId: agenda.id, date: ymd, total: 0, manha: 0, tarde: 0 };
 
-        // valida novamente o dia permitido
         if (!diaPermitido(agenda, ymd)) {
           throw new Error("DATA_NAO_PERMITIDA");
         }
 
-        // checa limite
         if (agenda.tipo === "SEG_SEX"){
           const total = current.total || 0;
           if (total >= 5) throw new Error("LOTADO");
           current.total = total + 1;
         } else {
           if (turno !== "Manhã" && turno !== "Tarde") throw new Error("TURNO_INVALIDO");
+
           if (turno === "Manhã"){
             const manha = current.manha || 0;
             if (manha >= 10) throw new Error("LOTADO_MANHA");
@@ -483,7 +456,6 @@
           }
         }
 
-        // grava counter
         tx.set(counterRef, {
           agendaId: agenda.id,
           date: ymd,
@@ -492,7 +464,6 @@
           tarde: current.tarde || 0
         }, { merge: true });
 
-        // grava agendamento
         const novoRef = doc(agendamentosCol);
         tx.set(novoRef, {
           nome: dados.nome,
@@ -504,7 +475,7 @@
           agendaNome: agenda.nome,
           data: ymd,
           data_br: dados.data_br,
-          turno: (agenda.tipo === "SEG_SEX") ? "Livre demanda" : turno,
+          turno: turno, // em SEG_SEX é só organizacional, mas vai aparecer na tabela/e-mail
           createdAt: serverTimestamp()
         });
       });
@@ -514,15 +485,12 @@
      * 9) Enviar e-mails (ADM + Militar) via EmailJS
      ***********************************************************/
     async function enviarEmails(dados){
-      // ADM 1
       await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, { ...dados, to_email: ADM_EMAIL_1 });
 
-      // ADM 2 (se tiver)
       if (ADM_EMAIL_2 && ADM_EMAIL_2.includes("@")) {
         await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, { ...dados, to_email: ADM_EMAIL_2 });
       }
 
-      // MILITAR
       await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_MILITAR_ID, { ...dados, to_email: dados.email });
     }
 
@@ -544,7 +512,6 @@
       const email = (fd.get("email") || "").toString().trim();
       const posto = (fd.get("posto") || "").toString().trim();
       const unidade = (fd.get("unidade") || "").toString().trim();
-      const data = (fd.get("data") || "").toString().trim();
 
       const agenda = getAgendaDaUnidade(unidade);
       if (!agenda){
@@ -553,15 +520,16 @@
         return;
       }
 
-      let turno = (agenda.tipo === "SEG_SEX") ? "Livre demanda" : (fd.get("turno") || "").toString().trim();
-
-      if (!nome || !rg || !email || !posto || !unidade || !data){
-        msgErr.textContent = "❌ Preencha todos os campos obrigatórios.";
+      const dataTurno = (fd.get("dataTurno") || "").toString().trim();
+      if (!dataTurno || !dataTurno.includes("|")) {
+        msgErr.textContent = "❌ Selecione a data e o turno.";
         msgErr.style.display = "block";
         return;
       }
-      if (agenda.tipo === "TER_SEX" && !turno){
-        msgErr.textContent = "❌ Selecione o turno (Manhã ou Tarde).";
+      const [data, turno] = dataTurno.split("|");
+
+      if (!nome || !rg || !email || !posto || !unidade || !data || !turno){
+        msgErr.textContent = "❌ Preencha todos os campos obrigatórios.";
         msgErr.style.display = "block";
         return;
       }
@@ -582,10 +550,8 @@
       };
 
       try {
-        // 1) garante vaga e grava no Firestore
         await criarAgendamentoComVaga(dados);
 
-        // 2) envia e-mails
         await enviarEmails({
           nome: dados.nome,
           rg: dados.rg,
@@ -595,10 +561,9 @@
           agenda: dados.agenda,
           data: dados.data,
           data_br: dados.data_br,
-          turno: (agenda.tipo === "SEG_SEX") ? "Livre demanda" : dados.turno
+          turno: dados.turno
         });
 
-        // 3) atualiza UI e remove datas lotadas
         form.reset();
         await atualizarUI();
 
@@ -609,11 +574,11 @@
         msgSending.style.display = "none";
 
         if (String(err?.message).includes("LOTADO_MANHA")){
-          msgErr.textContent = "❌ Turno da manhã lotado para essa data. Escolha outra data/turno.";
+          msgErr.textContent = "❌ Turno da manhã lotado para essa data. Escolha outra opção.";
         } else if (String(err?.message).includes("LOTADO_TARDE")){
-          msgErr.textContent = "❌ Turno da tarde lotado para essa data. Escolha outra data/turno.";
+          msgErr.textContent = "❌ Turno da tarde lotado para essa data. Escolha outra opção.";
         } else if (String(err?.message).includes("LOTADO")){
-          msgErr.textContent = "❌ Data lotada. Escolha outra data.";
+          msgErr.textContent = "❌ Data lotada (5 vagas/dia). Escolha outra opção.";
         } else if (String(err?.message).includes("DATA_NAO_PERMITIDA")){
           msgErr.textContent = "❌ Data não permitida para essa agenda.";
         } else {
