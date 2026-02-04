@@ -83,8 +83,12 @@
       doc, runTransaction
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // PIN
+    // PIN (aceita espaços e minúsculas/maiúsculas)
     const PIN_CORRETO = "B6CBAX2023";
+
+    function normalizarPin(v){
+      return (v || "").trim().toUpperCase();
+    }
 
     // Firebase
     const firebaseConfig = {
@@ -126,14 +130,25 @@
       return `${agendaId}_${ymd}`;
     }
 
-    btnEntrar.addEventListener("click", async () => {
-      if (pinEl.value !== PIN_CORRETO){
+    async function entrarAdmin(){
+      const digitado = normalizarPin(pinEl.value);
+      const correto = normalizarPin(PIN_CORRETO);
+
+      if (digitado !== correto){
         alert("PIN incorreto.");
         return;
       }
+      pinEl.value = "";
       pinArea.classList.add("hidden");
       adminArea.classList.remove("hidden");
       await carregarTabela();
+    }
+
+    btnEntrar.addEventListener("click", entrarAdmin);
+
+    // permitir Enter
+    pinEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") entrarAdmin();
     });
 
     btnAtualizar.addEventListener("click", async () => {
@@ -239,3 +254,4 @@
   </script>
 </body>
 </html>
+
