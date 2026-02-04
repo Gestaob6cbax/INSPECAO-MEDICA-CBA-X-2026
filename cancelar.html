@@ -1,1 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cancelar Agendamento – Inspeção de Saúde</title>
 
+  <style>
+    body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
+    .box { max-width:520px; margin:40px auto; background:#fff; padding:20px; border-radius:10px; text-align:center; }
+    input, button { width:100%; padding:12px; border-radius:8px; font-size:15px; box-sizing:border-box; }
+    input { border:1px solid #ccc; margin:10px 0; }
+    button { border:none; background:#c0392b; color:#fff; cursor:pointer; }
+    button:hover { background:#a93226; }
+    .ok { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold; }
+    .err { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold; }
+    .small { font-size:12px; color:#666; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Cancelar Agendamento</h2>
+    <p>Digite o <b>código do agendamento</b> (recebido no e-mail).</p>
+
+    <input type="text" id="codigo" placeholder="Ex: aBcD1234EfGh..." />
+    <button id="btnCancelar">Cancelar Agendamento</button>
+
+    <div class="ok" id="msgOk">✅ Agendamento cancelado com sucesso. A vaga voltou para a agenda.</div>
+    <div class="err" id="msgErr">❌ Não foi possível cancelar. Verifique o código e tente novamente.</div>
+
+    <div class="small">
+      Se você não tiver o código, solicite ao administrador.
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, deleteDoc, runTransaction
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    // SEU FIREBASE (já é o mesmo do index)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+      authDomain: "inspecao-saude-cbax.firebaseapp.com",
+      projectId: "inspecao-saude-cbax",
+      storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+      messagingSenderId: "1011281662526",
+      appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const btn = document.getElementById("btnCancelar");
+    const codigoEl = document.getElementById("codigo");
+    const msgOk = document.getElementById("msgOk");
+    const msgErr = document.getElementById("msgErr");
+
+    function counterDocId(agendaId, ymd){
+      return `${agendaId}_${ymd}`;
+    }
+
+    btn.addEventListener("click", async () => {
+      msgOk.style.display = "none";
+      msgErr.style.display = "none";
+
+      const codigo = (codigoEl.value || "").trim();
+      if (!codigo) {
+        msgErr.textContent = "❌ Digite o código do agendamento.";
+        msgErr.style.display = "block";
+        return;
+      }
+
+      const agRef = doc(db, "agendamentos", codigo);
+
+      try {
+        await runTransaction(db, async (tx) => {
+          const agSnap = await tx.get(agRef);
+          if (!agSnap.exists()) throw new Error("NAO_EXISTE");
+
+          const ag = agSnap.data();
+          const agendaId = ag.agendaId;
+          const data = ag.data;     // YYYY-MM-DD
+          const turno = ag.turno;   // "Manhã" | "Tarde"
+
+          if (!agendaId || !data) throw new Error("DADOS_INVALIDOS");
+
+          const cRef = doc(db, "counters", counterDocId(agendaId, data));
+          const cSnap = await tx.get(cRef);
+          const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
+
+          // Regras:
+          // - Seg–Sex: contagem está em "total" (5/dia)
+          // - Ter/Sex: contagem está em "manha"/"tarde" (10/turno)
+          // No seu sistema, SEG_SEX também grava "turno" só para organização,
+          // então usamos o seguinte:
+          // se existir manha/tarde com valores, decrementar pelo turno (Ter/Sex)
+          // senão decrementar total (Seg–Sex)
+
+          let novoTotal = c.total || 0;
+          let novaManha = c.manha || 0;
+          let novaTarde = c.tarde || 0;
+
+          // Heurística segura:
+          // Se o counter tem manha/tarde > 0 e turno for Manhã/Tarde => decrementa turno.
+          // Caso contrário => decrementa total.
+          const temControlePorTurno = ( (c.manha || 0) > 0 || (c.tarde || 0) > 0 );
+
+          if (temControlePorTurno && (turno === "Manhã" || turno === "Tarde")) {
+            if (turno === "Manhã") novaManha = Math.max(0, novaManha - 1);
+            if (turno === "Tarde") novaTarde = Math.max(0, novaTarde - 1);
+          } else {
+            novoTotal = Math.max(0, novoTotal - 1);
+          }
+
+          tx.set(cRef, { total: novoTotal, manha: novaManha, tarde: novaTarde }, { merge:true });
+
+          // apaga o agendamento
+          tx.delete(agRef);
+        });
+
+        msgOk.style.display = "block";
+      } catch (e) {
+        console.error(e);
+        msgErr.style.display = "block";
+      }
+    });
