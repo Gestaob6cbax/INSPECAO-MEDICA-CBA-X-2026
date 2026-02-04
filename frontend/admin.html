@@ -3,345 +3,239 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>INSPEÇÃO DE SAÚDE – CBA X</title>
+  <title>Admin – Inspeção de Saúde CBA X</title>
 
   <style>
-    body { font-family: Arial, sans-serif; background-color:#f2f4f8; margin:0; padding:0; }
-    .container { max-width:700px; margin:30px auto; background:#fff; padding:20px; border-radius:8px; text-align:center; }
-    .logo { max-width:180px; width:100%; margin-bottom:15px; }
-
-    .form-agendamento { margin-top:20px; text-align:left; }
-    .form-agendamento input, .form-agendamento select {
-      width:100%; padding:10px; margin-bottom:10px;
-      border-radius:5px; border:1px solid #ccc; font-size:14px; box-sizing:border-box;
-    }
-
-    .form-agendamento button {
-      width:100%; padding:12px; background-color:#0b3c5d; color:#fff;
-      border:none; border-radius:5px; font-size:16px; cursor:pointer;
-    }
-    .form-agendamento button:hover { background-color:#092f49; }
-    .form-agendamento button:disabled { opacity:.65; cursor:not-allowed; }
-
-    .info-agenda {
-      background:#f6f8fb; border:1px solid #e1e6ef; border-radius:8px;
-      padding:10px 12px; margin:10px 0 12px 0; font-size:13px; color:#243042;
-      text-align:left;
-    }
+    body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
+    .box { max-width:1100px; margin:30px auto; background:#fff; padding:20px; border-radius:10px; }
+    h2 { margin:0 0 10px 0; }
+    input, select, button { padding:10px; border-radius:8px; font-size:14px; border:1px solid #ccc; box-sizing:border-box; }
+    button { border:none; background:#0b3c5d; color:#fff; cursor:pointer; }
+    button:hover { background:#092f49; }
+    .danger { background:#c0392b; }
+    .danger:hover { background:#a93226; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
     .hidden { display:none; }
-
-    .msg {
-      display:none; margin-top:12px; padding:10px 12px; border-radius:8px;
-      background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold; text-align:center;
-    }
-    .err {
-      display:none; margin-top:12px; padding:10px 12px; border-radius:8px;
-      background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold; text-align:center;
-    }
-    .small { font-size:12px; color:#566; margin-top:8px; text-align:center; }
+    table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
+    th, td { border:1px solid #e4e4e4; padding:8px; text-align:left; }
+    th { background:#f6f8fb; }
+    .ok { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold; }
+    .err { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold; }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <img src="logo-cbax.png" alt="Logo CBA X" class="logo" />
-    <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
-    <p>Sistema de Agendamento de Inspeção de Saúde</p>
+  <div class="box">
+    <h2>Área Administrativa – Inspeção de Saúde CBA X</h2>
 
-    <form class="form-agendamento" id="formAgendamento">
-      <input type="text" name="nome" placeholder="Nome completo" required />
-      <input type="text" name="rg" placeholder="RG" required />
-      <input type="email" name="email" placeholder="E-mail" required autocomplete="off" />
+    <!-- LOGIN PIN -->
+    <div class="row" id="pinArea">
+      <input type="password" id="pin" placeholder="Digite o PIN" style="max-width:240px;">
+      <button type="button" id="btnEntrar">Entrar</button>
+    </div>
 
-      <select name="posto" required>
-        <option value="">Selecione o Posto / Graduação</option>
-        <option>SDBM</option>
-        <option>CB BM</option>
-        <option>3º SGT BM</option>
-        <option>2º SGT BM</option>
-        <option>1º SGT BM</option>
-        <option>SUBTEN BM</option>
-        <option>2º TEN BM</option>
-        <option>1º TEN BM</option>
-        <option>CAP BM</option>
-        <option>MAJ BM</option>
-        <option>TEN CEL BM</option>
-        <option>CEL BM</option>
-      </select>
-
-      <select id="unidade" name="unidade" required>
-        <option value="">Selecione a Unidade</option>
-
-        <option value="1º GMar - Botafogo">1º GMar - Botafogo</option>
-        <option value="DBM 1/M - Paquetá">DBM 1/M - Paquetá</option>
-        <option value="DBM 2/M - Piscinão de Ramos">DBM 2/M - Piscinão de Ramos</option>
-
-        <option value="2º GMar - Barra da Tijuca">2º GMar - Barra da Tijuca</option>
-        <option value="CER">CER</option>
-
-        <option value="3º GMar - Copacabana">3º GMar - Copacabana</option>
-
-        <option value="4º GMar - Itaipu">4º GMar - Itaipu</option>
-        <option value="DBM 6/M - Itaipu">DBM 6/M - Itaipu</option>
-
-        <option value="CBA X">CBA X</option>
-
-        <option value="DBM 3/M - Recreio">DBM 3/M - Recreio</option>
-        <option value="DBM 4/M - Barra de Guaratiba">DBM 4/M - Barra de Guaratiba</option>
-        <option value="DBM 5/M - Sepetiba">DBM 5/M - Sepetiba</option>
-      </select>
-
-      <div class="info-agenda hidden" id="infoAgenda"></div>
-
-      <select id="data" name="data" required>
-        <option value="">Selecione a Data</option>
-      </select>
-
-      <div id="campo-turno">
-        <select id="turno" name="turno">
-          <option value="">Selecione o Turno</option>
-          <option value="Manhã">Manhã</option>
-          <option value="Tarde">Tarde</option>
+    <div id="adminArea" class="hidden">
+      <div class="row">
+        <select id="filtroUnidade" style="min-width:260px;">
+          <option value="">Todas as unidades</option>
+          <option>1º GMar - Botafogo</option>
+          <option>DBM 1/M - Paquetá</option>
+          <option>DBM 2/M - Piscinão de Ramos</option>
+          <option>2º GMar - Barra da Tijuca</option>
+          <option>CER</option>
+          <option>3º GMar - Copacabana</option>
+          <option>4º GMar - Itaipu</option>
+          <option>DBM 6/M - Itaipu</option>
+          <option>CBA X</option>
+          <option>DBM 3/M - Recreio</option>
+          <option>DBM 4/M - Barra de Guaratiba</option>
+          <option>DBM 5/M - Sepetiba</option>
         </select>
+
+        <button type="button" id="btnAtualizar">Atualizar tabela</button>
       </div>
 
-      <button type="submit" id="btnAgendar">Agendar</button>
+      <div class="ok" id="msgOk">✅ Operação realizada com sucesso.</div>
+      <div class="err" id="msgErr">❌ Não foi possível realizar a operação.</div>
 
-      <div class="msg" id="msgOk">✅ Agendamento realizado com sucesso! Verifique seu e-mail.</div>
-      <div class="err" id="msgErr">❌ Não foi possível enviar. Tente novamente.</div>
-
-      <div class="small">Se não encontrar o e-mail, verifique a caixa de spam.</div>
-    </form>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Turno</th>
+            <th>Unidade</th>
+            <th>Nome</th>
+            <th>RG</th>
+            <th>Posto/Grad</th>
+            <th>E-mail</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, collection, query, where, orderBy, limit, getDocs,
+      doc, runTransaction
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  <script>
-    /********************
-     * EmailJS (SEUS DADOS)
-     ********************/
-    const EMAILJS_PUBLIC_KEY = "GySnRXpCdioddGW-7";
-    const EMAILJS_SERVICE_ID = "service_57r7wmp";
-    const TEMPLATE_ADM_ID = "template_q4u6ul6";
-    const TEMPLATE_MILITAR_ID = "template_zjjttya";
+    // PIN
+    const PIN_CORRETO = "B6CBAX2023";
 
-    // Administradores (coloque o 2º aqui se quiser)
-    const ADM_EMAIL_1 = "b6cbax2023@gmail.com";
-    const ADM_EMAIL_2 = ""; // opcional
+    // Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+      authDomain: "inspecao-saude-cbax.firebaseapp.com",
+      projectId: "inspecao-saude-cbax",
+      storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+      messagingSenderId: "1011281662526",
+      appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+    };
 
-    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    /********************
-     * FERIADOS 2026 (bloqueados apenas em TER/SEX)
-     ********************/
-    const FERIADOS = new Set([
-      // Nacionais
-      "2026-01-01","2026-02-16","2026-02-17","2026-04-03","2026-04-21","2026-05-01",
-      "2026-06-04","2026-09-07","2026-10-12","2026-11-02","2026-11-15","2026-12-25",
-      // Municipais RJ
-      "2026-01-20","2026-04-23"
-    ]);
-
-    /********************
-     * AGENDAS 1 a 7
-     ********************/
-    const AGENDAS = [
-      { id:1, nome:"Agenda 1", unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"],
-        inicio:"2026-03-17", fim:"2026-05-15", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
-
-      { id:2, nome:"Agenda 2", unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"],
-        inicio:"2026-05-19", fim:"2026-06-26", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
-
-      { id:3, nome:"Agenda 3", unidades:["CER","2º GMar - Barra da Tijuca"],
-        inicio:"2026-02-23", fim:"2026-07-31", diasSemana:[1,2,3,4,5], tipoTurno:"livre", bloqueiaFeriado:false },
-
-      { id:4, nome:"Agenda 4", unidades:["3º GMar - Copacabana"],
-        inicio:"2026-02-23", fim:"2026-07-31", diasSemana:[1,2,3,4,5], tipoTurno:"livre", bloqueiaFeriado:false },
-
-      { id:5, nome:"Agenda 5", unidades:["CBA X"],
-        inicio:"2026-03-10", fim:"2026-03-13", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
-
-      { id:6, nome:"Agenda 6", unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio"],
-        inicio:"2026-06-30", fim:"2026-07-31", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
-
-      { id:7, nome:"Agenda 7", unidades:["DBM 5/M - Sepetiba"],
-        inicio:"2026-02-23", fim:"2026-03-05", diasSemana:[2,5], tipoTurno:"turno", bloqueiaFeriado:true },
-    ];
-
-    const form = document.getElementById("formAgendamento");
-    const unidadeEl = document.getElementById("unidade");
-    const dataEl = document.getElementById("data");
-    const campoTurno = document.getElementById("campo-turno");
-    const turnoEl = document.getElementById("turno");
-    const infoAgendaEl = document.getElementById("infoAgenda");
-    const btnAgendar = document.getElementById("btnAgendar");
+    const pinArea = document.getElementById("pinArea");
+    const adminArea = document.getElementById("adminArea");
+    const btnEntrar = document.getElementById("btnEntrar");
+    const pinEl = document.getElementById("pin");
+    const filtroUnidade = document.getElementById("filtroUnidade");
+    const btnAtualizar = document.getElementById("btnAtualizar");
+    const tbody = document.getElementById("tbody");
     const msgOk = document.getElementById("msgOk");
     const msgErr = document.getElementById("msgErr");
 
-    function getAgendaDaUnidade(unidade) {
-      return AGENDAS.find(a => a.unidades.includes(unidade));
+    function showOk(text){
+      msgErr.style.display="none";
+      msgOk.textContent = text;
+      msgOk.style.display="block";
+      setTimeout(()=> msgOk.style.display="none", 4000);
     }
-    function formatBR(ymd) {
-      const [y,m,d] = ymd.split("-");
-      return `${d}/${m}/${y}`;
-    }
-    function addDays(dateObj, days) {
-      const d = new Date(dateObj);
-      d.setDate(d.getDate() + days);
-      return d;
-    }
-    function toYMD(dateObj) {
-      const y = dateObj.getFullYear();
-      const m = String(dateObj.getMonth()+1).padStart(2,"0");
-      const d = String(dateObj.getDate()).padStart(2,"0");
-      return `${y}-${m}-${d}`;
+    function showErr(text){
+      msgOk.style.display="none";
+      msgErr.textContent = text;
+      msgErr.style.display="block";
+      setTimeout(()=> msgErr.style.display="none", 5000);
     }
 
-    function preencherDatasPermitidas(agenda) {
-      dataEl.innerHTML = `<option value="">Selecione a Data</option>`;
-      if (!agenda) return;
-
-      const inicio = new Date(agenda.inicio + "T12:00:00");
-      const fim = new Date(agenda.fim + "T12:00:00");
-
-      let atual = inicio;
-      let count = 0;
-
-      while (atual <= fim) {
-        const ymd = toYMD(atual);
-        const dow = atual.getDay(); // dom=0 ... sáb=6
-
-        const diaPermitido = agenda.diasSemana.includes(dow);
-        const ehFeriado = FERIADOS.has(ymd);
-        const passaFeriado = agenda.bloqueiaFeriado ? !ehFeriado : true;
-
-        if (diaPermitido && passaFeriado) {
-          const opt = document.createElement("option");
-          opt.value = ymd;
-          opt.textContent = formatBR(ymd);
-          dataEl.appendChild(opt);
-          count++;
-        }
-        atual = addDays(atual, 1);
-      }
-
-      if (count === 0) {
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "Nenhuma data disponível";
-        dataEl.appendChild(opt);
-      }
+    function counterDocId(agendaId, ymd){
+      return `${agendaId}_${ymd}`;
     }
 
-    function atualizarUIporAgenda() {
-      const unidade = unidadeEl.value;
-      const agenda = getAgendaDaUnidade(unidade);
-
-      msgOk.style.display = "none";
-      msgErr.style.display = "none";
-
-      if (!agenda) {
-        infoAgendaEl.classList.add("hidden");
-        preencherDatasPermitidas(null);
-        campoTurno.style.display = "block";
-        turnoEl.value = "";
+    btnEntrar.addEventListener("click", async () => {
+      if (pinEl.value !== PIN_CORRETO){
+        alert("PIN incorreto.");
         return;
       }
+      pinArea.classList.add("hidden");
+      adminArea.classList.remove("hidden");
+      await carregarTabela();
+    });
 
-      const diasTxt = (agenda.diasSemana.length === 2) ? "Terça e Sexta" : "Segunda a Sexta";
-      infoAgendaEl.innerHTML =
-        `<b>${agenda.nome}</b><br>` +
-        `Período: <b>${formatBR(agenda.inicio)}</b> até <b>${formatBR(agenda.fim)}</b><br>` +
-        `Dias permitidos: <b>${diasTxt}</b>` +
-        (agenda.bloqueiaFeriado ? "<br><b>⚠️ Sem feriados (apenas agendas de terça/sexta)</b>" : "");
+    btnAtualizar.addEventListener("click", async () => {
+      await carregarTabela();
+    });
 
-      infoAgendaEl.classList.remove("hidden");
+    async function carregarTabela(){
+      tbody.innerHTML = "";
+      const uni = filtroUnidade.value;
 
-      if (agenda.tipoTurno === "livre") {
-        campoTurno.style.display = "none";
-        turnoEl.value = "Livre demanda";
+      let qAg;
+      if (uni){
+        qAg = query(collection(db, "agendamentos"),
+          where("unidade","==",uni),
+          orderBy("data","asc"),
+          limit(1000)
+        );
       } else {
-        campoTurno.style.display = "block";
-        turnoEl.value = "";
+        qAg = query(collection(db, "agendamentos"),
+          orderBy("data","asc"),
+          limit(1000)
+        );
       }
 
-      preencherDatasPermitidas(agenda);
-      dataEl.value = "";
-    }
+      const snap = await getDocs(qAg);
 
-    unidadeEl.addEventListener("change", atualizarUIporAgenda);
-    atualizarUIporAgenda();
-
-    async function enviarEmails(dados) {
-      // ADM 1
-      await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, { ...dados, to_email: ADM_EMAIL_1 });
-
-      // ADM 2 (se preencher)
-      if (ADM_EMAIL_2 && ADM_EMAIL_2.includes("@")) {
-        await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, { ...dados, to_email: ADM_EMAIL_2 });
-      }
-
-      // MILITAR
-      await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_MILITAR_ID, { ...dados, to_email: dados.email });
-    }
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      msgOk.style.display = "none";
-      msgErr.style.display = "none";
-
-      const fd = new FormData(form);
-      const nome = (fd.get("nome") || "").toString().trim();
-      const rg = (fd.get("rg") || "").toString().trim();
-      const email = (fd.get("email") || "").toString().trim();
-      const posto = (fd.get("posto") || "").toString().trim();
-      const unidade = (fd.get("unidade") || "").toString().trim();
-      const data = (fd.get("data") || "").toString().trim();
-
-      const agenda = getAgendaDaUnidade(unidade);
-      let turno = (agenda && agenda.tipoTurno === "livre") ? "Livre demanda" : (fd.get("turno") || "").toString().trim();
-
-      if (!nome || !rg || !email || !posto || !unidade || !data) {
-        msgErr.textContent = "❌ Preencha todos os campos obrigatórios.";
-        msgErr.style.display = "block";
-        return;
-      }
-      if (agenda && agenda.tipoTurno !== "livre" && !turno) {
-        msgErr.textContent = "❌ Selecione o turno (Manhã ou Tarde).";
-        msgErr.style.display = "block";
+      if (!snap.size){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="8">Nenhum agendamento encontrado.</td>`;
+        tbody.appendChild(tr);
         return;
       }
 
-      btnAgendar.disabled = true;
-      btnAgendar.textContent = "Enviando...";
+      snap.forEach((d) => {
+        const v = d.data();
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${v.data_br || ""}</td>
+          <td>${v.turno || ""}</td>
+          <td>${v.unidade || ""}</td>
+          <td>${v.nome || ""}</td>
+          <td>${v.rg || ""}</td>
+          <td>${v.posto || ""}</td>
+          <td>${v.email || ""}</td>
+          <td>
+            <button class="danger" data-id="${d.id}">Excluir</button>
+          </td>
+        `;
+
+        tr.querySelector("button").addEventListener("click", async () => {
+          const ok = confirm("Tem certeza que deseja excluir este agendamento? (A vaga voltará para a agenda)");
+          if (!ok) return;
+          await excluirEDevolverVaga(d.id);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function excluirEDevolverVaga(docId){
+      const agRef = doc(db, "agendamentos", docId);
 
       try {
-        const dados = {
-          nome,
-          rg,
-          email,
-          posto,
-          unidade,
-          agenda: agenda ? agenda.nome : "",
-          data,
-          data_br: formatBR(data),
-          turno
-        };
+        await runTransaction(db, async (tx) => {
+          const agSnap = await tx.get(agRef);
+          if (!agSnap.exists()) throw new Error("NAO_EXISTE");
 
-        await enviarEmails(dados);
+          const ag = agSnap.data();
+          const agendaId = ag.agendaId;
+          const data = ag.data;    // YYYY-MM-DD
+          const turno = ag.turno;  // Manhã/Tarde
+          if (!agendaId || !data) throw new Error("DADOS_INVALIDOS");
 
-        form.reset();
-        atualizarUIporAgenda();
-        msgOk.style.display = "block";
-      } catch (err) {
-        console.error(err);
-        msgErr.textContent = "❌ Falha no envio. Confirme no EmailJS: domínio permitido e To Email = {{to_email}}.";
-        msgErr.style.display = "block";
-      } finally {
-        btnAgendar.disabled = false;
-        btnAgendar.textContent = "Agendar";
+          const cRef = doc(db, "counters", counterDocId(agendaId, data));
+          const cSnap = await tx.get(cRef);
+          const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
+
+          let total = c.total || 0;
+          let manha = c.manha || 0;
+          let tarde = c.tarde || 0;
+
+          const temControlePorTurno = ((c.manha || 0) > 0 || (c.tarde || 0) > 0);
+
+          if (temControlePorTurno && (turno === "Manhã" || turno === "Tarde")) {
+            if (turno === "Manhã") manha = Math.max(0, manha - 1);
+            if (turno === "Tarde") tarde = Math.max(0, tarde - 1);
+          } else {
+            total = Math.max(0, total - 1);
+          }
+
+          tx.set(cRef, { total, manha, tarde }, { merge:true });
+          tx.delete(agRef);
+        });
+
+        showOk("✅ Agendamento excluído e vaga devolvida.");
+        await carregarTabela();
+      } catch(e){
+        console.error(e);
+        showErr("❌ Não foi possível excluir.");
       }
-    });
+    }
   </script>
 </body>
 </html>
