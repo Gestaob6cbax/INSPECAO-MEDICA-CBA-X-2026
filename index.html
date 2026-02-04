@@ -1,659 +1,219 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>INSPEÇÃO DE SAÚDE – CBA X</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INSPEÇÃO DE SAÚDE – CBA X</title>
 
-  <style>
-    body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-    .container { max-width:900px; margin:30px auto; background:#fff; padding:20px; border-radius:8px; }
-    .header { text-align:center; }
-    .logo { max-width:180px; width:100%; margin-bottom:10px; }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background:#f2f4f8;
+  margin:0;
+  padding:0;
+}
 
-    .form-agendamento { margin-top:20px; }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    @media (max-width:720px){ .grid{ grid-template-columns:1fr; } }
+.container {
+  max-width:600px;
+  margin:30px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
+}
 
-    input, select, button {
-      width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; font-size:14px; box-sizing:border-box;
-    }
+.logo {
+  max-width:180px;
+  margin-bottom:15px;
+}
 
-    button {
-      background:#0b3c5d; color:#fff; border:none; font-size:16px; cursor:pointer; padding:12px;
-    }
-    button:hover { background:#092f49; }
-    button:disabled { opacity:.65; cursor:not-allowed; }
+input, select, button {
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
+  box-sizing:border-box;
+}
 
-    .info { background:#f6f8fb; border:1px solid #e1e6ef; border-radius:8px; padding:10px 12px; margin:12px 0; font-size:13px; color:#243042; }
-    .hidden { display:none; }
+button {
+  background:#0b3c5d;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
 
-    .ok { display:none; margin-top:10px; padding:10px 12px; border-radius:8px; background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold; text-align:center; }
-    .err { display:none; margin-top:10px; padding:10px 12px; border-radius:8px; background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold; text-align:center; }
-    .sending { display:none; margin-top:10px; padding:10px 12px; border-radius:8px; background:#fffbe6; border:1px solid #f2e4a8; color:#6a5600; font-weight:bold; text-align:center; }
+button:hover {
+  background:#092f49;
+}
 
-    .admin-box { margin-top:25px; border-top:1px solid #e7e7e7; padding-top:15px; }
-    .admin-head { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .admin-head input { max-width:240px; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; font-size:13px; }
-    th, td { border:1px solid #e4e4e4; padding:8px; text-align:left; }
-    th { background:#f6f8fb; }
-    .small { font-size:12px; color:#566; margin-top:8px; text-align:center; }
-  </style>
+#campoTurno { display:none; }
+
+.msg {
+  display:none;
+  margin-top:10px;
+  padding:10px;
+  border-radius:8px;
+  font-weight:bold;
+}
+
+.ok {
+  background:#eef9f0;
+  color:#1f5b2b;
+}
+
+.err {
+  background:#fff2f2;
+  color:#8a1f1f;
+}
+</style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="header">
-      <img src="logo-cbax.png" alt="Logo CBA X" class="logo" />
-      <h1>INSPEÇÃO DE SAÚDE – CBA X</h1>
-      <p>Sistema de Agendamento de Inspeção de Saúde</p>
+<div class="container">
+  <img src="logo-cbax.png" class="logo">
+
+  <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
+  <p>Sistema de Agendamento</p>
+
+  <form id="formAgendamento">
+
+    <input type="text" id="nome" placeholder="Nome completo" required>
+    <input type="text" id="rg" placeholder="RG" required>
+    <input type="email" id="email" placeholder="E-mail" required>
+
+    <select id="posto" required>
+      <option value="">Selecione o Posto / Graduação</option>
+      <option>SDBM</option>
+      <option>CB BM</option>
+      <option>3º SGT BM</option>
+      <option>2º SGT BM</option>
+      <option>1º SGT BM</option>
+      <option>SUBTEN BM</option>
+      <option>2º TEN BM</option>
+      <option>1º TEN BM</option>
+      <option>CAP BM</option>
+      <option>MAJ BM</option>
+      <option>TEN CEL BM</option>
+      <option>CEL BM</option>
+    </select>
+
+    <select id="unidade" required>
+      <option value="">Selecione a Unidade</option>
+      <option>1º GMar - Botafogo</option>
+      <option>DBM 1/M - Paquetá</option>
+      <option>DBM 2/M - Piscinão de Ramos</option>
+      <option>2º GMar - Barra da Tijuca</option>
+      <option>CER</option>
+      <option>3º GMar - Copacabana</option>
+      <option>4º GMar - Itaipu</option>
+      <option>DBM 6/M - Itaipu</option>
+      <option>CBA X</option>
+      <option>DBM 3/M - Recreio</option>
+      <option>DBM 4/M - Barra de Guaratiba</option>
+      <option>DBM 5/M - Sepetiba</option>
+    </select>
+
+    <select id="dataSelect" required>
+      <option value="">Selecione a Data</option>
+    </select>
+
+    <div id="campoTurno">
+      <select id="turno">
+        <option value="">Selecione o Turno</option>
+        <option>Manhã</option>
+        <option>Tarde</option>
+      </select>
     </div>
 
-    <div class="info hidden" id="infoAgenda"></div>
+    <button type="submit">Agendar</button>
 
-    <form class="form-agendamento" id="formAgendamento">
-      <div class="grid">
-        <input type="text" name="nome" placeholder="Nome completo" required />
-        <input type="text" name="rg" placeholder="RG" required />
-        <input type="email" name="email" placeholder="E-mail" required autocomplete="off" />
+    <div id="msgOk" class="msg ok">✅ Agendamento realizado com sucesso.</div>
+    <div id="msgErro" class="msg err">❌ Erro ao agendar.</div>
 
-        <select name="posto" required>
-          <option value="">Selecione o Posto / Graduação</option>
-          <option>SDBM</option>
-          <option>CB BM</option>
-          <option>3º SGT BM</option>
-          <option>2º SGT BM</option>
-          <option>1º SGT BM</option>
-          <option>SUBTEN BM</option>
-          <option>2º TEN BM</option>
-          <option>1º TEN BM</option>
-          <option>CAP BM</option>
-          <option>MAJ BM</option>
-          <option>TEN CEL BM</option>
-          <option>CEL BM</option>
-        </select>
+  </form>
+</div>
 
-        <select id="unidade" name="unidade" required>
-          <option value="">Selecione a Unidade</option>
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, doc, getDoc,
+  runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-          <option value="1º GMar - Botafogo">1º GMar - Botafogo</option>
-          <option value="DBM 1/M - Paquetá">DBM 1/M - Paquetá</option>
-          <option value="DBM 2/M - Piscinão de Ramos">DBM 2/M - Piscinão de Ramos</option>
+const firebaseConfig = {
+  apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+  authDomain: "inspecao-saude-cbax.firebaseapp.com",
+  projectId: "inspecao-saude-cbax",
+  storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+  messagingSenderId: "1011281662526",
+  appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+};
 
-          <option value="2º GMar - Barra da Tijuca">2º GMar - Barra da Tijuca</option>
-          <option value="CER">CER</option>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-          <option value="3º GMar - Copacabana">3º GMar - Copacabana</option>
+const form = document.getElementById("formAgendamento");
+const msgOk = document.getElementById("msgOk");
+const msgErro = document.getElementById("msgErro");
 
-          <option value="4º GMar - Itaipu">4º GMar - Itaipu</option>
-          <option value="DBM 6/M - Itaipu">DBM 6/M - Itaipu</option>
+function gerarDatas() {
+  const select = document.getElementById("dataSelect");
+  const inicio = new Date("2026-02-23");
+  const fim = new Date("2026-07-31");
 
-          <option value="CBA X">CBA X</option>
-
-          <option value="DBM 3/M - Recreio">DBM 3/M - Recreio</option>
-          <option value="DBM 4/M - Barra de Guaratiba">DBM 4/M - Barra de Guaratiba</option>
-          <option value="DBM 5/M - Sepetiba">DBM 5/M - Sepetiba</option>
-        </select>
-
-        <!-- Data + Turno numa única lista -->
-        <select id="dataTurno" name="dataTurno" required>
-          <option value="">Selecione a Data e o Turno</option>
-        </select>
-      </div>
-
-      <button type="submit" id="btnAgendar">Agendar</button>
-
-      <div class="sending" id="msgSending">⏳ Registrando agendamento… aguarde.</div>
-      <div class="ok" id="msgOk">✅ Agendamento realizado! Verifique seu e-mail.</div>
-      <div class="err" id="msgErr">❌ Não foi possível agendar. Tente novamente.</div>
-
-      <div class="small">Se não encontrar o e-mail, verifique a caixa de spam.</div>
-    </form>
-
-    <!-- TABELA ADMIN -->
-    <div class="admin-box">
-      <div class="admin-head">
-        <b>Área Administrativa (tabela)</b>
-        <input type="password" id="adminPin" placeholder="Digite o PIN" />
-        <button type="button" id="btnAbrirAdmin" style="max-width:220px;">Abrir tabela</button>
-        <span style="font-size:12px;color:#666;">(PIN simples só para ocultar)</span>
-      </div>
-
-      <div id="adminArea" class="hidden">
-        <div class="grid" style="margin-top:10px;">
-          <select id="filtroUnidade">
-            <option value="">Todas as unidades</option>
-            <option>1º GMar - Botafogo</option>
-            <option>DBM 1/M - Paquetá</option>
-            <option>DBM 2/M - Piscinão de Ramos</option>
-            <option>2º GMar - Barra da Tijuca</option>
-            <option>CER</option>
-            <option>3º GMar - Copacabana</option>
-            <option>4º GMar - Itaipu</option>
-            <option>DBM 6/M - Itaipu</option>
-            <option>CBA X</option>
-            <option>DBM 3/M - Recreio</option>
-            <option>DBM 4/M - Barra de Guaratiba</option>
-            <option>DBM 5/M - Sepetiba</option>
-          </select>
-
-          <button type="button" id="btnAtualizarTabela">Atualizar tabela</button>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Turno</th>
-              <th>Unidade</th>
-              <th>Nome</th>
-              <th>RG</th>
-              <th>Posto/Grad</th>
-              <th>E-mail</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyAgendamentos"></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-  <script type="module">
-    /***********************************************************
-     * 1) FIREBASE CONFIG (SEU PROJETO)
-     ***********************************************************/
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore, collection, serverTimestamp,
-      doc, runTransaction, getDocs, query, where, orderBy, limit
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-      authDomain: "inspecao-saude-cbax.firebaseapp.com",
-      projectId: "inspecao-saude-cbax",
-      storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-      messagingSenderId: "1011281662526",
-      appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    /***********************************************************
-     * 2) EMAILJS (SEUS DADOS)
-     ***********************************************************/
-    const EMAILJS_PUBLIC_KEY = "GySnRXpCdioddGW-7";
-    const EMAILJS_SERVICE_ID = "service_57r7wmp";
-    const TEMPLATE_ADM_ID = "template_q4u6ul6";
-    const TEMPLATE_MILITAR_ID = "template_zjjttya";
-
-    const ADM_EMAIL_1 = "b6cbax2023@gmail.com";
-    const ADM_EMAIL_2 = ""; // se quiser 2º admin, coloque aqui
-
-    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-
-    /***********************************************************
-     * 3) FERIADOS 2026 (bloqueados apenas TER/SEX)
-     ***********************************************************/
-    const FERIADOS = new Set([
-      "2026-01-01","2026-02-16","2026-02-17","2026-04-03","2026-04-21","2026-05-01",
-      "2026-06-04","2026-09-07","2026-10-12","2026-11-02","2026-11-15","2026-12-25",
-      "2026-01-20","2026-04-23"
-    ]);
-
-    /***********************************************************
-     * 4) AGENDAS 1 a 7 (regras de vagas)
-     *    - Seg–Sex (3 e 4): 5 vagas/dia (mas mostra manhã/tarde), 23/02/26 a 31/07/26
-     *    - Ter/Sex: 10 manhã + 10 tarde (opções somem por turno)
-     ***********************************************************/
-    const AGENDAS = [
-      { id:1, nome:"Agenda 1", unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"],
-        inicio:"2026-03-17", fim:"2026-05-15", diasSemana:[2,5], tipo:"TER_SEX", bloqueiaFeriado:true },
-
-      { id:2, nome:"Agenda 2", unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"],
-        inicio:"2026-05-19", fim:"2026-06-26", diasSemana:[2,5], tipo:"TER_SEX", bloqueiaFeriado:true },
-
-      { id:3, nome:"Agenda 3", unidades:["CER","2º GMar - Barra da Tijuca"],
-        inicio:"2026-02-23", fim:"2026-07-31", diasSemana:[1,2,3,4,5], tipo:"SEG_SEX", bloqueiaFeriado:false },
-
-      { id:4, nome:"Agenda 4", unidades:["3º GMar - Copacabana"],
-        inicio:"2026-02-23", fim:"2026-07-31", diasSemana:[1,2,3,4,5], tipo:"SEG_SEX", bloqueiaFeriado:false },
-
-      { id:5, nome:"Agenda 5", unidades:["CBA X"],
-        inicio:"2026-03-10", fim:"2026-03-13", diasSemana:[2,5], tipo:"TER_SEX", bloqueiaFeriado:true },
-
-      { id:6, nome:"Agenda 6", unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio"],
-        inicio:"2026-06-30", fim:"2026-07-31", diasSemana:[2,5], tipo:"TER_SEX", bloqueiaFeriado:true },
-
-      { id:7, nome:"Agenda 7", unidades:["DBM 5/M - Sepetiba"],
-        inicio:"2026-02-23", fim:"2026-03-05", diasSemana:[2,5], tipo:"TER_SEX", bloqueiaFeriado:true },
-    ];
-
-    function getAgendaDaUnidade(unidade){
-      return AGENDAS.find(a => a.unidades.includes(unidade));
+  while (inicio <= fim) {
+    const dia = inicio.getDay();
+    if (dia !== 0 && dia !== 6) {
+      const ymd = inicio.toISOString().split("T")[0];
+      const option = document.createElement("option");
+      option.value = ymd;
+      option.textContent = inicio.toLocaleDateString("pt-BR");
+      select.appendChild(option);
     }
+    inicio.setDate(inicio.getDate() + 1);
+  }
+}
+gerarDatas();
 
-    function formatBR(ymd){
-      const [y,m,d] = ymd.split("-");
-      return `${d}/${m}/${y}`;
-    }
-    function addDays(dateObj, days){
-      const d = new Date(dateObj);
-      d.setDate(d.getDate()+days);
-      return d;
-    }
-    function toYMD(dateObj){
-      const y = dateObj.getFullYear();
-      const m = String(dateObj.getMonth()+1).padStart(2,"0");
-      const d = String(dateObj.getDate()).padStart(2,"0");
-      return `${y}-${m}-${d}`;
-    }
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  msgOk.style.display="none";
+  msgErro.style.display="none";
 
-    function diaPermitido(agenda, ymd){
-      const d = new Date(ymd + "T12:00:00");
-      const dow = d.getDay(); // 0-6
-      if (!agenda.diasSemana.includes(dow)) return false;
-      if (agenda.bloqueiaFeriado && FERIADOS.has(ymd)) return false;
-      return true;
-    }
+  const nome = nome.value;
+  const rg = rg.value;
+  const email = email.value;
+  const posto = posto.value;
+  const unidade = unidade.value;
+  const data = dataSelect.value;
+  const turno = turno.value;
 
-    /***********************************************************
-     * 5) UI refs
-     ***********************************************************/
-    const form = document.getElementById("formAgendamento");
-    const unidadeEl = document.getElementById("unidade");
-    const dataTurnoEl = document.getElementById("dataTurno");
-    const infoAgendaEl = document.getElementById("infoAgenda");
-    const btnAgendar = document.getElementById("btnAgendar");
-    const msgOk = document.getElementById("msgOk");
-    const msgErr = document.getElementById("msgErr");
-    const msgSending = document.getElementById("msgSending");
-
-    // ADMIN
-    const ADMIN_PIN = "1234"; // <-- troque para um PIN seu
-    const adminPinEl = document.getElementById("adminPin");
-    const btnAbrirAdmin = document.getElementById("btnAbrirAdmin");
-    const adminArea = document.getElementById("adminArea");
-    const filtroUnidade = document.getElementById("filtroUnidade");
-    const btnAtualizarTabela = document.getElementById("btnAtualizarTabela");
-    const tbodyAgendamentos = document.getElementById("tbodyAgendamentos");
-
-    /***********************************************************
-     * 6) COUNTERS
-     * Coleção: counters
-     * Doc ID: agendaId_YYYY-MM-DD
-     * Campos:
-     * { agendaId, date, total, manha, tarde }
-     ***********************************************************/
-    function counterDocId(agendaId, ymd){
-      return `${agendaId}_${ymd}`;
-    }
-
-    /***********************************************************
-     * 7) Preencher datas disponíveis:
-     *   - SEG_SEX: sempre mostra "Data – Manhã" e "Data – Tarde",
-     *             mas ambas somem quando total >= 5 no dia
-     *   - TER_SEX: mostra opção por turno (some quando manha>=10 ou tarde>=10)
-     ***********************************************************/
-    async function preencherDatasDisponiveis(agenda){
-      dataTurnoEl.innerHTML = `<option value="">Selecione a Data e o Turno</option>`;
-      if (!agenda) return;
-
-      const inicio = new Date(agenda.inicio + "T12:00:00");
-      const fim = new Date(agenda.fim + "T12:00:00");
-
-      const datasPossiveis = [];
-      let atual = inicio;
-      while (atual <= fim){
-        const ymd = toYMD(atual);
-        if (diaPermitido(agenda, ymd)) datasPossiveis.push(ymd);
-        atual = addDays(atual, 1);
-      }
-
-      if (datasPossiveis.length === 0){
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "Nenhuma data disponível";
-        dataTurnoEl.appendChild(opt);
-        return;
-      }
-
-      // Buscar counters da agenda para remover lotados
-      const qCounters = query(collection(db, "counters"), where("agendaId", "==", agenda.id));
-      const snap = await getDocs(qCounters);
-
-      const mapa = new Map(); // ymd -> counter
-      snap.forEach(docu => {
-        const v = docu.data();
-        if (v?.date) mapa.set(v.date, v);
-      });
-
-      for (const ymd of datasPossiveis){
-        const c = mapa.get(ymd);
-
-        if (agenda.tipo === "SEG_SEX"){
-          const total = c?.total || 0;
-          if (total >= 5) continue; // dia lotado => remove manhã e tarde
-          for (const t of ["Manhã", "Tarde"]) {
-            const opt = document.createElement("option");
-            opt.value = `${ymd}|${t}`;
-            opt.textContent = `${formatBR(ymd)} – ${t}`;
-            dataTurnoEl.appendChild(opt);
-          }
-        } else {
-          const manha = c?.manha || 0;
-          const tarde = c?.tarde || 0;
-
-          if (manha < 10){
-            const optM = document.createElement("option");
-            optM.value = `${ymd}|Manhã`;
-            optM.textContent = `${formatBR(ymd)} – Manhã`;
-            dataTurnoEl.appendChild(optM);
-          }
-          if (tarde < 10){
-            const optT = document.createElement("option");
-            optT.value = `${ymd}|Tarde`;
-            optT.textContent = `${formatBR(ymd)} – Tarde`;
-            dataTurnoEl.appendChild(optT);
-          }
-        }
-      }
-
-      if (dataTurnoEl.options.length === 1){
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "Nenhuma data disponível";
-        dataTurnoEl.appendChild(opt);
-      }
-    }
-
-    function atualizarInfoAgenda(agenda){
-      if (!agenda){
-        infoAgendaEl.classList.add("hidden");
-        return;
-      }
-      const diasTxt = (agenda.tipo === "TER_SEX") ? "Terça e Sexta" : "Segunda a Sexta";
-      const vagasTxt = (agenda.tipo === "TER_SEX")
-        ? "10 vagas (manhã) + 10 vagas (tarde)"
-        : "5 vagas por dia (aparece manhã/tarde apenas para organização)";
-      const feriadoTxt = agenda.bloqueiaFeriado ? "Sem feriados" : "Feriados permitidos";
-
-      infoAgendaEl.innerHTML =
-        `<b>${agenda.nome}</b><br>` +
-        `Período: <b>${formatBR(agenda.inicio)}</b> até <b>${formatBR(agenda.fim)}</b><br>` +
-        `Dias: <b>${diasTxt}</b><br>` +
-        `Vagas: <b>${vagasTxt}</b><br>` +
-        `${feriadoTxt}`;
-      infoAgendaEl.classList.remove("hidden");
-    }
-
-    async function atualizarUI(){
-      msgOk.style.display = "none";
-      msgErr.style.display = "none";
-      msgSending.style.display = "none";
-
-      const unidade = unidadeEl.value;
-      const agenda = getAgendaDaUnidade(unidade);
-
-      atualizarInfoAgenda(agenda);
-
-      if (!agenda){
-        dataTurnoEl.innerHTML = `<option value="">Selecione a Data e o Turno</option>`;
-        return;
-      }
-
-      await preencherDatasDisponiveis(agenda);
-      dataTurnoEl.value = "";
-    }
-
-    unidadeEl.addEventListener("change", () => { atualizarUI(); });
-    atualizarUI();
-
-    /***********************************************************
-     * 8) Criar agendamento com trava de vaga (transaction)
-     *    - SEG_SEX: incrementa total (limite 5/dia), independente de "manhã/tarde"
-     *    - TER_SEX: incrementa manha ou tarde (limite 10/turno)
-     ***********************************************************/
-    async function criarAgendamentoComVaga(dados){
-      const agenda = dados.agendaObj;
-      const ymd = dados.data;
-      const turno = dados.turno;
-
-      const counterRef = doc(db, "counters", counterDocId(agenda.id, ymd));
-      const agendamentosCol = collection(db, "agendamentos");
-
-      await runTransaction(db, async (tx) => {
-        const counterSnap = await tx.get(counterRef);
-        const current = counterSnap.exists()
-          ? counterSnap.data()
-          : { agendaId: agenda.id, date: ymd, total: 0, manha: 0, tarde: 0 };
-
-        if (!diaPermitido(agenda, ymd)) {
-          throw new Error("DATA_NAO_PERMITIDA");
-        }
-
-        if (agenda.tipo === "SEG_SEX"){
-          const total = current.total || 0;
-          if (total >= 5) throw new Error("LOTADO");
-          current.total = total + 1;
-        } else {
-          if (turno !== "Manhã" && turno !== "Tarde") throw new Error("TURNO_INVALIDO");
-
-          if (turno === "Manhã"){
-            const manha = current.manha || 0;
-            if (manha >= 10) throw new Error("LOTADO_MANHA");
-            current.manha = manha + 1;
-          } else {
-            const tarde = current.tarde || 0;
-            if (tarde >= 10) throw new Error("LOTADO_TARDE");
-            current.tarde = tarde + 1;
-          }
-        }
-
-        tx.set(counterRef, {
-          agendaId: agenda.id,
-          date: ymd,
-          total: current.total || 0,
-          manha: current.manha || 0,
-          tarde: current.tarde || 0
-        }, { merge: true });
-
-        const novoRef = doc(agendamentosCol);
-        tx.set(novoRef, {
-          nome: dados.nome,
-          rg: dados.rg,
-          email: dados.email,
-          posto: dados.posto,
-          unidade: dados.unidade,
-          agendaId: agenda.id,
-          agendaNome: agenda.nome,
-          data: ymd,
-          data_br: dados.data_br,
-          turno: turno, // em SEG_SEX é só organizacional, mas vai aparecer na tabela/e-mail
-          createdAt: serverTimestamp()
-        });
-      });
-    }
-
-    /***********************************************************
-     * 9) Enviar e-mails (ADM + Militar) via EmailJS
-     ***********************************************************/
-    async function enviarEmails(dados){
-      await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, { ...dados, to_email: ADM_EMAIL_1 });
-
-      if (ADM_EMAIL_2 && ADM_EMAIL_2.includes("@")) {
-        await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, { ...dados, to_email: ADM_EMAIL_2 });
-      }
-
-      await emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_MILITAR_ID, { ...dados, to_email: dados.email });
-    }
-
-    /***********************************************************
-     * 10) Submit
-     ***********************************************************/
-    let travado = false;
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (travado) return;
-
-      msgOk.style.display = "none";
-      msgErr.style.display = "none";
-
-      const fd = new FormData(form);
-      const nome = (fd.get("nome") || "").toString().trim();
-      const rg = (fd.get("rg") || "").toString().trim();
-      const email = (fd.get("email") || "").toString().trim();
-      const posto = (fd.get("posto") || "").toString().trim();
-      const unidade = (fd.get("unidade") || "").toString().trim();
-
-      const agenda = getAgendaDaUnidade(unidade);
-      if (!agenda){
-        msgErr.textContent = "❌ Selecione uma unidade válida.";
-        msgErr.style.display = "block";
-        return;
-      }
-
-      const dataTurno = (fd.get("dataTurno") || "").toString().trim();
-      if (!dataTurno || !dataTurno.includes("|")) {
-        msgErr.textContent = "❌ Selecione a data e o turno.";
-        msgErr.style.display = "block";
-        return;
-      }
-      const [data, turno] = dataTurno.split("|");
-
-      if (!nome || !rg || !email || !posto || !unidade || !data || !turno){
-        msgErr.textContent = "❌ Preencha todos os campos obrigatórios.";
-        msgErr.style.display = "block";
-        return;
-      }
-
-      travado = true;
-      btnAgendar.disabled = true;
-      btnAgendar.textContent = "Agendando...";
-      msgSending.style.display = "block";
-
-      const dados = {
-        nome, rg, email, posto, unidade,
-        agendaObj: agenda,
-        agenda: agenda.nome,
-        agendaId: agenda.id,
-        data,
-        data_br: formatBR(data),
-        turno
-      };
-
-      try {
-        await criarAgendamentoComVaga(dados);
-
-        await enviarEmails({
-          nome: dados.nome,
-          rg: dados.rg,
-          email: dados.email,
-          posto: dados.posto,
-          unidade: dados.unidade,
-          agenda: dados.agenda,
-          data: dados.data,
-          data_br: dados.data_br,
-          turno: dados.turno
-        });
-
-        form.reset();
-        await atualizarUI();
-
-        msgSending.style.display = "none";
-        msgOk.style.display = "block";
-      } catch (err) {
-        console.error(err);
-        msgSending.style.display = "none";
-
-        if (String(err?.message).includes("LOTADO_MANHA")){
-          msgErr.textContent = "❌ Turno da manhã lotado para essa data. Escolha outra opção.";
-        } else if (String(err?.message).includes("LOTADO_TARDE")){
-          msgErr.textContent = "❌ Turno da tarde lotado para essa data. Escolha outra opção.";
-        } else if (String(err?.message).includes("LOTADO")){
-          msgErr.textContent = "❌ Data lotada (5 vagas/dia). Escolha outra opção.";
-        } else if (String(err?.message).includes("DATA_NAO_PERMITIDA")){
-          msgErr.textContent = "❌ Data não permitida para essa agenda.";
-        } else {
-          msgErr.textContent = "❌ Não foi possível agendar. Tente novamente.";
-        }
-
-        msgErr.style.display = "block";
-        await atualizarUI();
-      } finally {
-        travado = false;
-        btnAgendar.disabled = false;
-        btnAgendar.textContent = "Agendar";
-      }
+  try {
+    await addDoc(collection(db,"agendamentos"),{
+      nome, rg, email, posto, unidade,
+      data,
+      turno,
+      data_br: new Date(data).toLocaleDateString("pt-BR")
     });
 
-    /***********************************************************
-     * 11) TABELA ADMIN (consulta Firestore)
-     ***********************************************************/
-    async function carregarTabela(){
-      tbodyAgendamentos.innerHTML = "";
-      const uni = filtroUnidade.value;
+    msgOk.style.display="block";
+    form.reset();
+  } catch(err){
+    console.error(err);
+    msgErro.style.display="block";
+  }
+});
+</script>
 
-      let qAg;
-      if (uni){
-        qAg = query(
-          collection(db, "agendamentos"),
-          where("unidade", "==", uni),
-          orderBy("data", "asc"),
-          limit(500)
-        );
-      } else {
-        qAg = query(
-          collection(db, "agendamentos"),
-          orderBy("data", "asc"),
-          limit(500)
-        );
-      }
+<!-- EMAILJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+emailjs.init("GySnRXpCdioddGW-7");
+</script>
 
-      const snap = await getDocs(qAg);
-      snap.forEach(d => {
-        const v = d.data();
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${v.data_br || ""}</td>
-          <td>${v.turno || ""}</td>
-          <td>${v.unidade || ""}</td>
-          <td>${v.nome || ""}</td>
-          <td>${v.rg || ""}</td>
-          <td>${v.posto || ""}</td>
-          <td>${v.email || ""}</td>
-        `;
-        tbodyAgendamentos.appendChild(tr);
-      });
-
-      if (!snap.size){
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="7">Nenhum agendamento encontrado.</td>`;
-        tbodyAgendamentos.appendChild(tr);
-      }
-    }
-
-    btnAbrirAdmin.addEventListener("click", async () => {
-      if (adminPinEl.value !== ADMIN_PIN){
-        alert("PIN incorreto.");
-        return;
-      }
-      adminArea.classList.remove("hidden");
-      await carregarTabela();
-    });
-
-    btnAtualizarTabela.addEventListener("click", async () => {
-      await carregarTabela();
-    });
-
-  </script>
 </body>
 </html>
 
