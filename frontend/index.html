@@ -152,11 +152,69 @@
   </div>
 </div>
 
+<!-- EmailJS (carrega antes do script principal) -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import { getFirestore, collection, doc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  // Firebase
+  // =========================
+  // EMAILJS (SUAS CHAVES)
+  // =========================
+  const EMAILJS_PUBLIC_KEY = "GySnRXpCdioddGW-7";
+  const EMAILJS_SERVICE_ID = "service_57r7wmp";
+  const TEMPLATE_ADM_ID = "template_q4u6ul6";
+  const TEMPLATE_MILITAR_ID = "template_zjjttya";
+
+  // Inicializa EmailJS
+  if (window.emailjs) {
+    window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+  }
+
+  async function enviarEmails({ nome, rg, email, posto, unidade, data_br, turno }) {
+    // 🔹 Ajuste esses nomes de campos para baterem com os "variables" do seu template do EmailJS
+    // (Se algum não aparecer no e-mail, me diga o nome das variáveis no template que eu ajusto)
+    const paramsAdm = {
+      nome,
+      rg,
+      email,
+      posto,
+      unidade,
+      data: data_br,
+      turno: turno || "—",
+    };
+
+    const paramsMilitar = {
+      to_email: email,     // alguns templates usam "to_email"
+      email: email,        // outros usam "email"
+      nome,
+      rg,
+      posto,
+      unidade,
+      data: data_br,
+      turno: turno || "—",
+      mensagem:
+`Seu agendamento de Inspeção de Saúde foi realizado com sucesso.
+
+Unidade: ${unidade}
+Data: ${data_br}
+Turno: ${turno || "Livre demanda"}
+
+Em caso de necessidade de cancelamento, procure a administração.
+
+CBA X – Inspeção de Saúde`
+    };
+
+    // Envia para ADM
+    await window.emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, paramsAdm);
+    // Envia para MILITAR
+    await window.emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_MILITAR_ID, paramsMilitar);
+  }
+
+  // =========================
+  // FIREBASE
+  // =========================
   const firebaseConfig = {
     apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
     authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -458,6 +516,12 @@
     e.preventDefault();
     hideMsgs();
 
+    if (!window.emailjs){
+      msgErr.textContent = "❌ Serviço de e-mail não carregou. Atualize a página.";
+      msgErr.style.display = "block";
+      return;
+    }
+
     if (!agendaAtual){
       msgErr.textContent = "❌ Selecione a unidade.";
       msgErr.style.display = "block";
@@ -491,6 +555,7 @@
       const agRef = doc(collection(db, "agendamentos"));
       const cRef  = doc(db, "counters", counterId(agendaAtual.id, data));
 
+      // 1) RESERVA a vaga e salva no Firestore
       await runTransaction(db, async (tx) => {
         const cSnap = await tx.get(cRef);
         const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
@@ -523,6 +588,13 @@
         });
       });
 
+      // 2) ENVIA E-MAILS (ADM + MILITAR)
+      await enviarEmails({
+        nome, rg, email, posto, unidade,
+        data_br: formatBR(data),
+        turno: turno || (agendaAtual.tipo === "MF" ? "Livre demanda" : "")
+      });
+
       msgOk.style.display = "block";
       e.target.reset();
       turnoEl.value = "";
@@ -543,6 +615,7 @@
 </script>
 </body>
 </html>
+
 
 
 
