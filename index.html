@@ -7,20 +7,48 @@
 
 <style>
   body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-  .container { max-width: 650px; margin: 30px auto; background:#fff; padding:20px; border-radius:10px; text-align:center; }
-  .logo { max-width:180px; width:100%; margin-bottom: 10px; }
+  .container { max-width: 680px; margin: 30px auto; background:#fff; padding:20px; border-radius:12px; text-align:center; }
+  .logo { max-width:180px; width:100%; margin-bottom:10px; }
 
   input, select, button {
-    width:100%; padding:10px; margin-bottom:10px; border-radius:8px;
+    width:100%; padding:10px; margin-bottom:10px; border-radius:10px;
     border:1px solid #ccc; font-size:14px; box-sizing:border-box;
   }
-  button { background:#0b3c5d; color:#fff; border:none; cursor:pointer; }
+  button { background:#0b3c5d; color:#fff; border:none; cursor:pointer; font-weight:bold; }
   button:hover { background:#092f49; }
+  button:disabled { opacity:0.6; cursor:not-allowed; }
 
   #campoTurno { display:none; }
-  .msg { display:none; margin-top:10px; padding:10px; border-radius:8px; font-weight:bold; text-align:center; }
+
+  .msg { display:none; margin-top:10px; padding:10px; border-radius:10px; font-weight:bold; text-align:center; }
   .ok { background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; }
   .err { background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; }
+
+  #avisoAgenda {
+    display:none;
+    background:#fff3cd;
+    border:1px solid #ffeeba;
+    padding:10px;
+    border-radius:10px;
+    margin:10px 0;
+    font-size:13px;
+    color:#856404;
+    text-align:left;
+    line-height:1.35;
+  }
+
+  #contadorVagas {
+    display:none;
+    background:#eef4ff;
+    border:1px solid #cfe0ff;
+    padding:10px;
+    border-radius:10px;
+    margin:-2px 0 10px 0;
+    font-size:13px;
+    color:#163a7a;
+    text-align:left;
+    line-height:1.35;
+  }
 
   .small { font-size:12px; color:#666; margin-top:6px; }
 </style>
@@ -55,12 +83,13 @@
 
     <select id="unidade" required>
       <option value="">Selecione a Unidade</option>
+
       <option>1º GMar - Botafogo</option>
       <option>DBM 1/M - Paquetá</option>
       <option>DBM 2/M - Piscinão de Ramos</option>
 
-      <option>2º GMar - Barra da Tijuca</option>
       <option>CER</option>
+      <option>2º GMar - Barra da Tijuca</option>
 
       <option>3º GMar - Copacabana</option>
 
@@ -75,17 +104,27 @@
       <option>DBM 5/M - Sepetiba</option>
     </select>
 
+    <!-- AVISO para agenda TER/SEX -->
+    <div id="avisoAgenda">
+      ⚠️ <b>Atenção:</b> Esta unidade realiza inspeção apenas às <b>TERÇAS e SEXTAS</b>.<br>
+      • Feriados <b>não aparecem</b> para agendamento.<br>
+      • Cada dia tem <b>10 vagas pela manhã</b> e <b>10 vagas à tarde</b>.
+    </div>
+
     <select id="dataSelect" required>
       <option value="">Selecione a Data</option>
     </select>
 
+    <!-- CONTADOR VISUAL -->
+    <div id="contadorVagas"></div>
+
+    <!-- TURNO (só para TER/SEX) -->
     <div id="campoTurno">
       <select id="turno">
         <option value="">Selecione o Turno</option>
         <option>Manhã</option>
         <option>Tarde</option>
       </select>
-      <div class="small">Obs.: Turno só aparece nas agendas de terça e sexta.</div>
     </div>
 
     <button type="submit" id="btnAgendar">Agendar</button>
@@ -95,14 +134,14 @@
   </form>
 
   <div class="small">
-    Cancelamento: acesse <b>cancelar.html</b> com o código recebido no e-mail.
+    Para acessar a lista de agendamentos, use o link administrativo: <b>admin.html</b>
   </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
-    getFirestore, collection, doc, getDoc, setDoc, runTransaction
+    getFirestore, collection, doc, getDoc, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   // Firebase
@@ -119,65 +158,31 @@
   const db = getFirestore(app);
 
   // ----------------------------
-  // 1) DEFINIÇÃO DAS AGENDAS (1 a 7)
+  // AGENDAS (REGRAS FINAIS)
+  // TS = Terça/Sexta (10 manhã + 10 tarde) + feriados bloqueados
+  // MF = Seg–Sex (livre demanda) 5 vagas/dia + feriados liberados
   // ----------------------------
-  // tipo:
-  // - "TS" = Terça/Sexta (20/dia => 10 manhã + 10 tarde) + feriados bloqueados
-  // - "MF" = Segunda a Sexta (5/dia) + feriados liberados
-
   const AGENDAS = [
-    // AGENDA 1: 1ºGMar + DBM1 + DBM2 (uma só agenda) 17/03 a 15/05 - Ter/Sex
     { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15",
-      unidades:[
-        "1º GMar - Botafogo",
-        "DBM 1/M - Paquetá",
-        "DBM 2/M - Piscinão de Ramos"
-      ]
+      unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"]
     },
-
-    // AGENDA 2: 4ºGMar + DBM6 (uma só agenda) 19/05 a 26/06 - Ter/Sex
     { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26",
-      unidades:[
-        "4º GMar - Itaipu",
-        "DBM 6/M - Itaipu"
-      ]
+      unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"]
     },
-
-    // AGENDA 3: CER + 2ºGMAR (Barra) 23/02 a 31/07 - Seg/Sex (5 por dia)
-    { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31",
-      unidades:[
-        "CER",
-        "2º GMar - Barra da Tijuca"
-      ]
+    { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia: 5,
+      unidades:["CER","2º GMar - Barra da Tijuca"]
     },
-
-    // AGENDA 4: 3ºGMAR Copacabana 23/02 a 31/07 - Seg/Sex (5 por dia)
-    { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31",
-      unidades:[
-        "3º GMar - Copacabana"
-      ]
+    { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia: 5,
+      unidades:["3º GMar - Copacabana"]
     },
-
-    // AGENDA 5: CBA X 10/03 a 13/03 - Ter/Sex
     { id:"A5", tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13",
-      unidades:[
-        "CBA X"
-      ]
+      unidades:["CBA X"]
     },
-
-    // AGENDA 6: DBM4 + DBM3 30/06 a 31/07 - Ter/Sex
     { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31",
-      unidades:[
-        "DBM 4/M - Barra de Guaratiba",
-        "DBM 3/M - Recreio dos Bandeirantes"
-      ]
+      unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"]
     },
-
-    // AGENDA 7: DBM5 Sepetiba 24/02 a 05/03 - Ter/Sex
-    { id:"A7", tipo:"TS", inicio:"2026-02-24", fim:"2026-03-05",
-      unidades:[
-        "DBM 5/M - Sepetiba"
-      ]
+    { id:"A7", tipo:"TS", inicio:"2026-02-24", fim:"2027-02-05",
+      unidades:["DBM 5/M - Sepetiba"]
     },
   ];
 
@@ -186,14 +191,9 @@
   }
 
   // ----------------------------
-  // 2) FERIADOS (para bloquear APENAS nas agendas TS)
+  // FERIADOS (bloquear só nas TS)
   // ----------------------------
-  // Sem web aqui, então usamos:
-  // - fixos nacionais
-  // - e alguns comuns RJ (São Sebastião e São Jorge)
-  // - + móveis calculados (Carnaval, Sexta Santa, Corpus Christi)
   function easterDate(year){
-    // algoritmo de Butcher
     const a = year % 19;
     const b = Math.floor(year / 100);
     const c = year % 100;
@@ -206,74 +206,73 @@
     const k = c % 4;
     const l = (32 + 2*e + 2*i - h - k) % 7;
     const m = Math.floor((a + 11*h + 22*l) / 451);
-    const month = Math.floor((h + l - 7*m + 114) / 31); // 3=Mar, 4=Apr
+    const month = Math.floor((h + l - 7*m + 114) / 31);
     const day = ((h + l - 7*m + 114) % 31) + 1;
     return new Date(Date.UTC(year, month-1, day));
   }
-
-  function ymd(d){
-    return d.toISOString().slice(0,10);
-  }
+  function ymd(d){ return d.toISOString().slice(0,10); }
 
   function feriadosAno(year){
     const fixed = [
-      `${year}-01-01`, // Confraternização
-      `${year}-04-21`, // Tiradentes
-      `${year}-05-01`, // Trabalho
-      `${year}-09-07`, // Independência
-      `${year}-10-12`, // N. Sra Aparecida
-      `${year}-11-02`, // Finados
-      `${year}-11-15`, // Proclamação
-      `${year}-12-25`, // Natal
-
-      // municipais/estaduais comuns no RJ:
-      `${year}-01-20`, // São Sebastião (Rio)
-      `${year}-04-23`, // São Jorge (RJ)
+      `${year}-01-01`, `${year}-04-21`, `${year}-05-01`, `${year}-09-07`,
+      `${year}-10-12`, `${year}-11-02`, `${year}-11-15`, `${year}-12-25`,
+      // RJ comuns
+      `${year}-01-20`, `${year}-04-23`,
     ];
 
     const easter = easterDate(year);
     const carnivalMon = new Date(easter); carnivalMon.setUTCDate(easter.getUTCDate() - 48);
     const carnivalTue = new Date(easter); carnivalTue.setUTCDate(easter.getUTCDate() - 47);
-    const goodFriday = new Date(easter);  goodFriday.setUTCDate(easter.getUTCDate() - 2);
-    const corpusChristi = new Date(easter); corpusChristi.setUTCDate(easter.getUTCDate() + 60);
+    const goodFriday  = new Date(easter); goodFriday.setUTCDate(easter.getUTCDate() - 2);
+    const corpus      = new Date(easter); corpus.setUTCDate(easter.getUTCDate() + 60);
 
-    const movable = [ ymd(carnivalMon), ymd(carnivalTue), ymd(goodFriday), ymd(corpusChristi) ];
+    const movable = [ymd(carnivalMon), ymd(carnivalTue), ymd(goodFriday), ymd(corpus)];
     return new Set([...fixed, ...movable]);
   }
 
+  // usamos 2026 e 2027 porque Sepetiba vai até 2027
   const FERIADOS_2026 = feriadosAno(2026);
+  const FERIADOS_2027 = feriadosAno(2027);
 
-  // ----------------------------
-  // 3) CONTROLE DE VAGAS (counters)
-  // ----------------------------
-  // counters/{agendaId_data}
-  // TS: {manha, tarde}
-  // MF: {total}
-  function counterId(agendaId, dataYmd){
-    return `${agendaId}_${dataYmd}`;
+  function isFeriado(ymdStr){
+    const year = Number(ymdStr.slice(0,4));
+    if (year === 2026) return FERIADOS_2026.has(ymdStr);
+    if (year === 2027) return FERIADOS_2027.has(ymdStr);
+    return false;
   }
 
+  // ----------------------------
+  // Helpers datas / dias
+  // ----------------------------
   function isDiaUtilMF(dateObj){
-    const day = dateObj.getUTCDay(); // 0 dom .. 6 sab
+    const day = dateObj.getUTCDay();
     return day >= 1 && day <= 5; // seg-sex
   }
   function isDiaTS(dateObj){
     const day = dateObj.getUTCDay();
-    return day === 2 || day === 5; // terça=2, sexta=5
+    return day === 2 || day === 5; // terça/sex
   }
-
   function formatBR(ymdStr){
     const d = new Date(ymdStr + "T00:00:00Z");
     return d.toLocaleDateString("pt-BR");
   }
 
   // ----------------------------
-  // 4) UI: carregar datas conforme a unidade
+  // Firestore counters
+  // counters/{agendaId_YYYY-MM-DD} => MF:{total} TS:{manha,tarde}
+  // ----------------------------
+  function counterId(agendaId, dataYmd){ return `${agendaId}_${dataYmd}`; }
+
+  // ----------------------------
+  // UI refs
   // ----------------------------
   const unidadeEl = document.getElementById("unidade");
   const dataSelect = document.getElementById("dataSelect");
   const campoTurno = document.getElementById("campoTurno");
   const turnoEl = document.getElementById("turno");
+
+  const avisoAgenda = document.getElementById("avisoAgenda");
+  const contadorVagas = document.getElementById("contadorVagas");
 
   const msgOk = document.getElementById("msgOk");
   const msgErr = document.getElementById("msgErr");
@@ -281,52 +280,88 @@
 
   let agendaAtual = null;
 
-  unidadeEl.addEventListener("change", async () => {
-    msgOk.style.display="none";
-    msgErr.style.display="none";
+  // cache dos counters carregados para o dropdown:
+  // Map<dataYmd, { total, manha, tarde }>
+  let counterCache = new Map();
 
-    agendaAtual = acharAgendaPorUnidade(unidadeEl.value);
+  function hideMsgs(){
+    msgOk.style.display = "none";
+    msgErr.style.display = "none";
+  }
 
-    // limpa datas
-    dataSelect.innerHTML = `<option value="">Selecione a Data</option>`;
+  function setContadorMF(restantes, limite){
+    contadorVagas.style.display = "block";
+    contadorVagas.innerHTML = `📊 <b>Vagas restantes:</b> ${restantes} de ${limite} (livre demanda)`;
+  }
 
-    if (!agendaAtual) return;
+  function setContadorTS(restManha, restTarde){
+    contadorVagas.style.display = "block";
+    contadorVagas.innerHTML =
+      `📊 <b>Vagas restantes:</b><br>` +
+      `• <b>Manhã</b>: ${restManha} de 10<br>` +
+      `• <b>Tarde</b>: ${restTarde} de 10`;
+  }
 
-    // mostra/oculta turno baseado NO TIPO DA AGENDA
-    if (agendaAtual.tipo === "TS"){
-      campoTurno.style.display = "block";
-      turnoEl.required = true;
-    } else {
-      campoTurno.style.display = "none";
-      turnoEl.required = false;
-      turnoEl.value = "";
+  function clearContador(){
+    contadorVagas.style.display = "none";
+    contadorVagas.innerHTML = "";
+  }
+
+  function atualizarTurnoDisponivelParaData(dataYmd){
+    if (!agendaAtual || agendaAtual.tipo !== "TS") return;
+
+    const c = counterCache.get(dataYmd) || { manha:0, tarde:0 };
+    const manha = c.manha || 0;
+    const tarde = c.tarde || 0;
+
+    // Atualiza opções do turno para mostrar esgotado
+    const optManha = Array.from(turnoEl.options).find(o => o.text === "Manhã");
+    const optTarde = Array.from(turnoEl.options).find(o => o.text === "Tarde");
+
+    if (optManha){
+      optManha.disabled = manha >= 10;
+      optManha.text = (manha >= 10) ? "Manhã (Esgotado)" : "Manhã";
+    }
+    if (optTarde){
+      optTarde.disabled = tarde >= 10;
+      optTarde.text = (tarde >= 10) ? "Tarde (Esgotado)" : "Tarde";
     }
 
-    // gera opções de datas e filtra as lotadas consultando counters
-    await preencherDatasDisponiveis(agendaAtual);
-  });
+    const restManha = Math.max(0, 10 - manha);
+    const restTarde = Math.max(0, 10 - tarde);
+    setContadorTS(restManha, restTarde);
 
+    // se o turno selecionado ficou inválido, limpa
+    if (turnoEl.value === "Manhã" && manha >= 10) turnoEl.value = "";
+    if (turnoEl.value === "Tarde" && tarde >= 10) turnoEl.value = "";
+  }
+
+  // ----------------------------
+  // Preencher datas disponíveis por unidade/agenda
+  // ----------------------------
   async function preencherDatasDisponiveis(agenda){
+    counterCache = new Map();
+    dataSelect.innerHTML = `<option value="">Selecione a Data</option>`;
+    clearContador();
+
     const ini = new Date(agenda.inicio + "T00:00:00Z");
     const fim = new Date(agenda.fim + "T00:00:00Z");
 
-    // Vamos montar lista de datas primeiro
     const datas = [];
     for (let d = new Date(ini); d <= fim; d.setUTCDate(d.getUTCDate()+1)){
+      const dYmd = ymd(d);
+
       if (agenda.tipo === "MF"){
-        if (!isDiaUtilMF(d)) continue; // seg-sex
-        // feriados liberados
+        if (!isDiaUtilMF(d)) continue;  // seg-sex
+        // feriados liberados no MF
+        datas.push(dYmd);
       } else {
-        if (!isDiaTS(d)) continue; // ter/sex
-        const dayYmd = ymd(d);
-        // feriados BLOQUEADOS só nas TS
-        if (FERIADOS_2026.has(dayYmd)) continue;
+        if (!isDiaTS(d)) continue;      // ter/sex
+        if (isFeriado(dYmd)) continue;  // feriados bloqueados no TS
+        datas.push(dYmd);
       }
-      datas.push(ymd(d));
     }
 
-    // Agora: para cada data, checar se lotou (counters)
-    // (Simples e confiável — pode demorar alguns segundos na primeira carga)
     btnAgendar.disabled = true;
 
     for (const dataYmd of datas){
@@ -334,51 +369,104 @@
       const cSnap = await getDoc(cRef);
       const c = cSnap.exists() ? cSnap.data() : null;
 
-      let temVaga = true;
-
       if (agenda.tipo === "MF"){
+        const limite = agenda.capacidadeDia ?? 5;
         const total = c?.total || 0;
-        temVaga = total < 5;
+        const restantes = Math.max(0, limite - total);
+
+        // só mostra a data se ainda tiver vaga
+        if (total < limite){
+          counterCache.set(dataYmd, { total });
+
+          const opt = document.createElement("option");
+          opt.value = dataYmd;
+          opt.textContent = `${formatBR(dataYmd)} (Vagas restantes: ${restantes})`;
+          dataSelect.appendChild(opt);
+        }
+
       } else {
         const manha = c?.manha || 0;
         const tarde = c?.tarde || 0;
-        // data aparece se existir vaga em pelo menos um turno
-        temVaga = (manha < 10) || (tarde < 10);
-      }
+        const restManha = Math.max(0, 10 - manha);
+        const restTarde = Math.max(0, 10 - tarde);
 
-      if (temVaga){
-        const opt = document.createElement("option");
-        opt.value = dataYmd;
+        // mostra a data se houver vaga em algum turno
+        if (manha < 10 || tarde < 10){
+          counterCache.set(dataYmd, { manha, tarde });
 
-        // dica visual (TS): mostra se ainda tem manhã/tarde
-        if (agenda.tipo === "TS"){
-          const manha = c?.manha || 0;
-          const tarde = c?.tarde || 0;
-          const label = `${formatBR(dataYmd)} (Manhã: ${Math.max(0,10-manha)} | Tarde: ${Math.max(0,10-tarde)})`;
-          opt.textContent = label;
-        } else {
-          opt.textContent = `${formatBR(dataYmd)} (vagas: ${Math.max(0,5-(c?.total||0))})`;
+          const opt = document.createElement("option");
+          opt.value = dataYmd;
+          opt.textContent =
+            `${formatBR(dataYmd)} (Manhã: ${restManha} | Tarde: ${restTarde})`;
+          dataSelect.appendChild(opt);
         }
-
-        dataSelect.appendChild(opt);
       }
     }
 
     btnAgendar.disabled = false;
   }
 
+  // Ao trocar unidade
+  unidadeEl.addEventListener("change", async () => {
+    hideMsgs();
+    clearContador();
+
+    agendaAtual = acharAgendaPorUnidade(unidadeEl.value);
+
+    dataSelect.innerHTML = `<option value="">Selecione a Data</option>`;
+    turnoEl.value = "";
+    campoTurno.style.display = "none";
+    avisoAgenda.style.display = "none";
+
+    if (!agendaAtual) return;
+
+    if (agendaAtual.tipo === "TS"){
+      campoTurno.style.display = "block";
+      turnoEl.required = true;
+      avisoAgenda.style.display = "block";
+    } else {
+      campoTurno.style.display = "none";
+      turnoEl.required = false;
+      avisoAgenda.style.display = "none";
+    }
+
+    await preencherDatasDisponiveis(agendaAtual);
+  });
+
+  // Ao trocar data, atualiza contador e turno disponível
+  dataSelect.addEventListener("change", () => {
+    hideMsgs();
+    const dataYmd = dataSelect.value;
+    if (!dataYmd || !agendaAtual) { clearContador(); return; }
+
+    if (agendaAtual.tipo === "MF"){
+      const limite = agendaAtual.capacidadeDia ?? 5;
+      const c = counterCache.get(dataYmd) || { total: 0 };
+      const total = c.total || 0;
+      const restantes = Math.max(0, limite - total);
+      setContadorMF(restantes, limite);
+    } else {
+      atualizarTurnoDisponivelParaData(dataYmd);
+    }
+  });
+
+  // Ao trocar turno (TS), mantém contador visível
+  turnoEl.addEventListener("change", () => {
+    const dataYmd = dataSelect.value;
+    if (!dataYmd || !agendaAtual || agendaAtual.tipo !== "TS") return;
+    atualizarTurnoDisponivelParaData(dataYmd);
+  });
+
   // ----------------------------
-  // 5) SUBMIT: registrar agendamento + atualizar counters
+  // SUBMIT: grava agendamento + atualiza counters
   // ----------------------------
   document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
     e.preventDefault();
-    msgOk.style.display="none";
-    msgErr.style.display="none";
+    hideMsgs();
 
-    const agenda = agendaAtual;
-    if (!agenda){
+    if (!agendaAtual){
       msgErr.textContent = "❌ Selecione a unidade.";
-      msgErr.style.display="block";
+      msgErr.style.display = "block";
       return;
     }
 
@@ -388,17 +476,18 @@
     const posto = document.getElementById("posto").value;
     const unidade = unidadeEl.value;
     const data = dataSelect.value;
-    const turno = (agenda.tipo === "TS") ? (turnoEl.value || "") : "";
 
     if (!data){
       msgErr.textContent = "❌ Selecione a data.";
-      msgErr.style.display="block";
+      msgErr.style.display = "block";
       return;
     }
 
-    if (agenda.tipo === "TS" && !turno){
+    const turno = (agendaAtual.tipo === "TS") ? (turnoEl.value || "") : "";
+
+    if (agendaAtual.tipo === "TS" && !turno){
       msgErr.textContent = "❌ Selecione o turno (Manhã ou Tarde).";
-      msgErr.style.display="block";
+      msgErr.style.display = "block";
       return;
     }
 
@@ -406,16 +495,18 @@
 
     try {
       const agRef = doc(collection(db, "agendamentos"));
-      const cRef = doc(db, "counters", counterId(agenda.id, data));
+      const cRef  = doc(db, "counters", counterId(agendaAtual.id, data));
 
       await runTransaction(db, async (tx) => {
         const cSnap = await tx.get(cRef);
         const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
 
-        if (agenda.tipo === "MF"){
+        if (agendaAtual.tipo === "MF"){
+          const limite = agendaAtual.capacidadeDia ?? 5;
           const total = c.total || 0;
-          if (total >= 5) throw new Error("LOTADO");
+          if (total >= limite) throw new Error("LOTADO");
           tx.set(cRef, { total: total + 1 }, { merge:true });
+
         } else {
           const manha = c.manha || 0;
           const tarde = c.tarde || 0;
@@ -430,8 +521,8 @@
         }
 
         tx.set(agRef, {
-          agendaId: agenda.id,
-          tipoAgenda: agenda.tipo,
+          agendaId: agendaAtual.id,
+          tipoAgenda: agendaAtual.tipo,
           nome, rg, email, posto, unidade,
           data,
           data_br: formatBR(data),
@@ -439,25 +530,24 @@
         });
       });
 
-      msgOk.style.display="block";
+      msgOk.style.display = "block";
       e.target.reset();
-      campoTurno.style.display = (agenda.tipo === "TS") ? "block" : "none";
+      turnoEl.value = "";
+      clearContador();
 
-      // recarrega datas para “sumir” se lotou
-      dataSelect.innerHTML = `<option value="">Selecione a Data</option>`;
-      await preencherDatasDisponiveis(agenda);
+      // recarrega datas e some se lotou
+      await preencherDatasDisponiveis(agendaAtual);
 
     } catch(err){
       console.error(err);
       msgErr.textContent = (String(err?.message).includes("LOTADO"))
         ? "❌ Essa data/turno acabou de lotar. Selecione outra opção."
         : "❌ Não foi possível agendar. Tente novamente.";
-      msgErr.style.display="block";
+      msgErr.style.display = "block";
     } finally {
       btnAgendar.disabled = false;
     }
   });
-
 </script>
 </body>
 </html>
