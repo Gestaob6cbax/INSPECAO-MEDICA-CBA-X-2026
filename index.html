@@ -22,8 +22,8 @@
 
   .msg { display:none; margin-top:10px; padding:10px; border-radius:10px; font-weight:bold; text-align:center; }
   .ok { background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; }
-  .warn { background:#fff3cd; border:1px solid #ffeeba; color:#856404; }
   .err { background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; }
+  .warn { background:#fff8e1; border:1px solid #ffe08a; color:#7a5a00; }
 
   #avisoAgenda {
     display:none;
@@ -74,7 +74,7 @@
 
   <form id="formAgendamento">
     <input type="text" id="nome" placeholder="Nome completo" required />
-    <input type="text" id="rg" placeholder="RG" required />
+    <input type="text" id="rg" placeholder="RG (somente números ou com pontuação)" required />
     <input type="email" id="email" placeholder="E-mail" required />
 
     <select id="posto" required>
@@ -116,8 +116,9 @@
       <option>DBM 5/M - Sepetiba</option>
     </select>
 
+    <!-- AVISO para agenda TER/SEX -->
     <div id="avisoAgenda">
-      ⚠️ <b>ATENÇÃO – UNIDADE COM INSPEÇÃO EM DIAS ESPECÍFICOS</b><br>
+      ⚠️ <b>ATENÇÃO – INSPEÇÃO EM DIAS ESPECÍFICOS</b><br>
       • Esta unidade realiza inspeção apenas às <b>TERÇAS e SEXTAS</b>.<br>
       • <b>Feriados NÃO aparecem</b> para agendamento.<br><br>
       <b>HORÁRIOS</b><br>
@@ -129,8 +130,10 @@
       <option value="">Selecione a Data</option>
     </select>
 
+    <!-- CONTADOR / SITUAÇÃO -->
     <div id="contadorVagas"></div>
 
+    <!-- TURNO (só para TER/SEX) -->
     <div id="campoTurno">
       <select id="turno">
         <option value="">Selecione o Turno</option>
@@ -142,20 +145,74 @@
     <button type="submit" id="btnAgendar">Agendar</button>
 
     <div id="msgOk" class="msg ok">✅ Agendamento realizado com sucesso.</div>
-    <div id="msgWarn" class="msg warn">⚠️ Agendamento confirmado, porém o e-mail pode demorar ou não ser enviado (limite do provedor).</div>
+    <div id="msgWarn" class="msg warn">⚠️ Agendamento salvo, mas houve falha no envio de e-mail.</div>
     <div id="msgErr" class="msg err">❌ Não foi possível agendar. Tente novamente.</div>
   </form>
 
   <div class="small">
-    Área administrativa: <b>frontend/admin.html</b>
+    Área administrativa: <b>/front-end/admin.html</b> (somente administradores)
   </div>
 </div>
+
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import { getFirestore, collection, doc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  // Firebase
+  // =========================
+  // EMAILJS (SUAS CHAVES)
+  // =========================
+  const EMAILJS_PUBLIC_KEY = "GySnRXpCdioddGW-7";
+  const EMAILJS_SERVICE_ID = "service_57r7wmp";
+  const TEMPLATE_ADM_ID = "template_q4u6ul6";
+  const TEMPLATE_MILITAR_ID = "template_zjjttya";
+
+  // Inicializa EmailJS
+  if (window.emailjs) {
+    window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+  }
+
+  async function enviarEmails({ nome, rg, email, posto, unidade, data_br, turno }) {
+    const paramsAdm = {
+      nome,
+      rg,
+      email,
+      posto,
+      unidade,
+      data: data_br,
+      turno: turno || "—",
+    };
+
+    const paramsMilitar = {
+      to_email: email,
+      email: email,
+      nome,
+      rg,
+      posto,
+      unidade,
+      data: data_br,
+      turno: turno || "—",
+      mensagem:
+`Seu agendamento de Inspeção de Saúde foi realizado com sucesso.
+
+Unidade: ${unidade}
+Data: ${data_br}
+Turno: ${turno || "Livre demanda"}
+
+Em caso de necessidade de cancelamento, procure a administração.
+
+CBA X – Inspeção de Saúde`
+    };
+
+    await window.emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_ADM_ID, paramsAdm);
+    await window.emailjs.send(EMAILJS_SERVICE_ID, TEMPLATE_MILITAR_ID, paramsMilitar);
+  }
+
+  // =========================
+  // FIREBASE
+  // =========================
   const firebaseConfig = {
     apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
     authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -168,7 +225,11 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // ----------------------------
   // AGENDAS
+  // TS = Terça/Sexta (10 manhã + 10 tarde) + feriados bloqueados
+  // MF = Seg–Sex 5 vagas/dia
+  // ----------------------------
   const AGENDAS = [
     { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15",
       unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"]
@@ -188,7 +249,8 @@
     { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31",
       unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"]
     },
-    { id:"A7", tipo:"TS", inicio:"2026-02-24", fim:"2027-02-05",
+    // ✅ SEPETIBA CORRIGIDA
+    { id:"A7", tipo:"TS", inicio:"2026-02-24", fim:"2026-03-06",
       unidades:["DBM 5/M - Sepetiba"]
     },
   ];
@@ -197,7 +259,9 @@
     return AGENDAS.find(a => a.unidades.includes(unidade)) || null;
   }
 
-  // FERIADOS (bloqueia só TS)
+  // ----------------------------
+  // FERIADOS (bloquear só nas TS)
+  // ----------------------------
   function easterDate(year){
     const a = year % 19, b = Math.floor(year/100), c = year % 100;
     const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
@@ -226,15 +290,13 @@
     const movable = [ymd(carnivalMon), ymd(carnivalTue), ymd(goodFriday), ymd(corpus)];
     return new Set([...fixed, ...movable]);
   }
-  const FERIADOS_2026 = feriadosAno(2026);
-  const FERIADOS_2027 = feriadosAno(2027);
-  function isFeriado(ymdStr){
-    const year = Number(ymdStr.slice(0,4));
-    if (year === 2026) return FERIADOS_2026.has(ymdStr);
-    if (year === 2027) return FERIADOS_2027.has(ymdStr);
-    return false;
-  }
 
+  const FERIADOS_2026 = feriadosAno(2026);
+  function isFeriado(ymdStr){ return FERIADOS_2026.has(ymdStr); }
+
+  // ----------------------------
+  // Helpers datas / dias
+  // ----------------------------
   function isDiaUtilMF(dateObj){
     const day = dateObj.getUTCDay();
     return day >= 1 && day <= 5;
@@ -248,8 +310,15 @@
     return d.toLocaleDateString("pt-BR");
   }
 
+  // ----------------------------
+  // Firestore counters
+  // counters/{agendaId_YYYY-MM-DD} => MF:{total} TS:{manha,tarde}
+  // ----------------------------
   function counterId(agendaId, dataYmd){ return `${agendaId}_${dataYmd}`; }
 
+  // ----------------------------
+  // UI refs
+  // ----------------------------
   const unidadeEl = document.getElementById("unidade");
   const dataSelect = document.getElementById("dataSelect");
   const campoTurno = document.getElementById("campoTurno");
@@ -300,6 +369,33 @@
     contadorVagas.innerHTML = "";
   }
 
+  function atualizarTurnoDisponivelParaData(dataYmd){
+    if (!agendaAtual || agendaAtual.tipo !== "TS") return;
+
+    const c = counterCache.get(dataYmd) || { manha:0, tarde:0 };
+    const manha = c.manha || 0;
+    const tarde = c.tarde || 0;
+
+    const optManha = Array.from(turnoEl.options).find(o => o.text.startsWith("Manhã"));
+    const optTarde = Array.from(turnoEl.options).find(o => o.text.startsWith("Tarde"));
+
+    if (optManha){
+      optManha.disabled = manha >= 10;
+      optManha.text = (manha >= 10) ? "Manhã (ESGOTADO)" : "Manhã";
+    }
+    if (optTarde){
+      optTarde.disabled = tarde >= 10;
+      optTarde.text = (tarde >= 10) ? "Tarde (ESGOTADO)" : "Tarde";
+    }
+
+    const restManha = Math.max(0, 10 - manha);
+    const restTarde = Math.max(0, 10 - tarde);
+    setContadorTS(restManha, restTarde);
+
+    if (turnoEl.value === "Manhã" && manha >= 10) turnoEl.value = "";
+    if (turnoEl.value === "Tarde" && tarde >= 10) turnoEl.value = "";
+  }
+
   async function preencherDatasDisponiveis(agenda){
     counterCache = new Map();
     dataSelect.innerHTML = `<option value="">Selecione a Data</option>`;
@@ -322,9 +418,6 @@
       }
     }
 
-    // ✅ Atenção: aqui ainda faz 1 leitura por data.
-    // Para pico muito grande, a versão “super leve” consulta só quando seleciona a data.
-    // Mantive como estava para você não perder “Vagas restantes” no dropdown.
     btnAgendar.disabled = true;
 
     for (const dataYmd of datas){
@@ -363,28 +456,6 @@
     btnAgendar.disabled = false;
   }
 
-  function atualizarTurnosTS(dataYmd){
-    const c = counterCache.get(dataYmd) || { manha:0, tarde:0 };
-    const manha = c.manha || 0;
-    const tarde = c.tarde || 0;
-
-    const optManha = Array.from(turnoEl.options).find(o => o.text.startsWith("Manhã"));
-    const optTarde = Array.from(turnoEl.options).find(o => o.text.startsWith("Tarde"));
-
-    if (optManha){
-      optManha.disabled = manha >= 10;
-      optManha.text = (manha >= 10) ? "Manhã (ESGOTADO)" : "Manhã";
-    }
-    if (optTarde){
-      optTarde.disabled = tarde >= 10;
-      optTarde.text = (tarde >= 10) ? "Tarde (ESGOTADO)" : "Tarde";
-    }
-
-    setContadorTS(Math.max(0, 10-manha), Math.max(0, 10-tarde));
-    if (turnoEl.value === "Manhã" && manha >= 10) turnoEl.value = "";
-    if (turnoEl.value === "Tarde" && tarde >= 10) turnoEl.value = "";
-  }
-
   unidadeEl.addEventListener("change", async () => {
     hideMsgs();
     clearContador();
@@ -419,16 +490,18 @@
     if (agendaAtual.tipo === "MF"){
       const limite = agendaAtual.capacidadeDia ?? 5;
       const c = counterCache.get(dataYmd) || { total: 0 };
-      setContadorMF(Math.max(0, limite - (c.total||0)), limite);
+      const total = c.total || 0;
+      const restantes = Math.max(0, limite - total);
+      setContadorMF(restantes, limite);
     } else {
-      atualizarTurnosTS(dataYmd);
+      atualizarTurnoDisponivelParaData(dataYmd);
     }
   });
 
   turnoEl.addEventListener("change", () => {
     const dataYmd = dataSelect.value;
     if (!dataYmd || !agendaAtual || agendaAtual.tipo !== "TS") return;
-    atualizarTurnosTS(dataYmd);
+    atualizarTurnoDisponivelParaData(dataYmd);
   });
 
   document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
@@ -461,13 +534,25 @@
       return;
     }
 
+    // ✅ BLOQUEIO POR RG (1 agendamento por RG)
+    const rgLimpo = rg.replace(/\D/g, "");
+    if (!rgLimpo){
+      msgErr.textContent = "❌ RG inválido.";
+      msgErr.style.display = "block";
+      return;
+    }
+
     btnAgendar.disabled = true;
 
     try {
-      const agRef = doc(collection(db, "agendamentos"));
-      const cRef  = doc(db, "counters", counterId(agendaAtual.id, data));
+      const agRef = doc(db, "agendamentos", rgLimpo); // docId = RG
+      const cRef  = doc(db, "counters", `${agendaAtual.id}_${data}`);
 
       await runTransaction(db, async (tx) => {
+        // ✅ se já existe agendamento pra esse RG, bloqueia
+        const ja = await tx.get(agRef);
+        if (ja.exists()) throw new Error("JA_AGENDADO");
+
         const cSnap = await tx.get(cRef);
         const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
 
@@ -479,6 +564,7 @@
         } else {
           const manha = c.manha || 0;
           const tarde = c.tarde || 0;
+
           if (turno === "Manhã"){
             if (manha >= 10) throw new Error("LOTADO");
             tx.set(cRef, { manha: manha + 1 }, { merge:true });
@@ -489,36 +575,43 @@
         }
 
         tx.set(agRef, {
+          rg_id: rgLimpo,
           agendaId: agendaAtual.id,
           tipoAgenda: agendaAtual.tipo,
           nome, rg, email, posto, unidade,
           data,
           data_br: formatBR(data),
           turno: turno || "",
-          createdAt: Date.now()
+          criado_em: new Date().toISOString()
         });
       });
 
-      // ✅ SUCESSO (independente de e-mail)
+      // ✅ Agendamento OK
       msgOk.style.display = "block";
 
-      // ⚠️ Se você ainda está tentando EmailJS em algum outro lugar do seu repo,
-      // ele vai falhar por quota. A recomendação é: e-mail via Cloud Function.
-      // (Se você já tem a function, ela vai disparar automaticamente pelo Firestore.)
-      // Para ser transparente com o usuário:
-      msgWarn.style.display = "block";
+      // ✅ tentar email SEM travar o sistema
+      try {
+        await enviarEmails({ nome, rg, email, posto, unidade, data_br: formatBR(data), turno });
+      } catch (emailErr) {
+        console.warn("EmailJS falhou:", emailErr);
+        msgWarn.style.display = "block";
+      }
 
       e.target.reset();
       turnoEl.value = "";
       clearContador();
-
       await preencherDatasDisponiveis(agendaAtual);
 
     } catch(err){
       console.error(err);
-      msgErr.textContent = (String(err?.message).includes("LOTADO"))
-        ? "❌ Essa data/turno acabou de lotar. Selecione outra opção."
-        : "❌ Não foi possível agendar. Tente novamente.";
+
+      msgErr.textContent =
+        String(err?.message).includes("JA_AGENDADO")
+          ? "❌ Você já possui um agendamento. Procure a administração para cancelar/alterar."
+          : String(err?.message).includes("LOTADO")
+            ? "❌ Essa data/turno acabou de lotar. Selecione outra opção."
+            : "❌ Não foi possível agendar. Tente novamente.";
+
       msgErr.style.display = "block";
     } finally {
       btnAgendar.disabled = false;
@@ -527,13 +620,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
