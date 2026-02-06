@@ -7,22 +7,28 @@
 
   <style>
     body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-    .box { max-width:1100px; margin:30px auto; background:#fff; padding:20px; border-radius:10px; }
+    .box { max-width:1200px; margin:30px auto; background:#fff; padding:20px; border-radius:10px; }
     h2 { margin:0 0 10px 0; }
     input, select, button { padding:10px; border-radius:8px; font-size:14px; border:1px solid #ccc; box-sizing:border-box; }
-    button { border:none; background:#0b3c5d; color:#fff; cursor:pointer; }
+    button { border:none; background:#0b3c5d; color:#fff; cursor:pointer; font-weight:bold; }
     button:hover { background:#092f49; }
-    button:disabled { opacity:.6; cursor:not-allowed; }
     .danger { background:#c0392b; }
     .danger:hover { background:#a93226; }
+    .muted { background:#6c757d; }
+    .muted:hover { background:#5a6268; }
+
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
     .hidden { display:none; }
+
     table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
-    th, td { border:1px solid #e4e4e4; padding:8px; text-align:left; }
+    th, td { border:1px solid #e4e4e4; padding:8px; text-align:left; vertical-align:top; }
     th { background:#f6f8fb; }
+
     .ok { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold; }
     .err { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold; }
-    .muted { font-size:12px; color:#666; }
+    .info { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#eef4ff; border:1px solid #cfe0ff; color:#163a7a; font-weight:bold; }
+
+    .chk { width:18px; height:18px; }
   </style>
 </head>
 
@@ -30,21 +36,21 @@
   <div class="box">
     <h2>Área Administrativa – Inspeção de Saúde CBA X</h2>
 
+    <!-- LOGIN PIN -->
     <div class="row" id="pinArea">
       <input type="password" id="pin" placeholder="Digite o PIN" style="max-width:240px;">
       <button type="button" id="btnEntrar">Entrar</button>
-      <span class="muted">PIN: B6CBAX2023</span>
     </div>
 
     <div id="adminArea" class="hidden">
       <div class="row">
-        <select id="filtroUnidade" style="min-width:260px;">
+        <select id="filtroUnidade" style="min-width:300px;">
           <option value="">Todas as unidades</option>
           <option>1º GMar - Botafogo</option>
           <option>DBM 1/M - Paquetá</option>
           <option>DBM 2/M - Piscinão de Ramos</option>
-          <option>CER</option>
           <option>2º GMar - Barra da Tijuca</option>
+          <option>CER</option>
           <option>3º GMar - Copacabana</option>
           <option>4º GMar - Itaipu</option>
           <option>DBM 6/M - Itaipu</option>
@@ -55,19 +61,19 @@
         </select>
 
         <button type="button" id="btnAtualizar">Atualizar tabela</button>
-        <button type="button" id="btnSelecionarTudo">Selecionar tudo</button>
+
+        <button type="button" class="muted" id="btnMarcarTodos">Selecionar todos</button>
         <button type="button" class="danger" id="btnExcluirSelecionados">Excluir selecionados</button>
       </div>
 
       <div class="ok" id="msgOk">✅ Operação realizada com sucesso.</div>
       <div class="err" id="msgErr">❌ Não foi possível realizar a operação.</div>
-
-      <div class="muted">Dica: use “Excluir selecionados” para cancelar vários e devolver vagas automaticamente.</div>
+      <div class="info" id="msgInfo">Processando…</div>
 
       <table>
         <thead>
           <tr>
-            <th style="width:36px;"></th>
+            <th style="width:42px;">Sel</th>
             <th>Data</th>
             <th>Turno</th>
             <th>Unidade</th>
@@ -75,7 +81,7 @@
             <th>RG</th>
             <th>Posto/Grad</th>
             <th>E-mail</th>
-            <th style="width:110px;">Ações</th>
+            <th style="width:120px;">Ações</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -90,8 +96,10 @@
       doc, runTransaction
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+    // ✅ PIN
     const PIN_CORRETO = "B6CBAX2023";
 
+    // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
       authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -111,24 +119,35 @@
 
     const filtroUnidade = document.getElementById("filtroUnidade");
     const btnAtualizar = document.getElementById("btnAtualizar");
-    const btnSelecionarTudo = document.getElementById("btnSelecionarTudo");
+    const btnMarcarTodos = document.getElementById("btnMarcarTodos");
     const btnExcluirSelecionados = document.getElementById("btnExcluirSelecionados");
 
     const tbody = document.getElementById("tbody");
     const msgOk = document.getElementById("msgOk");
     const msgErr = document.getElementById("msgErr");
+    const msgInfo = document.getElementById("msgInfo");
+
+    let selecionouTudo = false;
 
     function showOk(text){
       msgErr.style.display="none";
+      msgInfo.style.display="none";
       msgOk.textContent = text;
       msgOk.style.display="block";
       setTimeout(()=> msgOk.style.display="none", 4000);
     }
     function showErr(text){
       msgOk.style.display="none";
+      msgInfo.style.display="none";
       msgErr.textContent = text;
       msgErr.style.display="block";
       setTimeout(()=> msgErr.style.display="none", 6000);
+    }
+    function showInfo(text){
+      msgOk.style.display="none";
+      msgErr.style.display="none";
+      msgInfo.textContent = text;
+      msgInfo.style.display="block";
     }
 
     function counterDocId(agendaId, ymd){
@@ -136,7 +155,8 @@
     }
 
     btnEntrar.addEventListener("click", async () => {
-      if (pinEl.value !== PIN_CORRETO){
+      const pinDigitado = (pinEl.value || "").trim();
+      if (pinDigitado !== PIN_CORRETO){
         alert("PIN incorreto.");
         return;
       }
@@ -145,42 +165,52 @@
       await carregarTabela();
     });
 
-    btnAtualizar.addEventListener("click", carregarTabela);
+    btnAtualizar.addEventListener("click", async () => {
+      await carregarTabela();
+    });
 
-    btnSelecionarTudo.addEventListener("click", () => {
-      const checks = tbody.querySelectorAll('input[type="checkbox"][data-id]');
-      const algumDesmarcado = Array.from(checks).some(c => !c.checked);
-      checks.forEach(c => c.checked = algumDesmarcado);
+    btnMarcarTodos.addEventListener("click", () => {
+      selecionouTudo = !selecionouTudo;
+      document.querySelectorAll('input[type="checkbox"][data-docid]').forEach(chk => {
+        chk.checked = selecionouTudo;
+      });
+      btnMarcarTodos.textContent = selecionouTudo ? "Desmarcar todos" : "Selecionar todos";
     });
 
     btnExcluirSelecionados.addEventListener("click", async () => {
-      const selecionados = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-id]:checked'))
-        .map(c => c.getAttribute("data-id"));
+      const ids = Array.from(document.querySelectorAll('input[type="checkbox"][data-docid]'))
+        .filter(chk => chk.checked)
+        .map(chk => chk.getAttribute("data-docid"));
 
-      if (!selecionados.length){
+      if (!ids.length){
         alert("Selecione pelo menos 1 agendamento.");
         return;
       }
 
-      const ok = confirm(`Confirma excluir ${selecionados.length} agendamentos? (as vagas voltarão para a agenda)`);
+      const ok = confirm(`Tem certeza que deseja EXCLUIR ${ids.length} agendamento(s)?\nAs vagas voltarão para a agenda.`);
       if (!ok) return;
 
-      btnExcluirSelecionados.disabled = true;
-
-      let okCount = 0;
-      for (const id of selecionados){
-        const res = await excluirEDevolverVaga(id);
-        if (res) okCount++;
+      showInfo(`Excluindo ${ids.length} agendamento(s)…`);
+      let sucesso = 0;
+      for (let i=0; i<ids.length; i++){
+        try{
+          await excluirEDevolverVaga(ids[i]);
+          sucesso++;
+          showInfo(`Excluindo… (${sucesso}/${ids.length})`);
+        } catch(e){
+          console.error(e);
+        }
       }
 
-      btnExcluirSelecionados.disabled = false;
-
-      showOk(`✅ Excluídos: ${okCount} / ${selecionados.length}.`);
+      showOk(`✅ Concluído: ${sucesso}/${ids.length} excluído(s).`);
       await carregarTabela();
     });
 
     async function carregarTabela(){
       tbody.innerHTML = "";
+      selecionouTudo = false;
+      btnMarcarTodos.textContent = "Selecionar todos";
+
       const uni = filtroUnidade.value;
 
       let qAg;
@@ -211,7 +241,7 @@
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-          <td><input type="checkbox" data-id="${d.id}"></td>
+          <td><input class="chk" type="checkbox" data-docid="${d.id}"></td>
           <td>${v.data_br || ""}</td>
           <td>${v.turno || ""}</td>
           <td>${v.unidade || ""}</td>
@@ -220,17 +250,21 @@
           <td>${v.posto || ""}</td>
           <td>${v.email || ""}</td>
           <td>
-            <button class="danger" data-del="${d.id}">Excluir</button>
+            <button class="danger" data-id="${d.id}">Excluir</button>
           </td>
         `;
 
-        tr.querySelector('button[data-del]').addEventListener("click", async () => {
+        tr.querySelector("button").addEventListener("click", async () => {
           const ok = confirm("Tem certeza que deseja excluir este agendamento? (A vaga voltará para a agenda)");
           if (!ok) return;
-          const res = await excluirEDevolverVaga(d.id);
-          if (res){
+          try{
+            showInfo("Excluindo 1 agendamento…");
+            await excluirEDevolverVaga(d.id);
             showOk("✅ Agendamento excluído e vaga devolvida.");
             await carregarTabela();
+          } catch(e){
+            console.error(e);
+            showErr("❌ Não foi possível excluir.");
           }
         });
 
@@ -241,49 +275,39 @@
     async function excluirEDevolverVaga(docId){
       const agRef = doc(db, "agendamentos", docId);
 
-      try {
-        await runTransaction(db, async (tx) => {
-          const agSnap = await tx.get(agRef);
-          if (!agSnap.exists()) throw new Error("NAO_EXISTE");
+      await runTransaction(db, async (tx) => {
+        const agSnap = await tx.get(agRef);
+        if (!agSnap.exists()) throw new Error("NAO_EXISTE");
 
-          const ag = agSnap.data();
-          const agendaId = ag.agendaId;
-          const data = ag.data;    // YYYY-MM-DD
-          const turno = ag.turno;  // Manhã/Tarde ou ""
+        const ag = agSnap.data();
+        const agendaId = ag.agendaId;
+        const data = ag.data;    // YYYY-MM-DD
+        const turno = ag.turno;  // Manhã/Tarde ou ""
 
-          if (!agendaId || !data) throw new Error("DADOS_INVALIDOS");
+        if (!agendaId || !data) throw new Error("DADOS_INVALIDOS");
 
-          const cRef = doc(db, "counters", counterDocId(agendaId, data));
-          const cSnap = await tx.get(cRef);
-          const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
+        const cRef = doc(db, "counters", counterDocId(agendaId, data));
+        const cSnap = await tx.get(cRef);
+        const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
 
-          let total = c.total || 0;
-          let manha = c.manha || 0;
-          let tarde = c.tarde || 0;
+        let total = c.total || 0;
+        let manha = c.manha || 0;
+        let tarde = c.tarde || 0;
 
-          // TS controla por turno / MF controla total
-          if ((turno === "Manhã" || turno === "Tarde")) {
-            if (turno === "Manhã") manha = Math.max(0, manha - 1);
-            if (turno === "Tarde") tarde = Math.max(0, tarde - 1);
-            tx.set(cRef, { manha, tarde }, { merge:true });
-          } else {
-            total = Math.max(0, total - 1);
-            tx.set(cRef, { total }, { merge:true });
-          }
+        const temControlePorTurno = (typeof c.manha !== "undefined" || typeof c.tarde !== "undefined");
 
-          tx.delete(agRef);
-        });
+        if (temControlePorTurno && (turno === "Manhã" || turno === "Tarde")) {
+          if (turno === "Manhã") manha = Math.max(0, manha - 1);
+          if (turno === "Tarde") tarde = Math.max(0, tarde - 1);
+          tx.set(cRef, { manha, tarde }, { merge:true });
+        } else {
+          total = Math.max(0, total - 1);
+          tx.set(cRef, { total }, { merge:true });
+        }
 
-        return true;
-      } catch(e){
-        console.error(e);
-        showErr("❌ Não foi possível excluir (regras do Firestore podem estar bloqueando).");
-        return false;
-      }
+        tx.delete(agRef);
+      });
     }
   </script>
 </body>
 </html>
-
-
-
