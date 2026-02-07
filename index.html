@@ -6,33 +6,63 @@
 <title>INSPEÇÃO DE SAÚDE – CBA X</title>
 
 <style>
-  body{font-family:Arial,sans-serif;background:#f2f4f8;margin:0;padding:0}
-  .container{max-width:720px;margin:30px auto;background:#fff;padding:20px;border-radius:12px;text-align:center}
-  .logo{max-width:180px;width:100%;margin-bottom:10px}
-  input,select,button{
-    width:100%;padding:10px;margin-bottom:10px;border-radius:10px;
-    border:1px solid #ccc;font-size:14px;box-sizing:border-box
+  body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
+  .container { max-width: 720px; margin: 30px auto; background:#fff; padding:20px; border-radius:12px; text-align:center; }
+  .logo { max-width:180px; width:100%; margin-bottom:10px; }
+
+  input, select, button {
+    width:100%; padding:10px; margin-bottom:10px; border-radius:10px;
+    border:1px solid #ccc; font-size:14px; box-sizing:border-box;
   }
-  button{background:#0b3c5d;color:#fff;border:none;cursor:pointer;font-weight:bold}
-  button:hover{background:#092f49}
-  button:disabled{opacity:.6;cursor:not-allowed}
-  #campoTurno{display:none}
-  .msg{display:none;margin-top:10px;padding:10px;border-radius:10px;font-weight:bold;text-align:center}
-  .ok{background:#eef9f0;border:1px solid #cfe9d3;color:#1f5b2b}
-  .err{background:#fff2f2;border:1px solid #f2c2c2;color:#8a1f1f}
-  #avisoAgenda{display:none;background:#fff3cd;border:1px solid #ffeeba;padding:12px;border-radius:10px;margin:10px 0;font-size:13px;color:#856404;text-align:left;line-height:1.4}
-  #contadorVagas{display:none;background:#eef4ff;border:1px solid #cfe0ff;padding:12px;border-radius:10px;margin:-2px 0 10px 0;font-size:13px;color:#163a7a;text-align:left;line-height:1.4}
-  .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:bold;font-size:12px;margin-left:6px}
-  .tag-ok{background:#e7f6ea;border:1px solid #bfe8c7;color:#1f5b2b}
-  .tag-bad{background:#ffe8e8;border:1px solid #f2bcbc;color:#8a1f1f}
-  .small{font-size:12px;color:#666;margin-top:8px}
-  #comprovante{display:none;margin-top:12px;text-align:left;background:#eef9f0;border:1px solid #cfe9d3;color:#1f5b2b;padding:14px;border-radius:12px}
-  #comprovante button{width:auto;margin:0}
-  @media print{
-    body{background:#fff}
-    .small,#msgOk,#msgErr,#btnAgendar{display:none!important}
-    #comprovante{display:block!important}
+  button { background:#0b3c5d; color:#fff; border:none; cursor:pointer; font-weight:bold; }
+  button:hover { background:#092f49; }
+  button:disabled { opacity:0.6; cursor:not-allowed; }
+
+  #campoTurno { display:none; }
+
+  .msg { display:none; margin-top:10px; padding:10px; border-radius:10px; font-weight:bold; text-align:center; }
+  .ok { background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; }
+  .err { background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; }
+
+  #avisoAgenda {
+    display:none;
+    background:#fff3cd;
+    border:1px solid #ffeeba;
+    padding:12px;
+    border-radius:10px;
+    margin:10px 0;
+    font-size:13px;
+    color:#856404;
+    text-align:left;
+    line-height:1.4;
   }
+
+  #contadorVagas {
+    display:none;
+    background:#eef4ff;
+    border:1px solid #cfe0ff;
+    padding:12px;
+    border-radius:10px;
+    margin:-2px 0 10px 0;
+    font-size:13px;
+    color:#163a7a;
+    text-align:left;
+    line-height:1.4;
+  }
+
+  .tag {
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:999px;
+    font-weight:bold;
+    font-size:12px;
+    margin-left:6px;
+  }
+  .tag-ok { background:#e7f6ea; border:1px solid #bfe8c7; color:#1f5b2b; }
+  .tag-bad{ background:#ffe8e8; border:1px solid #f2bcbc; color:#8a1f1f; }
+
+  .small { font-size:12px; color:#666; margin-top:10px; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 </style>
 </head>
 
@@ -65,6 +95,7 @@
 
     <select id="unidade" required>
       <option value="">Selecione a Unidade</option>
+
       <option>1º GMar - Botafogo</option>
       <option>DBM 1/M - Paquetá</option>
       <option>DBM 2/M - Piscinão de Ramos</option>
@@ -85,10 +116,11 @@
       <option>DBM 5/M - Sepetiba</option>
     </select>
 
-    <!-- Aviso TS -->
+    <!-- AVISO para agenda TER/SEX -->
     <div id="avisoAgenda">
-      ⚠️ <b>ATENÇÃO – INSPEÇÃO APENAS TERÇAS E SEXTAS</b><br>
-      • Feriados NÃO aparecem para agendamento.<br><br>
+      ⚠️ <b>ATENÇÃO – UNIDADE COM INSPEÇÃO EM DIAS ESPECÍFICOS</b><br>
+      • Esta unidade realiza inspeção apenas às <b>TERÇAS e SEXTAS</b>.<br>
+      • <b>Feriados NÃO aparecem</b> para agendamento.<br><br>
       <b>HORÁRIOS</b><br>
       • <b>MANHÃ</b>: 07:30 – 12:00 (10 vagas)<br>
       • <b>TARDE</b>: 13:00 – 17:30 (10 vagas)
@@ -98,14 +130,15 @@
       <option value="">Selecione a Data</option>
     </select>
 
+    <!-- CONTADOR / SITUAÇÃO -->
     <div id="contadorVagas"></div>
 
-    <!-- Turno (somente TS) -->
+    <!-- TURNO (só para TER/SEX) -->
     <div id="campoTurno">
       <select id="turno">
         <option value="">Selecione o Turno</option>
-        <option>Manhã</option>
-        <option>Tarde</option>
+        <option value="Manhã">Manhã</option>
+        <option value="Tarde">Tarde</option>
       </select>
     </div>
 
@@ -113,41 +146,22 @@
 
     <div id="msgOk" class="msg ok">✅ Agendamento realizado com sucesso.</div>
     <div id="msgErr" class="msg err">❌ Não foi possível agendar. Tente novamente.</div>
-
-    <!-- Comprovante -->
-    <div id="comprovante">
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
-        <b>✅ COMPROVANTE DE AGENDAMENTO</b>
-        <span style="font-weight:bold;">CONFIRMADO</span>
-      </div>
-      <div style="margin-top:10px;line-height:1.6;">
-        <div><b>Nome:</b> <span id="cNome"></span></div>
-        <div><b>RG:</b> <span id="cRG"></span></div>
-        <div><b>Posto/Graduação:</b> <span id="cPosto"></span></div>
-        <div><b>Unidade:</b> <span id="cUnidade"></span></div>
-        <div><b>Data:</b> <span id="cData"></span></div>
-        <div><b>Turno:</b> <span id="cTurno"></span></div>
-      </div>
-      <div style="margin-top:10px;font-size:12px;">Guarde este comprovante. Você pode imprimir ou salvar em PDF.</div>
-      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
-        <button type="button" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-        <button type="button" id="btnFecharComp" style="background:#6c757d;">Fechar</button>
-      </div>
-    </div>
   </form>
 
   <div class="small">
-    Área administrativa: <b>admin.html</b> (somente administradores)
+    Área administrativa: <span class="mono">/frontend/admin.html</span> (somente administradores)
   </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
-    getFirestore, collection, doc, getDoc, getDocs, query, where, runTransaction
+    getFirestore, collection, doc, getDoc, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  // Firebase
+  // =========================
+  // FIREBASE
+  // =========================
   const firebaseConfig = {
     apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
     authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -160,326 +174,372 @@
   const db = getFirestore(app);
 
   // =========================
-  // AGENDAS (1 a 7)
-  // TS = Ter/Sex 10 manhã + 10 tarde (feriados bloqueados)
-  // MF = Seg–Sex 5 vagas/dia (livre demanda)
+  // AGENDAS (conforme sua última mensagem)
+  // TS = Terça/Sexta (10 manhã + 10 tarde) + feriados bloqueados
+  // MF = Seg–Sex (livre demanda) 5 vagas/dia + feriados liberados
   // =========================
   const AGENDAS = [
+    // 1º GMAR + DBM1/M + DBM2/M
     { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15",
-      unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"] },
+      unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"]
+    },
+
+    // 4º GMAR + DBM6/M – Itaipu
     { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26",
-      unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"] },
-    { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia:5,
-      unidades:["CER","2º GMar - Barra da Tijuca"] },
-    { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia:5,
-      unidades:["3º GMar - Copacabana"] },
+      unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"]
+    },
+
+    // CER + 2º GMAR – Barra da Tijuca (Seg–Sex, 5/dia)
+    { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia: 5,
+      unidades:["CER","2º GMar - Barra da Tijuca"]
+    },
+
+    // 3º GMAR – Copacabana (Seg–Sex, 5/dia)
+    { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia: 5,
+      unidades:["3º GMar - Copacabana"]
+    },
+
+    // CBA X – Atividades de Salvamentos Marítimos
     { id:"A5", tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13",
-      unidades:["CBA X"] },
+      unidades:["CBA X"]
+    },
+
+    // DBM4/M + DBM3/M (Realizado no recreio)
     { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31",
-      unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"] },
-       { id:"A7", tipo:"TS", inicio:"2026-02-24", fim:"2026-03-06",
-      unidades:["DBM 5/M - Sepetiba"] },
+      unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"]
+    },
+
+    // DBM5/M – Sepetiba (23/02/2026 a 05/03/2026)
+    { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-05",
+      unidades:["DBM 5/M - Sepetiba"]
+    },
   ];
 
+  function acharAgendaPorUnidade(unidade){
+    return AGENDAS.find(a => a.unidades.includes(unidade)) || null;
+  }
+
+  // =========================
+  // DATAS (LOCAL, sem UTC/Z) ✅ evita aparecer 22/02 quando é 23/02
+  // =========================
+  function ymdLocal(dateObj){
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth()+1).padStart(2,"0");
+    const d = String(dateObj.getDate()).padStart(2,"0");
+    return `${y}-${m}-${d}`;
+  }
+  function dateFromYMD(ymdStr){
+    const [y,m,d] = ymdStr.split("-").map(Number);
+    return new Date(y, m-1, d); // local
+  }
+  function formatBR(ymdStr){
+    return dateFromYMD(ymdStr).toLocaleDateString("pt-BR");
+  }
+
+  function isDiaUtilMF(d){ const day = d.getDay(); return day >= 1 && day <= 5; } // seg-sex
+  function isDiaTS(d){ const day = d.getDay(); return day === 2 || day === 5; }   // ter/sex
+
+  // =========================
+  // FERIADOS (bloquear só nas TS)
+  // (nacionais + RJ comuns; pode ajustar se quiser)
+  // =========================
+  function easterDate(year){
+    const a = year % 19, b = Math.floor(year/100), c = year % 100;
+    const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+    const g = Math.floor((b - f + 1)/3);
+    const h = (19*a + b - d - g + 15) % 30;
+    const i = Math.floor(c/4), k = c % 4;
+    const l = (32 + 2*e + 2*i - h - k) % 7;
+    const m = Math.floor((a + 11*h + 22*l)/451);
+    const month = Math.floor((h + l - 7*m + 114)/31);
+    const day = ((h + l - 7*m + 114) % 31) + 1;
+    return new Date(Date.UTC(year, month-1, day));
+  }
+  function ymdUTC(d){ return d.toISOString().slice(0,10); }
+
+  function feriadosAno(year){
+    const fixed = [
+      `${year}-01-01`, `${year}-04-21`, `${year}-05-01`, `${year}-09-07`,
+      `${year}-10-12`, `${year}-11-02`, `${year}-11-15`, `${year}-12-25`,
+      // RJ comuns
+      `${year}-01-20`, `${year}-04-23`,
+    ];
+    const easter = easterDate(year);
+    const carnivalMon = new Date(easter); carnivalMon.setUTCDate(easter.getUTCDate() - 48);
+    const carnivalTue = new Date(easter); carnivalTue.setUTCDate(easter.getUTCDate() - 47);
+    const goodFriday  = new Date(easter); goodFriday.setUTCDate(easter.getUTCDate() - 2);
+    const corpus      = new Date(easter); corpus.setUTCDate(easter.getUTCDate() + 60);
+    const movable = [ymdUTC(carnivalMon), ymdUTC(carnivalTue), ymdUTC(goodFriday), ymdUTC(corpus)];
+    return new Set([...fixed, ...movable]);
+  }
+  const FERIADOS_2026 = feriadosAno(2026);
+  function isFeriado(ymdStr){
+    const year = Number(ymdStr.slice(0,4));
+    if (year === 2026) return FERIADOS_2026.has(ymdStr);
+    return false;
+  }
+
+  // =========================
+  // Firestore counters
+  // counters/{agendaId_YYYY-MM-DD} => MF:{total} TS:{manha,tarde}
+  // =========================
+  function counterId(agendaId, dataYmd){ return `${agendaId}_${dataYmd}`; }
+
+  // =========================
+  // UI refs
+  // =========================
   const unidadeEl = document.getElementById("unidade");
   const dataSelect = document.getElementById("dataSelect");
   const campoTurno = document.getElementById("campoTurno");
   const turnoEl = document.getElementById("turno");
   const avisoAgenda = document.getElementById("avisoAgenda");
   const contadorVagas = document.getElementById("contadorVagas");
-  const btnAgendar = document.getElementById("btnAgendar");
   const msgOk = document.getElementById("msgOk");
   const msgErr = document.getElementById("msgErr");
-
-  const comp = document.getElementById("comprovante");
-  const btnFecharComp = document.getElementById("btnFecharComp");
-  const cNome = document.getElementById("cNome");
-  const cRG = document.getElementById("cRG");
-  const cPosto = document.getElementById("cPosto");
-  const cUnidade = document.getElementById("cUnidade");
-  const cData = document.getElementById("cData");
-  const cTurno = document.getElementById("cTurno");
-
-  btnFecharComp.addEventListener("click", () => comp.style.display="none");
+  const btnAgendar = document.getElementById("btnAgendar");
 
   let agendaAtual = null;
-  let cacheCounters = new Map();
+  let counterCache = new Map();
 
   function hideMsgs(){ msgOk.style.display="none"; msgErr.style.display="none"; }
-  function ymd(d){ return d.toISOString().slice(0,10); }
-  function formatBR(ymdStr){ return new Date(ymdStr+"T00:00:00Z").toLocaleDateString("pt-BR"); }
-  function acharAgenda(unidade){ return AGENDAS.find(a => a.unidades.includes(unidade)) || null; }
-  function isDiaUtilMF(d){ const day=d.getUTCDay(); return day>=1 && day<=5; }
-  function isDiaTS(d){ const day=d.getUTCDay(); return day===2 || day===5; }
-  function counterId(agendaId,data){ return `${agendaId}_${data}`; }
 
-  // -------- FERIADOS (apenas TS)
-  function easterDate(year){
-    const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25);
-    const g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
-    const month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;
-    return new Date(Date.UTC(year,month-1,day));
+  function tagSituacao(disponivel){
+    return disponivel
+      ? `<span class="tag tag-ok">SITUAÇÃO: DISPONÍVEL</span>`
+      : `<span class="tag tag-bad">SITUAÇÃO: ESGOTADO</span>`;
   }
-  function feriadosAno(year){
-    const fixed=[`${year}-01-01`,`${year}-04-21`,`${year}-05-01`,`${year}-09-07`,`${year}-10-12`,`${year}-11-02`,`${year}-11-15`,`${year}-12-25`,`${year}-01-20`,`${year}-04-23`];
-    const eas=easterDate(year);
-    const carnivalMon=new Date(eas); carnivalMon.setUTCDate(eas.getUTCDate()-48);
-    const carnivalTue=new Date(eas); carnivalTue.setUTCDate(eas.getUTCDate()-47);
-    const goodFriday=new Date(eas); goodFriday.setUTCDate(eas.getUTCDate()-2);
-    const corpus=new Date(eas); corpus.setUTCDate(eas.getUTCDate()+60);
-    return new Set([ ...fixed, ymd(carnivalMon), ymd(carnivalTue), ymd(goodFriday), ymd(corpus) ]);
+  function setContadorMF(restantes, limite){
+    const disp = restantes > 0;
+    contadorVagas.style.display = "block";
+    contadorVagas.innerHTML =
+      `📊 <b>CONTROLE DE VAGAS</b> ${tagSituacao(disp)}<br>` +
+      `• Vagas restantes: <b>${restantes}</b> de ${limite} (livre demanda)`;
   }
-  const F26=feriadosAno(2026);
-  function isFeriado(dateStr){ return F26.has(dateStr); }
-
-  function tagSituacao(ok){
-    return ok
-      ? `<span class="tag tag-ok">DISPONÍVEL</span>`
-      : `<span class="tag tag-bad">ESGOTADO</span>`;
-  }
-  function setContadorMF(rest,lim){
-    contadorVagas.style.display="block";
-    contadorVagas.innerHTML=`📊 <b>Vagas restantes:</b> <b>${rest}</b> de ${lim} ${tagSituacao(rest>0)}`;
-  }
-  function setContadorTS(rM,rT){
-    contadorVagas.style.display="block";
-    contadorVagas.innerHTML=
-      `📊 <b>Situação das vagas</b> ${tagSituacao(rM>0||rT>0)}<br>`+
-      `• Manhã (07:30–12:00): <b>${rM}</b> / 10<br>`+
-      `• Tarde (13:00–17:30): <b>${rT}</b> / 10`;
+  function setContadorTS(restManha, restTarde){
+    const disp = (restManha > 0 || restTarde > 0);
+    contadorVagas.style.display = "block";
+    contadorVagas.innerHTML =
+      `📊 <b>CONTROLE DE VAGAS</b> ${tagSituacao(disp)}<br>` +
+      `• Manhã (07:30–12:00): <b>${restManha}</b> / 10<br>` +
+      `• Tarde (13:00–17:30): <b>${restTarde}</b> / 10`;
   }
   function clearContador(){ contadorVagas.style.display="none"; contadorVagas.innerHTML=""; }
 
-  function atualizarTurnos(data){
-    const c=cacheCounters.get(data)||{manha:0,tarde:0};
-    const manha=c.manha||0, tarde=c.tarde||0;
-    const restM=Math.max(0,10-manha), restT=Math.max(0,10-tarde);
+  function atualizarTurnoDisponivelParaData(dataYmd){
+    if (!agendaAtual || agendaAtual.tipo !== "TS") return;
 
-    // desabilita e renomeia
-    const optM=[...turnoEl.options].find(o=>o.text.startsWith("Manhã"));
-    const optT=[...turnoEl.options].find(o=>o.text.startsWith("Tarde"));
-    if(optM){ optM.disabled=manha>=10; optM.text=manha>=10?"Manhã (ESGOTADO)":"Manhã"; }
-    if(optT){ optT.disabled=tarde>=10; optT.text=tarde>=10?"Tarde (ESGOTADO)":"Tarde"; }
-    if(turnoEl.value==="Manhã" && manha>=10) turnoEl.value="";
-    if(turnoEl.value==="Tarde" && tarde>=10) turnoEl.value="";
+    const c = counterCache.get(dataYmd) || { manha:0, tarde:0 };
+    const manha = c.manha || 0;
+    const tarde = c.tarde || 0;
 
-    setContadorTS(restM,restT);
+    const optManha = Array.from(turnoEl.options).find(o => o.value === "Manhã");
+    const optTarde = Array.from(turnoEl.options).find(o => o.value === "Tarde");
+
+    if (optManha){
+      optManha.disabled = manha >= 10;
+      optManha.textContent = (manha >= 10) ? "Manhã (ESGOTADO)" : "Manhã";
+    }
+    if (optTarde){
+      optTarde.disabled = tarde >= 10;
+      optTarde.textContent = (tarde >= 10) ? "Tarde (ESGOTADO)" : "Tarde";
+    }
+
+    setContadorTS(Math.max(0, 10-manha), Math.max(0, 10-tarde));
+
+    if (turnoEl.value === "Manhã" && manha >= 10) turnoEl.value = "";
+    if (turnoEl.value === "Tarde" && tarde >= 10) turnoEl.value = "";
   }
 
-  async function preencherDatas(agenda){
-    cacheCounters=new Map();
-    dataSelect.innerHTML=`<option value="">Selecione a Data</option>`;
+  async function preencherDatasDisponiveis(agenda){
+    counterCache = new Map();
+    dataSelect.innerHTML = `<option value="">Selecione a Data</option>`;
     clearContador();
+    btnAgendar.disabled = true;
 
-    const ini=new Date(agenda.inicio+"T00:00:00Z");
-    const fim=new Date(agenda.fim+"T00:00:00Z");
+    const ini = dateFromYMD(agenda.inicio);
+    const fim = dateFromYMD(agenda.fim);
 
-    const datas=[];
-    for(let d=new Date(ini); d<=fim; d.setUTCDate(d.getUTCDate()+1)){
-      const dY=ymd(d);
-      if(agenda.tipo==="MF"){
-        if(!isDiaUtilMF(d)) continue;
-        datas.push(dY);
-      }else{
-        if(!isDiaTS(d)) continue;
-        if(isFeriado(dY)) continue;
-        datas.push(dY);
+    const datas = [];
+    for (let d = new Date(ini); d <= fim; d.setDate(d.getDate()+1)){
+      const dYmd = ymdLocal(d);
+
+      if (agenda.tipo === "MF"){
+        if (!isDiaUtilMF(d)) continue;
+        datas.push(dYmd);
+      } else {
+        if (!isDiaTS(d)) continue;
+        if (isFeriado(dYmd)) continue; // bloqueia feriados só TS
+        datas.push(dYmd);
       }
     }
 
-    // consulta counters e monta opções
-    for(const data of datas){
-      const cRef=doc(db,"counters",counterId(agenda.id,data));
-      const cSnap=await getDoc(cRef);
-      const c=cSnap.exists()?cSnap.data():null;
+    for (const dataYmd of datas){
+      const cRef = doc(db, "counters", counterId(agenda.id, dataYmd));
+      const cSnap = await getDoc(cRef);
+      const c = cSnap.exists() ? cSnap.data() : null;
 
-      if(agenda.tipo==="MF"){
-        const lim=agenda.capacidadeDia??5;
-        const total=c?.total||0;
-        const rest=Math.max(0,lim-total);
-        if(total<lim){
-          cacheCounters.set(data,{total});
-          const opt=document.createElement("option");
-          opt.value=data;
-          opt.textContent=`${formatBR(data)} — Vagas restantes: ${rest}`;
+      if (agenda.tipo === "MF"){
+        const limite = agenda.capacidadeDia ?? 5;
+        const total = c?.total || 0;
+        const restantes = Math.max(0, limite - total);
+
+        if (total < limite){
+          counterCache.set(dataYmd, { total });
+          const opt = document.createElement("option");
+          opt.value = dataYmd;
+          opt.textContent = `${formatBR(dataYmd)} — Vagas restantes: ${restantes}`;
           dataSelect.appendChild(opt);
         }
-      }else{
-        const manha=c?.manha||0;
-        const tarde=c?.tarde||0;
-        const restM=Math.max(0,10-manha);
-        const restT=Math.max(0,10-tarde);
-        if(manha<10 || tarde<10){
-          cacheCounters.set(data,{manha,tarde});
-          const opt=document.createElement("option");
-          opt.value=data;
-          opt.textContent=`${formatBR(data)} — Manhã: ${restM} | Tarde: ${restT}`;
+      } else {
+        const manha = c?.manha || 0;
+        const tarde = c?.tarde || 0;
+        const restManha = Math.max(0, 10 - manha);
+        const restTarde = Math.max(0, 10 - tarde);
+
+        if (manha < 10 || tarde < 10){
+          counterCache.set(dataYmd, { manha, tarde });
+          const opt = document.createElement("option");
+          opt.value = dataYmd;
+          opt.textContent = `${formatBR(dataYmd)} — Manhã: ${restManha} | Tarde: ${restTarde}`;
           dataSelect.appendChild(opt);
         }
       }
     }
+
+    btnAgendar.disabled = false;
   }
 
-  unidadeEl.addEventListener("change", async ()=>{
+  unidadeEl.addEventListener("change", async () => {
     hideMsgs();
-    comp.style.display="none";
     clearContador();
-    dataSelect.value="";
-    turnoEl.value="";
 
-    agendaAtual=acharAgenda(unidadeEl.value);
-    if(!agendaAtual){
-      dataSelect.innerHTML=`<option value="">Selecione a Data</option>`;
-      return;
+    agendaAtual = acharAgendaPorUnidade(unidadeEl.value);
+
+    dataSelect.innerHTML = `<option value="">Selecione a Data</option>`;
+    turnoEl.value = "";
+    campoTurno.style.display = "none";
+    avisoAgenda.style.display = "none";
+
+    if (!agendaAtual) return;
+
+    if (agendaAtual.tipo === "TS"){
+      campoTurno.style.display = "block";
+      turnoEl.required = true;
+      avisoAgenda.style.display = "block";
+    } else {
+      campoTurno.style.display = "none";
+      turnoEl.required = false;
+      avisoAgenda.style.display = "none";
     }
 
-    if(agendaAtual.tipo==="TS"){
-      campoTurno.style.display="block";
-      turnoEl.required=true;
-      avisoAgenda.style.display="block";
-    }else{
-      campoTurno.style.display="none";
-      turnoEl.required=false;
-      avisoAgenda.style.display="none";
-    }
-
-    await preencherDatas(agendaAtual);
+    await preencherDatasDisponiveis(agendaAtual);
   });
 
-  dataSelect.addEventListener("change", ()=>{
+  dataSelect.addEventListener("change", () => {
     hideMsgs();
-    const data=dataSelect.value;
-    if(!data||!agendaAtual){ clearContador(); return; }
+    const dataYmd = dataSelect.value;
+    if (!dataYmd || !agendaAtual) { clearContador(); return; }
 
-    if(agendaAtual.tipo==="MF"){
-      const lim=agendaAtual.capacidadeDia??5;
-      const total=(cacheCounters.get(data)?.total)||0;
-      setContadorMF(Math.max(0,lim-total),lim);
-    }else{
-      atualizarTurnos(data);
+    if (agendaAtual.tipo === "MF"){
+      const limite = agendaAtual.capacidadeDia ?? 5;
+      const c = counterCache.get(dataYmd) || { total: 0 };
+      setContadorMF(Math.max(0, limite - (c.total||0)), limite);
+    } else {
+      atualizarTurnoDisponivelParaData(dataYmd);
     }
   });
 
-  turnoEl.addEventListener("change", ()=>{
-    const data=dataSelect.value;
-    if(!data||!agendaAtual||agendaAtual.tipo!=="TS") return;
-    atualizarTurnos(data);
+  turnoEl.addEventListener("change", () => {
+    const dataYmd = dataSelect.value;
+    if (!dataYmd || !agendaAtual || agendaAtual.tipo !== "TS") return;
+    atualizarTurnoDisponivelParaData(dataYmd);
   });
 
-  function mostrarComprovante({nome,rg,posto,unidade,data_br,turno,tipo}){
-    cNome.textContent=nome;
-    cRG.textContent=rg;
-    cPosto.textContent=posto;
-    cUnidade.textContent=unidade;
-    cData.textContent=data_br;
-    cTurno.textContent=(tipo==="MF") ? "Livre demanda" : turno;
-    comp.style.display="block";
-    comp.scrollIntoView({behavior:"smooth",block:"start"});
-  }
-
-  document.getElementById("formAgendamento").addEventListener("submit", async (e)=>{
+  document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
     e.preventDefault();
     hideMsgs();
-    comp.style.display="none";
 
-    if(!agendaAtual){
-      msgErr.textContent="❌ Selecione a unidade.";
-      msgErr.style.display="block";
+    if (!agendaAtual){
+      msgErr.textContent = "❌ Selecione a unidade.";
+      msgErr.style.display = "block";
       return;
     }
 
-    const nome=document.getElementById("nome").value.trim();
-    const rg=document.getElementById("rg").value.trim();
-    const email=document.getElementById("email").value.trim();
-    const posto=document.getElementById("posto").value;
-    const unidade=unidadeEl.value;
-    const data=dataSelect.value;
-    const turno=(agendaAtual.tipo==="TS") ? (turnoEl.value||"") : "";
+    const nome = document.getElementById("nome").value.trim();
+    const rg = document.getElementById("rg").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const posto = document.getElementById("posto").value;
+    const unidade = unidadeEl.value;
+    const data = dataSelect.value;
+    const turno = (agendaAtual.tipo === "TS") ? (turnoEl.value || "") : "";
 
-    if(!data){
-      msgErr.textContent="❌ Selecione a data.";
-      msgErr.style.display="block";
+    if (!data){
+      msgErr.textContent = "❌ Selecione a data.";
+      msgErr.style.display = "block";
       return;
     }
-    if(agendaAtual.tipo==="TS" && !turno){
-      msgErr.textContent="❌ Selecione o turno.";
-      msgErr.style.display="block";
+    if (agendaAtual.tipo === "TS" && !turno){
+      msgErr.textContent = "❌ Selecione o turno (Manhã ou Tarde).";
+      msgErr.style.display = "block";
       return;
     }
 
-    btnAgendar.disabled=true;
+    btnAgendar.disabled = true;
 
-    try{
-      // ✅ 1 agendamento por RG
-      const qRg=query(collection(db,"agendamentos"), where("rg","==",rg));
-      const rgSnap=await getDocs(qRg);
-      if(!rgSnap.empty){
-        throw new Error("RG_JA_TEM");
-      }
+    try {
+      const agRef = doc(collection(db, "agendamentos"));
+      const cRef  = doc(db, "counters", counterId(agendaAtual.id, data));
 
-      const agRef=doc(collection(db,"agendamentos"));
-      const cRef=doc(db,"counters",counterId(agendaAtual.id,data));
+      await runTransaction(db, async (tx) => {
+        const cSnap = await tx.get(cRef);
+        const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
 
-      await runTransaction(db, async (tx)=>{
-        const cSnap=await tx.get(cRef);
-        const c=cSnap.exists()?cSnap.data():{total:0,manha:0,tarde:0};
+        if (agendaAtual.tipo === "MF"){
+          const limite = agendaAtual.capacidadeDia ?? 5;
+          const total = c.total || 0;
+          if (total >= limite) throw new Error("LOTADO");
+          tx.set(cRef, { total: total + 1 }, { merge:true });
+        } else {
+          const manha = c.manha || 0;
+          const tarde = c.tarde || 0;
 
-        if(agendaAtual.tipo==="MF"){
-          const lim=agendaAtual.capacidadeDia??5;
-          const total=c.total||0;
-          if(total>=lim) throw new Error("LOTADO");
-          tx.set(cRef,{total: total+1},{merge:true});
-        }else{
-          const manha=c.manha||0;
-          const tarde=c.tarde||0;
-
-          if(turno==="Manhã"){
-            if(manha>=10) throw new Error("LOTADO");
-            tx.set(cRef,{manha: manha+1},{merge:true});
-          }else{
-            if(tarde>=10) throw new Error("LOTADO");
-            tx.set(cRef,{tarde: tarde+1},{merge:true});
+          if (turno === "Manhã"){
+            if (manha >= 10) throw new Error("LOTADO");
+            tx.set(cRef, { manha: manha + 1 }, { merge:true });
+          } else {
+            if (tarde >= 10) throw new Error("LOTADO");
+            tx.set(cRef, { tarde: tarde + 1 }, { merge:true });
           }
         }
 
-        tx.set(agRef,{
-          agendaId:agendaAtual.id,
-          tipoAgenda:agendaAtual.tipo,
-          nome,rg,email,posto,unidade,
-          data, data_br: formatBR(data),
+        tx.set(agRef, {
+          agendaId: agendaAtual.id,
+          tipoAgenda: agendaAtual.tipo,
+          nome, rg, email, posto, unidade,
+          data,
+          data_br: formatBR(data),
           turno: turno || ""
         });
       });
 
-      msgOk.style.display="block";
-
-      mostrarComprovante({
-        nome,rg,posto,unidade,
-        data_br: formatBR(data),
-        turno: turno || "",
-        tipo: agendaAtual.tipo
-      });
-
+      msgOk.style.display = "block";
       e.target.reset();
-      turnoEl.value="";
+      turnoEl.value = "";
       clearContador();
-      await preencherDatas(agendaAtual);
 
-    }catch(err){
+      // recarrega datas para refletir vagas
+      await preencherDatasDisponiveis(agendaAtual);
+
+    } catch(err){
       console.error(err);
-      if(String(err.message).includes("RG_JA_TEM")){
-        msgErr.textContent="❌ Este RG já possui agendamento. Caso precise alterar, solicite ao administrador.";
-      }else if(String(err.message).includes("LOTADO")){
-        msgErr.textContent="❌ Essa data/turno acabou de lotar. Selecione outra opção.";
-      }else{
-        msgErr.textContent="❌ Não foi possível agendar. Tente novamente.";
-      }
-      msgErr.style.display="block";
-    }finally{
-      btnAgendar.disabled=false;
+      msgErr.textContent = (String(err?.message).includes("LOTADO"))
+        ? "❌ Essa data/turno acabou de lotar. Selecione outra opção."
+        : "❌ Não foi possível agendar. Tente novamente.";
+      msgErr.style.display = "block";
+    } finally {
+      btnAgendar.disabled = false;
     }
   });
 </script>
 </body>
 </html>
-
