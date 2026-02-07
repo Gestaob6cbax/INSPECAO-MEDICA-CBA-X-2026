@@ -7,15 +7,21 @@
 
   <style>
     body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-    .box { max-width:1200px; margin:30px auto; background:#fff; padding:20px; border-radius:10px; }
+    .box { max-width:1180px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; }
     h2 { margin:0 0 10px 0; }
-    input, select, button { padding:10px; border-radius:8px; font-size:14px; border:1px solid #ccc; box-sizing:border-box; }
+
+    input, select, button {
+      padding:10px; border-radius:10px; font-size:14px; border:1px solid #ccc; box-sizing:border-box;
+    }
     button { border:none; background:#0b3c5d; color:#fff; cursor:pointer; font-weight:bold; }
     button:hover { background:#092f49; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+
     .danger { background:#c0392b; }
     .danger:hover { background:#a93226; }
-    .muted { background:#6c757d; }
-    .muted:hover { background:#5a6268; }
+
+    .muted { background:#777; }
+    .muted:hover { background:#666; }
 
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
     .hidden { display:none; }
@@ -24,11 +30,11 @@
     th, td { border:1px solid #e4e4e4; padding:8px; text-align:left; vertical-align:top; }
     th { background:#f6f8fb; }
 
-    .ok { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold; }
-    .err { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold; }
-    .info { display:none; margin-top:10px; padding:10px; border-radius:8px; background:#eef4ff; border:1px solid #cfe0ff; color:#163a7a; font-weight:bold; }
+    .ok { display:none; margin-top:10px; padding:10px; border-radius:10px; background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold; }
+    .err { display:none; margin-top:10px; padding:10px; border-radius:10px; background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold; }
 
-    .chk { width:18px; height:18px; }
+    .small { font-size:12px; color:#555; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #ddd; background:#fafafa; }
   </style>
 </head>
 
@@ -40,6 +46,7 @@
     <div class="row" id="pinArea">
       <input type="password" id="pin" placeholder="Digite o PIN" style="max-width:240px;">
       <button type="button" id="btnEntrar">Entrar</button>
+      <span class="small">PIN de acesso somente para administradores.</span>
     </div>
 
     <div id="adminArea" class="hidden">
@@ -49,8 +56,8 @@
           <option>1º GMar - Botafogo</option>
           <option>DBM 1/M - Paquetá</option>
           <option>DBM 2/M - Piscinão de Ramos</option>
-          <option>2º GMar - Barra da Tijuca</option>
           <option>CER</option>
+          <option>2º GMar - Barra da Tijuca</option>
           <option>3º GMar - Copacabana</option>
           <option>4º GMar - Itaipu</option>
           <option>DBM 6/M - Itaipu</option>
@@ -60,20 +67,29 @@
           <option>DBM 5/M - Sepetiba</option>
         </select>
 
-        <button type="button" id="btnAtualizar">Atualizar tabela</button>
+        <input id="filtroRG" placeholder="Filtrar por RG (opcional)" style="max-width:220px;">
+        <button type="button" id="btnAtualizar">Atualizar</button>
 
-        <button type="button" class="muted" id="btnMarcarTodos">Selecionar todos</button>
-        <button type="button" class="danger" id="btnExcluirSelecionados">Excluir selecionados</button>
+        <button type="button" id="btnExcluirSelecionados" class="danger" disabled>
+          Excluir selecionados
+        </button>
+
+        <button type="button" id="btnLimparSelecao" class="muted" disabled>
+          Limpar seleção
+        </button>
+
+        <span class="pill" id="badgeSelecao">Selecionados: 0</span>
       </div>
 
       <div class="ok" id="msgOk">✅ Operação realizada com sucesso.</div>
       <div class="err" id="msgErr">❌ Não foi possível realizar a operação.</div>
-      <div class="info" id="msgInfo">Processando…</div>
 
       <table>
         <thead>
           <tr>
-            <th style="width:42px;">Sel</th>
+            <th style="width:38px;">
+              <input type="checkbox" id="chkAll" title="Selecionar todos">
+            </th>
             <th>Data</th>
             <th>Turno</th>
             <th>Unidade</th>
@@ -86,20 +102,29 @@
         </thead>
         <tbody id="tbody"></tbody>
       </table>
+
+      <div class="small" style="margin-top:10px;">
+        ✅ Ao excluir, o sistema devolve a vaga e <b>libera o RG</b> removendo <code>rg_locks/{rg_norm}</code>.
+      </div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, collection, query, where, orderBy, limit, getDocs,
+      getFirestore,
+      collection, query, where, orderBy, limit, getDocs,
       doc, runTransaction
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // ✅ PIN
+    // =========================
+    // PIN
+    // =========================
     const PIN_CORRETO = "B6CBAX2023";
 
+    // =========================
     // Firebase
+    // =========================
     const firebaseConfig = {
       apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
       authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -112,51 +137,60 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // =========================
+    // UI
+    // =========================
     const pinArea = document.getElementById("pinArea");
     const adminArea = document.getElementById("adminArea");
     const btnEntrar = document.getElementById("btnEntrar");
     const pinEl = document.getElementById("pin");
 
     const filtroUnidade = document.getElementById("filtroUnidade");
-    const btnAtualizar = document.getElementById("btnAtualizar");
-    const btnMarcarTodos = document.getElementById("btnMarcarTodos");
-    const btnExcluirSelecionados = document.getElementById("btnExcluirSelecionados");
+    const filtroRG = document.getElementById("filtroRG");
 
+    const btnAtualizar = document.getElementById("btnAtualizar");
     const tbody = document.getElementById("tbody");
+
     const msgOk = document.getElementById("msgOk");
     const msgErr = document.getElementById("msgErr");
-    const msgInfo = document.getElementById("msgInfo");
 
-    let selecionouTudo = false;
+    const chkAll = document.getElementById("chkAll");
+    const btnExcluirSelecionados = document.getElementById("btnExcluirSelecionados");
+    const btnLimparSelecao = document.getElementById("btnLimparSelecao");
+    const badgeSelecao = document.getElementById("badgeSelecao");
+
+    const selectedIds = new Set();
 
     function showOk(text){
       msgErr.style.display="none";
-      msgInfo.style.display="none";
       msgOk.textContent = text;
       msgOk.style.display="block";
       setTimeout(()=> msgOk.style.display="none", 4000);
     }
     function showErr(text){
       msgOk.style.display="none";
-      msgInfo.style.display="none";
       msgErr.textContent = text;
       msgErr.style.display="block";
       setTimeout(()=> msgErr.style.display="none", 6000);
     }
-    function showInfo(text){
-      msgOk.style.display="none";
-      msgErr.style.display="none";
-      msgInfo.textContent = text;
-      msgInfo.style.display="block";
+
+    function normalizeRG(rg){
+      return String(rg || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     }
 
     function counterDocId(agendaId, ymd){
       return `${agendaId}_${ymd}`;
     }
 
+    function updateSelectionUI(){
+      const n = selectedIds.size;
+      badgeSelecao.textContent = `Selecionados: ${n}`;
+      btnExcluirSelecionados.disabled = (n === 0);
+      btnLimparSelecao.disabled = (n === 0);
+    }
+
     btnEntrar.addEventListener("click", async () => {
-      const pinDigitado = (pinEl.value || "").trim();
-      if (pinDigitado !== PIN_CORRETO){
+      if (pinEl.value !== PIN_CORRETO){
         alert("PIN incorreto.");
         return;
       }
@@ -169,146 +203,207 @@
       await carregarTabela();
     });
 
-    btnMarcarTodos.addEventListener("click", () => {
-      selecionouTudo = !selecionouTudo;
-      document.querySelectorAll('input[type="checkbox"][data-docid]').forEach(chk => {
-        chk.checked = selecionouTudo;
+    btnLimparSelecao.addEventListener("click", () => {
+      selectedIds.clear();
+      chkAll.checked = false;
+      // desmarca checkboxes visíveis
+      document.querySelectorAll('input[type="checkbox"][data-rowchk="1"]').forEach(c => c.checked = false);
+      updateSelectionUI();
+    });
+
+    chkAll.addEventListener("change", () => {
+      const check = chkAll.checked;
+      document.querySelectorAll('input[type="checkbox"][data-rowchk="1"]').forEach(c => {
+        c.checked = check;
+        const id = c.getAttribute("data-id");
+        if (check) selectedIds.add(id);
+        else selectedIds.delete(id);
       });
-      btnMarcarTodos.textContent = selecionouTudo ? "Desmarcar todos" : "Selecionar todos";
+      updateSelectionUI();
     });
 
     btnExcluirSelecionados.addEventListener("click", async () => {
-      const ids = Array.from(document.querySelectorAll('input[type="checkbox"][data-docid]'))
-        .filter(chk => chk.checked)
-        .map(chk => chk.getAttribute("data-docid"));
-
-      if (!ids.length){
-        alert("Selecione pelo menos 1 agendamento.");
-        return;
-      }
-
-      const ok = confirm(`Tem certeza que deseja EXCLUIR ${ids.length} agendamento(s)?\nAs vagas voltarão para a agenda.`);
+      if (!selectedIds.size) return;
+      const ok = confirm(`Excluir ${selectedIds.size} agendamento(s)?\n(A(s) vaga(s) voltará(ão) e o(s) RG(s) será(ão) liberado(s).)`);
       if (!ok) return;
 
-      showInfo(`Excluindo ${ids.length} agendamento(s)…`);
+      btnExcluirSelecionados.disabled = true;
+      btnAtualizar.disabled = true;
+
       let sucesso = 0;
-      for (let i=0; i<ids.length; i++){
-        try{
-          await excluirEDevolverVaga(ids[i]);
+      let falha = 0;
+
+      // processa um a um (mais seguro para Firestore e para devolver vaga corretamente)
+      for (const id of Array.from(selectedIds)) {
+        try {
+          await excluirEDevolverVagaELiberarRG(id);
           sucesso++;
-          showInfo(`Excluindo… (${sucesso}/${ids.length})`);
-        } catch(e){
+          selectedIds.delete(id);
+        } catch(e) {
           console.error(e);
+          falha++;
         }
       }
 
-      showOk(`✅ Concluído: ${sucesso}/${ids.length} excluído(s).`);
+      chkAll.checked = false;
+      updateSelectionUI();
+
+      if (falha === 0) showOk(`✅ Excluídos ${sucesso} agendamento(s). Vagas devolvidas e RG(s) liberado(s).`);
+      else showErr(`❌ Excluídos ${sucesso}. Falharam ${falha}. Atualize e tente novamente nos que falharam.`);
+
       await carregarTabela();
+      btnAtualizar.disabled = false;
     });
 
     async function carregarTabela(){
       tbody.innerHTML = "";
-      selecionouTudo = false;
-      btnMarcarTodos.textContent = "Selecionar todos";
+      selectedIds.clear();
+      chkAll.checked = false;
+      updateSelectionUI();
 
       const uni = filtroUnidade.value;
+      const rgFilter = normalizeRG(filtroRG.value);
 
+      // Busca base (limit 1000)
       let qAg;
       if (uni){
-        qAg = query(collection(db, "agendamentos"),
+        qAg = query(
+          collection(db, "agendamentos"),
           where("unidade","==",uni),
           orderBy("data","asc"),
-          limit(2000)
+          limit(1000)
         );
       } else {
-        qAg = query(collection(db, "agendamentos"),
+        qAg = query(
+          collection(db, "agendamentos"),
           orderBy("data","asc"),
-          limit(2000)
+          limit(1000)
         );
       }
 
       const snap = await getDocs(qAg);
 
-      if (!snap.size){
+      const docs = [];
+      snap.forEach(d => docs.push(d));
+
+      // filtro por RG no cliente (opcional)
+      const filtrados = rgFilter
+        ? docs.filter(d => normalizeRG(d.data()?.rg_norm || d.data()?.rg) === rgFilter)
+        : docs;
+
+      if (!filtrados.length){
         const tr = document.createElement("tr");
         tr.innerHTML = `<td colspan="9">Nenhum agendamento encontrado.</td>`;
         tbody.appendChild(tr);
         return;
       }
 
-      snap.forEach((d) => {
+      for (const d of filtrados) {
         const v = d.data();
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-          <td><input class="chk" type="checkbox" data-docid="${d.id}"></td>
+          <td>
+            <input type="checkbox" data-rowchk="1" data-id="${d.id}">
+          </td>
           <td>${v.data_br || ""}</td>
-          <td>${v.turno || ""}</td>
+          <td>${v.turno || (v.tipoAgenda === "MF" ? "Livre demanda" : "")}</td>
           <td>${v.unidade || ""}</td>
           <td>${v.nome || ""}</td>
           <td>${v.rg || ""}</td>
           <td>${v.posto || ""}</td>
           <td>${v.email || ""}</td>
           <td>
-            <button class="danger" data-id="${d.id}">Excluir</button>
+            <button class="danger" data-del="${d.id}">Excluir</button>
           </td>
         `;
 
-        tr.querySelector("button").addEventListener("click", async () => {
-          const ok = confirm("Tem certeza que deseja excluir este agendamento? (A vaga voltará para a agenda)");
+        // checkbox
+        const chk = tr.querySelector('input[type="checkbox"][data-rowchk="1"]');
+        chk.addEventListener("change", () => {
+          const id = chk.getAttribute("data-id");
+          if (chk.checked) selectedIds.add(id);
+          else selectedIds.delete(id);
+          updateSelectionUI();
+        });
+
+        // excluir individual
+        tr.querySelector("button[data-del]").addEventListener("click", async () => {
+          const ok = confirm("Tem certeza que deseja excluir este agendamento?\n(A vaga voltará e o RG será liberado.)");
           if (!ok) return;
-          try{
-            showInfo("Excluindo 1 agendamento…");
-            await excluirEDevolverVaga(d.id);
-            showOk("✅ Agendamento excluído e vaga devolvida.");
+
+          try {
+            await excluirEDevolverVagaELiberarRG(d.id);
+            showOk("✅ Agendamento excluído. Vaga devolvida e RG liberado.");
             await carregarTabela();
           } catch(e){
             console.error(e);
-            showErr("❌ Não foi possível excluir.");
+            showErr("❌ Não foi possível excluir. Verifique permissões/regras do Firestore.");
           }
         });
 
         tbody.appendChild(tr);
-      });
+      }
     }
 
-    async function excluirEDevolverVaga(docId){
+    // =========================
+    // EXCLUIR + DEVOLVER VAGA + LIBERAR RG
+    // =========================
+    async function excluirEDevolverVagaELiberarRG(docId){
       const agRef = doc(db, "agendamentos", docId);
 
       await runTransaction(db, async (tx) => {
         const agSnap = await tx.get(agRef);
-        if (!agSnap.exists()) throw new Error("NAO_EXISTE");
+        if (!agSnap.exists()) throw new Error("AG_NAO_EXISTE");
 
         const ag = agSnap.data();
+
         const agendaId = ag.agendaId;
-        const data = ag.data;    // YYYY-MM-DD
-        const turno = ag.turno;  // Manhã/Tarde ou ""
+        const data = ag.data;           // YYYY-MM-DD
+        const turno = ag.turno || "";   // "Manhã" / "Tarde" / "" para MF
+        const tipoAgenda = ag.tipoAgenda || ""; // "TS" ou "MF" (pode existir)
 
         if (!agendaId || !data) throw new Error("DADOS_INVALIDOS");
 
+        // counter
         const cRef = doc(db, "counters", counterDocId(agendaId, data));
         const cSnap = await tx.get(cRef);
         const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
 
-        let total = c.total || 0;
-        let manha = c.manha || 0;
-        let tarde = c.tarde || 0;
+        let total = Number(c.total || 0);
+        let manha = Number(c.manha || 0);
+        let tarde = Number(c.tarde || 0);
 
-        const temControlePorTurno = (typeof c.manha !== "undefined" || typeof c.tarde !== "undefined");
+        // Decide se é controle por turno (TS) ou total (MF)
+        // - se tipoAgenda vier "TS" => usa manha/tarde
+        // - se tipoAgenda vier "MF" => usa total
+        // - fallback: se tiver turno Manhã/Tarde => usa manha/tarde
+        const isTS = (tipoAgenda === "TS") || (turno === "Manhã" || turno === "Tarde");
 
-        if (temControlePorTurno && (turno === "Manhã" || turno === "Tarde")) {
+        if (isTS) {
           if (turno === "Manhã") manha = Math.max(0, manha - 1);
-          if (turno === "Tarde") tarde = Math.max(0, tarde - 1);
+          else if (turno === "Tarde") tarde = Math.max(0, tarde - 1);
+          // garante que o doc exista/atualize
           tx.set(cRef, { manha, tarde }, { merge:true });
         } else {
           total = Math.max(0, total - 1);
           tx.set(cRef, { total }, { merge:true });
         }
 
+        // 🔓 liberar RG lock
+        const rgNorm = normalizeRG(ag.rg_norm || ag.rg);
+        if (rgNorm) {
+          const rgLockRef = doc(db, "rg_locks", rgNorm);
+          // delete é idempotente (se não existir, ok)
+          tx.delete(rgLockRef);
+        }
+
+        // delete agendamento
         tx.delete(agRef);
       });
     }
   </script>
 </body>
 </html>
+
 
