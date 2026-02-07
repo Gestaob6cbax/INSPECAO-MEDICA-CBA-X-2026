@@ -391,13 +391,37 @@
         }
 
         // 🔓 liberar RG lock
-        const rgNorm = normalizeRG(ag.rg_norm || ag.rg);
-        if (rgNorm) {
-          const rgLockRef = doc(db, "rg_locks", rgNorm);
-          // delete é idempotente (se não existir, ok)
-          tx.delete(rgLockRef);
-        }
+       function normalizeRGDigits(rg){
+  return String(rg || "").replace(/\D/g, ""); // só números
+}
+function normalizeRGAlphaNum(rg){
+  return String(rg || "").toLowerCase().replace(/[^a-z0-9]/g, ""); // letras/números
+}
 
+const lockCandidates = new Set();
+
+// 1) melhor caso: lock id salvo no agendamento
+if (ag.rg_lock_id) lockCandidates.add(String(ag.rg_lock_id));
+
+// 2) usa rg_norm salvo
+if (ag.rg_norm) lockCandidates.add(String(ag.rg_norm));
+
+// 3) tenta normalizações comuns
+const rgDigits = normalizeRGDigits(ag.rg);
+const rgAlpha  = normalizeRGAlphaNum(ag.rg);
+
+if (rgDigits) lockCandidates.add(rgDigits);
+if (rgAlpha)  lockCandidates.add(rgAlpha);
+
+// 4) (opcional) se em algum momento você criou lock com prefixo
+if (rgDigits) lockCandidates.add(`rg_${rgDigits}`);
+if (rgAlpha)  lockCandidates.add(`rg_${rgAlpha}`);
+
+// apaga todos os candidatos
+for (const lockId of lockCandidates) {
+  const rgLockRef = doc(db, "rg_locks", lockId);
+  tx.delete(rgLockRef);
+}
         // delete agendamento
         tx.delete(agRef);
       });
