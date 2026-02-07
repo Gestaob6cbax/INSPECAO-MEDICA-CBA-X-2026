@@ -1,212 +1,485 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>INSPEÇÃO DE SAÚDE – CBA X</title>
 
 <style>
-body{font-family:Arial;background:#f2f4f8;margin:0;padding:0}
-.container{max-width:700px;margin:30px auto;background:#fff;padding:20px;border-radius:12px;text-align:center}
-.logo{max-width:180px;margin-bottom:10px}
-input,select,button{
-width:100%;padding:10px;margin-bottom:10px;border-radius:10px;
-border:1px solid #ccc;font-size:14px;box-sizing:border-box}
-button{background:#0b3c5d;color:#fff;border:none;font-weight:bold;cursor:pointer}
-button:hover{background:#092f49}
-button:disabled{opacity:0.6}
-#campoTurno{display:none}
-.msg{display:none;margin-top:10px;padding:10px;border-radius:10px;font-weight:bold}
-.ok{background:#eef9f0;border:1px solid #cfe9d3;color:#1f5b2b}
-.err{background:#fff2f2;border:1px solid #f2c2c2;color:#8a1f1f}
-#contador{display:none;background:#eef4ff;border:1px solid #cfe0ff;padding:10px;border-radius:10px;font-size:13px;text-align:left}
-#comprovante{display:none;margin-top:15px;background:#eef9f0;border:1px solid #cfe9d3;padding:15px;border-radius:12px;text-align:left}
-.small{font-size:12px;color:#666;margin-top:10px}
+  body{font-family:Arial,sans-serif;background:#f2f4f8;margin:0;padding:0}
+  .container{max-width:720px;margin:30px auto;background:#fff;padding:20px;border-radius:12px;text-align:center}
+  .logo{max-width:180px;width:100%;margin-bottom:10px}
+  input,select,button{
+    width:100%;padding:10px;margin-bottom:10px;border-radius:10px;
+    border:1px solid #ccc;font-size:14px;box-sizing:border-box
+  }
+  button{background:#0b3c5d;color:#fff;border:none;cursor:pointer;font-weight:bold}
+  button:hover{background:#092f49}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  #campoTurno{display:none}
+  .msg{display:none;margin-top:10px;padding:10px;border-radius:10px;font-weight:bold;text-align:center}
+  .ok{background:#eef9f0;border:1px solid #cfe9d3;color:#1f5b2b}
+  .err{background:#fff2f2;border:1px solid #f2c2c2;color:#8a1f1f}
+  #avisoAgenda{display:none;background:#fff3cd;border:1px solid #ffeeba;padding:12px;border-radius:10px;margin:10px 0;font-size:13px;color:#856404;text-align:left;line-height:1.4}
+  #contadorVagas{display:none;background:#eef4ff;border:1px solid #cfe0ff;padding:12px;border-radius:10px;margin:-2px 0 10px 0;font-size:13px;color:#163a7a;text-align:left;line-height:1.4}
+  .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:bold;font-size:12px;margin-left:6px}
+  .tag-ok{background:#e7f6ea;border:1px solid #bfe8c7;color:#1f5b2b}
+  .tag-bad{background:#ffe8e8;border:1px solid #f2bcbc;color:#8a1f1f}
+  .small{font-size:12px;color:#666;margin-top:8px}
+  #comprovante{display:none;margin-top:12px;text-align:left;background:#eef9f0;border:1px solid #cfe9d3;color:#1f5b2b;padding:14px;border-radius:12px}
+  #comprovante button{width:auto;margin:0}
+  @media print{
+    body{background:#fff}
+    .small,#msgOk,#msgErr,#btnAgendar{display:none!important}
+    #comprovante{display:block!important}
+  }
 </style>
 </head>
 
 <body>
 <div class="container">
+  <img src="logo-cbax.png" alt="Logo CBA X" class="logo" />
+  <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
+  <p>Sistema de Agendamento</p>
 
-<img src="logo-cbax.png" class="logo">
-<h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
-<p>Sistema de Agendamento</p>
+  <form id="formAgendamento">
+    <input type="text" id="nome" placeholder="Nome completo" required />
+    <input type="text" id="rg" placeholder="RG" required />
+    <input type="email" id="email" placeholder="E-mail" required />
 
-<form id="formAgendamento">
+    <select id="posto" required>
+      <option value="">Selecione o Posto / Graduação</option>
+      <option>SD BM</option>
+      <option>CB BM</option>
+      <option>3º SGT BM</option>
+      <option>2º SGT BM</option>
+      <option>1º SGT BM</option>
+      <option>SUBTEN BM</option>
+      <option>2º TEN BM</option>
+      <option>1º TEN BM</option>
+      <option>CAP BM</option>
+      <option>MAJ BM</option>
+      <option>TEN CEL BM</option>
+      <option>CEL BM</option>
+    </select>
 
-<input type="text" id="nome" placeholder="Nome completo" required>
-<input type="text" id="rg" placeholder="RG" required>
-<input type="email" id="email" placeholder="E-mail" required>
+    <select id="unidade" required>
+      <option value="">Selecione a Unidade</option>
+      <option>1º GMar - Botafogo</option>
+      <option>DBM 1/M - Paquetá</option>
+      <option>DBM 2/M - Piscinão de Ramos</option>
 
-<select id="posto" required>
-<option value="">Posto / Graduação</option>
-<option>SD BM</option>
-<option>CB BM</option>
-<option>3º SGT BM</option>
-<option>2º SGT BM</option>
-<option>1º SGT BM</option>
-<option>SUBTEN BM</option>
-<option>2º TEN BM</option>
-<option>1º TEN BM</option>
-<option>CAP BM</option>
-<option>MAJ BM</option>
-<option>TEN CEL BM</option>
-<option>CEL BM</option>
-</select>
+      <option>CER</option>
+      <option>2º GMar - Barra da Tijuca</option>
 
-<select id="unidade" required>
-<option value="">Selecione a Unidade</option>
-<option>DBM 5/M - Sepetiba</option>
-</select>
+      <option>3º GMar - Copacabana</option>
 
-<select id="dataSelect" required>
-<option value="">Selecione a Data</option>
-</select>
+      <option>4º GMar - Itaipu</option>
+      <option>DBM 6/M - Itaipu</option>
 
-<div id="contador"></div>
+      <option>CBA X</option>
 
-<div id="campoTurno">
-<select id="turno">
-<option value="">Selecione o Turno</option>
-<option>Manhã</option>
-<option>Tarde</option>
-</select>
-</div>
+      <option>DBM 3/M - Recreio dos Bandeirantes</option>
+      <option>DBM 4/M - Barra de Guaratiba</option>
 
-<button type="submit" id="btnAgendar">Agendar</button>
+      <option>DBM 5/M - Sepetiba</option>
+    </select>
 
-<div id="msgOk" class="msg ok">✅ Agendamento realizado.</div>
-<div id="msgErr" class="msg err">❌ Não foi possível agendar.</div>
+    <!-- Aviso TS -->
+    <div id="avisoAgenda">
+      ⚠️ <b>ATENÇÃO – INSPEÇÃO APENAS TERÇAS E SEXTAS</b><br>
+      • Feriados NÃO aparecem para agendamento.<br><br>
+      <b>HORÁRIOS</b><br>
+      • <b>MANHÃ</b>: 07:30 – 12:00 (10 vagas)<br>
+      • <b>TARDE</b>: 13:00 – 17:30 (10 vagas)
+    </div>
 
-</form>
+    <select id="dataSelect" required>
+      <option value="">Selecione a Data</option>
+    </select>
 
-<div id="comprovante">
-<b>✅ COMPROVANTE DE AGENDAMENTO</b><br><br>
-<b>Nome:</b> <span id="cNome"></span><br>
-<b>RG:</b> <span id="cRG"></span><br>
-<b>Unidade:</b> <span id="cUnidade"></span><br>
-<b>Data:</b> <span id="cData"></span><br>
-<b>Turno:</b> <span id="cTurno"></span><br><br>
-<button onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-</div>
+    <div id="contadorVagas"></div>
 
-<div class="small">
-Área administrativa: admin.html
-</div>
+    <!-- Turno (somente TS) -->
+    <div id="campoTurno">
+      <select id="turno">
+        <option value="">Selecione o Turno</option>
+        <option>Manhã</option>
+        <option>Tarde</option>
+      </select>
+    </div>
 
+    <button type="submit" id="btnAgendar">Agendar</button>
+
+    <div id="msgOk" class="msg ok">✅ Agendamento realizado com sucesso.</div>
+    <div id="msgErr" class="msg err">❌ Não foi possível agendar. Tente novamente.</div>
+
+    <!-- Comprovante -->
+    <div id="comprovante">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
+        <b>✅ COMPROVANTE DE AGENDAMENTO</b>
+        <span style="font-weight:bold;">CONFIRMADO</span>
+      </div>
+      <div style="margin-top:10px;line-height:1.6;">
+        <div><b>Nome:</b> <span id="cNome"></span></div>
+        <div><b>RG:</b> <span id="cRG"></span></div>
+        <div><b>Posto/Graduação:</b> <span id="cPosto"></span></div>
+        <div><b>Unidade:</b> <span id="cUnidade"></span></div>
+        <div><b>Data:</b> <span id="cData"></span></div>
+        <div><b>Turno:</b> <span id="cTurno"></span></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;">Guarde este comprovante. Você pode imprimir ou salvar em PDF.</div>
+      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="button" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+        <button type="button" id="btnFecharComp" style="background:#6c757d;">Fechar</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="small">
+    Área administrativa: <b>admin.html</b> (somente administradores)
+  </div>
 </div>
 
 <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import {
+    getFirestore, collection, doc, getDoc, getDocs, query, where, runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, getDocs, query, where, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  // Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+    authDomain: "inspecao-saude-cbax.firebaseapp.com",
+    projectId: "inspecao-saude-cbax",
+    storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+    messagingSenderId: "1011281662526",
+    appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-const firebaseConfig = {
-apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-authDomain: "inspecao-saude-cbax.firebaseapp.com",
-projectId: "inspecao-saude-cbax",
-storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-messagingSenderId: "1011281662526",
-appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-};
+  // =========================
+  // AGENDAS (1 a 7)
+  // TS = Ter/Sex 10 manhã + 10 tarde (feriados bloqueados)
+  // MF = Seg–Sex 5 vagas/dia (livre demanda)
+  // =========================
+  const AGENDAS = [
+    { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15",
+      unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"] },
+    { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26",
+      unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"] },
+    { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia:5,
+      unidades:["CER","2º GMar - Barra da Tijuca"] },
+    { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia:5,
+      unidades:["3º GMar - Copacabana"] },
+    { id:"A5", tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13",
+      unidades:["CBA X"] },
+    { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31",
+      unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"] },
+    // ✅ Sepetiba corrigida:
+    { id:"A7", tipo:"TS", inicio:"2026-02-24", fim:"2026-03-06",
+      unidades:["DBM 5/M - Sepetiba"] },
+  ];
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const unidadeEl = document.getElementById("unidade");
+  const dataSelect = document.getElementById("dataSelect");
+  const campoTurno = document.getElementById("campoTurno");
+  const turnoEl = document.getElementById("turno");
+  const avisoAgenda = document.getElementById("avisoAgenda");
+  const contadorVagas = document.getElementById("contadorVagas");
+  const btnAgendar = document.getElementById("btnAgendar");
+  const msgOk = document.getElementById("msgOk");
+  const msgErr = document.getElementById("msgErr");
 
-const inicio = new Date("2026-02-24T00:00:00Z");
-const fim = new Date("2026-03-06T00:00:00Z");
+  const comp = document.getElementById("comprovante");
+  const btnFecharComp = document.getElementById("btnFecharComp");
+  const cNome = document.getElementById("cNome");
+  const cRG = document.getElementById("cRG");
+  const cPosto = document.getElementById("cPosto");
+  const cUnidade = document.getElementById("cUnidade");
+  const cData = document.getElementById("cData");
+  const cTurno = document.getElementById("cTurno");
 
-function ymd(d){return d.toISOString().slice(0,10)}
-function formatBR(d){return new Date(d+"T00:00:00Z").toLocaleDateString("pt-BR")}
+  btnFecharComp.addEventListener("click", () => comp.style.display="none");
 
-const dataSelect = document.getElementById("dataSelect");
-const contador = document.getElementById("contador");
-const campoTurno = document.getElementById("campoTurno");
-const turnoEl = document.getElementById("turno");
-const msgOk = document.getElementById("msgOk");
-const msgErr = document.getElementById("msgErr");
+  let agendaAtual = null;
+  let cacheCounters = new Map();
 
-function preencherDatas(){
-dataSelect.innerHTML='<option value="">Selecione a Data</option>';
-for(let d=new Date(inicio);d<=fim;d.setUTCDate(d.getUTCDate()+1)){
-const day=d.getUTCDay();
-if(day===2||day===5){
-const opt=document.createElement("option");
-opt.value=ymd(d);
-opt.textContent=formatBR(ymd(d));
-dataSelect.appendChild(opt);
-}}
-campoTurno.style.display="block";
-turnoEl.required=true;
-}
-preencherDatas();
+  function hideMsgs(){ msgOk.style.display="none"; msgErr.style.display="none"; }
+  function ymd(d){ return d.toISOString().slice(0,10); }
+  function formatBR(ymdStr){ return new Date(ymdStr+"T00:00:00Z").toLocaleDateString("pt-BR"); }
+  function acharAgenda(unidade){ return AGENDAS.find(a => a.unidades.includes(unidade)) || null; }
+  function isDiaUtilMF(d){ const day=d.getUTCDay(); return day>=1 && day<=5; }
+  function isDiaTS(d){ const day=d.getUTCDay(); return day===2 || day===5; }
+  function counterId(agendaId,data){ return `${agendaId}_${data}`; }
 
-document.getElementById("formAgendamento").addEventListener("submit",async(e)=>{
-e.preventDefault();
-msgOk.style.display="none";
-msgErr.style.display="none";
+  // -------- FERIADOS (apenas TS)
+  function easterDate(year){
+    const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25);
+    const g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+    const month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;
+    return new Date(Date.UTC(year,month-1,day));
+  }
+  function feriadosAno(year){
+    const fixed=[`${year}-01-01`,`${year}-04-21`,`${year}-05-01`,`${year}-09-07`,`${year}-10-12`,`${year}-11-02`,`${year}-11-15`,`${year}-12-25`,`${year}-01-20`,`${year}-04-23`];
+    const eas=easterDate(year);
+    const carnivalMon=new Date(eas); carnivalMon.setUTCDate(eas.getUTCDate()-48);
+    const carnivalTue=new Date(eas); carnivalTue.setUTCDate(eas.getUTCDate()-47);
+    const goodFriday=new Date(eas); goodFriday.setUTCDate(eas.getUTCDate()-2);
+    const corpus=new Date(eas); corpus.setUTCDate(eas.getUTCDate()+60);
+    return new Set([ ...fixed, ymd(carnivalMon), ymd(carnivalTue), ymd(goodFriday), ymd(corpus) ]);
+  }
+  const F26=feriadosAno(2026);
+  function isFeriado(dateStr){ return F26.has(dateStr); }
 
-const nome=document.getElementById("nome").value.trim();
-const rg=document.getElementById("rg").value.trim();
-const email=document.getElementById("email").value.trim();
-const posto=document.getElementById("posto").value;
-const unidade=document.getElementById("unidade").value;
-const data=dataSelect.value;
-const turno=turnoEl.value;
+  function tagSituacao(ok){
+    return ok
+      ? `<span class="tag tag-ok">DISPONÍVEL</span>`
+      : `<span class="tag tag-bad">ESGOTADO</span>`;
+  }
+  function setContadorMF(rest,lim){
+    contadorVagas.style.display="block";
+    contadorVagas.innerHTML=`📊 <b>Vagas restantes:</b> <b>${rest}</b> de ${lim} ${tagSituacao(rest>0)}`;
+  }
+  function setContadorTS(rM,rT){
+    contadorVagas.style.display="block";
+    contadorVagas.innerHTML=
+      `📊 <b>Situação das vagas</b> ${tagSituacao(rM>0||rT>0)}<br>`+
+      `• Manhã (07:30–12:00): <b>${rM}</b> / 10<br>`+
+      `• Tarde (13:00–17:30): <b>${rT}</b> / 10`;
+  }
+  function clearContador(){ contadorVagas.style.display="none"; contadorVagas.innerHTML=""; }
 
-if(!data||!turno){
-msgErr.textContent="❌ Selecione data e turno.";
-msgErr.style.display="block";
-return;
-}
+  function atualizarTurnos(data){
+    const c=cacheCounters.get(data)||{manha:0,tarde:0};
+    const manha=c.manha||0, tarde=c.tarde||0;
+    const restM=Math.max(0,10-manha), restT=Math.max(0,10-tarde);
 
-// 🔴 BLOQUEIA RG DUPLICADO
-const q = query(collection(db,"agendamentos"),where("rg","==",rg));
-const snap = await getDocs(q);
-if(!snap.empty){
-msgErr.textContent="❌ Este RG já possui agendamento.";
-msgErr.style.display="block";
-return;
-}
+    // desabilita e renomeia
+    const optM=[...turnoEl.options].find(o=>o.text.startsWith("Manhã"));
+    const optT=[...turnoEl.options].find(o=>o.text.startsWith("Tarde"));
+    if(optM){ optM.disabled=manha>=10; optM.text=manha>=10?"Manhã (ESGOTADO)":"Manhã"; }
+    if(optT){ optT.disabled=tarde>=10; optT.text=tarde>=10?"Tarde (ESGOTADO)":"Tarde"; }
+    if(turnoEl.value==="Manhã" && manha>=10) turnoEl.value="";
+    if(turnoEl.value==="Tarde" && tarde>=10) turnoEl.value="";
 
-try{
-await runTransaction(db,async(tx)=>{
-const counterRef=doc(db,"counters","SEP_"+data);
-const snap=await tx.get(counterRef);
-const dados=snap.exists()?snap.data():{manha:0,tarde:0};
+    setContadorTS(restM,restT);
+  }
 
-if(turno==="Manhã"){
-if(dados.manha>=10) throw "LOTADO";
-dados.manha++;
-}else{
-if(dados.tarde>=10) throw "LOTADO";
-dados.tarde++;
-}
+  async function preencherDatas(agenda){
+    cacheCounters=new Map();
+    dataSelect.innerHTML=`<option value="">Selecione a Data</option>`;
+    clearContador();
 
-tx.set(counterRef,dados);
-tx.set(doc(collection(db,"agendamentos")),{
-nome,rg,email,posto,unidade,data,data_br:formatBR(data),turno
-});
-});
+    const ini=new Date(agenda.inicio+"T00:00:00Z");
+    const fim=new Date(agenda.fim+"T00:00:00Z");
 
-msgOk.style.display="block";
+    const datas=[];
+    for(let d=new Date(ini); d<=fim; d.setUTCDate(d.getUTCDate()+1)){
+      const dY=ymd(d);
+      if(agenda.tipo==="MF"){
+        if(!isDiaUtilMF(d)) continue;
+        datas.push(dY);
+      }else{
+        if(!isDiaTS(d)) continue;
+        if(isFeriado(dY)) continue;
+        datas.push(dY);
+      }
+    }
 
-document.getElementById("cNome").textContent=nome;
-document.getElementById("cRG").textContent=rg;
-document.getElementById("cUnidade").textContent=unidade;
-document.getElementById("cData").textContent=formatBR(data);
-document.getElementById("cTurno").textContent=turno;
-document.getElementById("comprovante").style.display="block";
+    // consulta counters e monta opções
+    for(const data of datas){
+      const cRef=doc(db,"counters",counterId(agenda.id,data));
+      const cSnap=await getDoc(cRef);
+      const c=cSnap.exists()?cSnap.data():null;
 
-e.target.reset();
+      if(agenda.tipo==="MF"){
+        const lim=agenda.capacidadeDia??5;
+        const total=c?.total||0;
+        const rest=Math.max(0,lim-total);
+        if(total<lim){
+          cacheCounters.set(data,{total});
+          const opt=document.createElement("option");
+          opt.value=data;
+          opt.textContent=`${formatBR(data)} — Vagas restantes: ${rest}`;
+          dataSelect.appendChild(opt);
+        }
+      }else{
+        const manha=c?.manha||0;
+        const tarde=c?.tarde||0;
+        const restM=Math.max(0,10-manha);
+        const restT=Math.max(0,10-tarde);
+        if(manha<10 || tarde<10){
+          cacheCounters.set(data,{manha,tarde});
+          const opt=document.createElement("option");
+          opt.value=data;
+          opt.textContent=`${formatBR(data)} — Manhã: ${restM} | Tarde: ${restT}`;
+          dataSelect.appendChild(opt);
+        }
+      }
+    }
+  }
 
-}catch(err){
-msgErr.textContent="❌ Vagas esgotadas.";
-msgErr.style.display="block";
-}
+  unidadeEl.addEventListener("change", async ()=>{
+    hideMsgs();
+    comp.style.display="none";
+    clearContador();
+    dataSelect.value="";
+    turnoEl.value="";
 
-});
+    agendaAtual=acharAgenda(unidadeEl.value);
+    if(!agendaAtual){
+      dataSelect.innerHTML=`<option value="">Selecione a Data</option>`;
+      return;
+    }
 
+    if(agendaAtual.tipo==="TS"){
+      campoTurno.style.display="block";
+      turnoEl.required=true;
+      avisoAgenda.style.display="block";
+    }else{
+      campoTurno.style.display="none";
+      turnoEl.required=false;
+      avisoAgenda.style.display="none";
+    }
+
+    await preencherDatas(agendaAtual);
+  });
+
+  dataSelect.addEventListener("change", ()=>{
+    hideMsgs();
+    const data=dataSelect.value;
+    if(!data||!agendaAtual){ clearContador(); return; }
+
+    if(agendaAtual.tipo==="MF"){
+      const lim=agendaAtual.capacidadeDia??5;
+      const total=(cacheCounters.get(data)?.total)||0;
+      setContadorMF(Math.max(0,lim-total),lim);
+    }else{
+      atualizarTurnos(data);
+    }
+  });
+
+  turnoEl.addEventListener("change", ()=>{
+    const data=dataSelect.value;
+    if(!data||!agendaAtual||agendaAtual.tipo!=="TS") return;
+    atualizarTurnos(data);
+  });
+
+  function mostrarComprovante({nome,rg,posto,unidade,data_br,turno,tipo}){
+    cNome.textContent=nome;
+    cRG.textContent=rg;
+    cPosto.textContent=posto;
+    cUnidade.textContent=unidade;
+    cData.textContent=data_br;
+    cTurno.textContent=(tipo==="MF") ? "Livre demanda" : turno;
+    comp.style.display="block";
+    comp.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  document.getElementById("formAgendamento").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    hideMsgs();
+    comp.style.display="none";
+
+    if(!agendaAtual){
+      msgErr.textContent="❌ Selecione a unidade.";
+      msgErr.style.display="block";
+      return;
+    }
+
+    const nome=document.getElementById("nome").value.trim();
+    const rg=document.getElementById("rg").value.trim();
+    const email=document.getElementById("email").value.trim();
+    const posto=document.getElementById("posto").value;
+    const unidade=unidadeEl.value;
+    const data=dataSelect.value;
+    const turno=(agendaAtual.tipo==="TS") ? (turnoEl.value||"") : "";
+
+    if(!data){
+      msgErr.textContent="❌ Selecione a data.";
+      msgErr.style.display="block";
+      return;
+    }
+    if(agendaAtual.tipo==="TS" && !turno){
+      msgErr.textContent="❌ Selecione o turno.";
+      msgErr.style.display="block";
+      return;
+    }
+
+    btnAgendar.disabled=true;
+
+    try{
+      // ✅ 1 agendamento por RG
+      const qRg=query(collection(db,"agendamentos"), where("rg","==",rg));
+      const rgSnap=await getDocs(qRg);
+      if(!rgSnap.empty){
+        throw new Error("RG_JA_TEM");
+      }
+
+      const agRef=doc(collection(db,"agendamentos"));
+      const cRef=doc(db,"counters",counterId(agendaAtual.id,data));
+
+      await runTransaction(db, async (tx)=>{
+        const cSnap=await tx.get(cRef);
+        const c=cSnap.exists()?cSnap.data():{total:0,manha:0,tarde:0};
+
+        if(agendaAtual.tipo==="MF"){
+          const lim=agendaAtual.capacidadeDia??5;
+          const total=c.total||0;
+          if(total>=lim) throw new Error("LOTADO");
+          tx.set(cRef,{total: total+1},{merge:true});
+        }else{
+          const manha=c.manha||0;
+          const tarde=c.tarde||0;
+
+          if(turno==="Manhã"){
+            if(manha>=10) throw new Error("LOTADO");
+            tx.set(cRef,{manha: manha+1},{merge:true});
+          }else{
+            if(tarde>=10) throw new Error("LOTADO");
+            tx.set(cRef,{tarde: tarde+1},{merge:true});
+          }
+        }
+
+        tx.set(agRef,{
+          agendaId:agendaAtual.id,
+          tipoAgenda:agendaAtual.tipo,
+          nome,rg,email,posto,unidade,
+          data, data_br: formatBR(data),
+          turno: turno || ""
+        });
+      });
+
+      msgOk.style.display="block";
+
+      mostrarComprovante({
+        nome,rg,posto,unidade,
+        data_br: formatBR(data),
+        turno: turno || "",
+        tipo: agendaAtual.tipo
+      });
+
+      e.target.reset();
+      turnoEl.value="";
+      clearContador();
+      await preencherDatas(agendaAtual);
+
+    }catch(err){
+      console.error(err);
+      if(String(err.message).includes("RG_JA_TEM")){
+        msgErr.textContent="❌ Este RG já possui agendamento. Caso precise alterar, solicite ao administrador.";
+      }else if(String(err.message).includes("LOTADO")){
+        msgErr.textContent="❌ Essa data/turno acabou de lotar. Selecione outra opção.";
+      }else{
+        msgErr.textContent="❌ Não foi possível agendar. Tente novamente.";
+      }
+      msgErr.style.display="block";
+    }finally{
+      btnAgendar.disabled=false;
+    }
+  });
 </script>
 </body>
 </html>
