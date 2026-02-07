@@ -63,6 +63,29 @@
 
   .small { font-size:12px; color:#666; margin-top:10px; }
   .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+  /* Comprovante */
+  #comprovanteBox{
+    display:none;
+    text-align:left;
+    background:#f8fafc;
+    border:1px solid #dbe3ee;
+    border-radius:12px;
+    padding:14px;
+    margin-top:14px;
+  }
+  #comprovanteBox h3{ margin:0 0 8px 0; }
+  .linha{ margin:6px 0; }
+  .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .btnSecondary{ background:#4b5563; }
+  .btnSecondary:hover{ background:#374151; }
+
+  /* impressão */
+  @media print{
+    body{ background:#fff; }
+    .container, form, .small, #msgOk, #msgErr, #avisoAgenda, #contadorVagas{ display:none !important; }
+    #comprovanteBox{ display:block !important; border:none; }
+  }
 </style>
 </head>
 
@@ -72,7 +95,7 @@
   <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
   <p>Sistema de Agendamento</p>
 
-  <form id="formAgendamento">
+  <form id="formAgendamento" autocomplete="off">
     <input type="text" id="nome" placeholder="Nome completo" required />
     <input type="text" id="rg" placeholder="RG" required />
     <input type="email" id="email" placeholder="E-mail" required />
@@ -148,6 +171,24 @@
     <div id="msgErr" class="msg err">❌ Não foi possível agendar. Tente novamente.</div>
   </form>
 
+  <!-- COMPROVANTE -->
+  <div id="comprovanteBox">
+    <h3>✅ Comprovante de Agendamento</h3>
+    <div class="linha"><b>Nome:</b> <span id="cNome"></span></div>
+    <div class="linha"><b>RG:</b> <span id="cRg"></span></div>
+    <div class="linha"><b>Posto/Grad:</b> <span id="cPosto"></span></div>
+    <div class="linha"><b>Unidade:</b> <span id="cUnidade"></span></div>
+    <div class="linha"><b>Data:</b> <span id="cData"></span></div>
+    <div class="linha"><b>Turno:</b> <span id="cTurno"></span></div>
+    <div class="linha"><b>E-mail:</b> <span id="cEmail"></span></div>
+    <div class="linha"><b>Protocolo:</b> <span id="cProto" class="mono"></span></div>
+
+    <div class="btnRow">
+      <button type="button" onclick="window.print()">🖨️ Imprimir comprovante</button>
+      <button type="button" class="btnSecondary" id="btnNovo">Novo agendamento</button>
+    </div>
+  </div>
+
   <div class="small">
     Área administrativa: <span class="mono">/frontend/admin.html</span> (somente administradores)
   </div>
@@ -156,7 +197,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
-    getFirestore, collection, doc, getDoc, runTransaction
+    getFirestore, collection, doc, getDoc, runTransaction, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   // =========================
@@ -174,43 +215,31 @@
   const db = getFirestore(app);
 
   // =========================
-  // AGENDAS (conforme sua última mensagem)
+  // AGENDAS (conforme sua lista)
   // TS = Terça/Sexta (10 manhã + 10 tarde) + feriados bloqueados
   // MF = Seg–Sex (livre demanda) 5 vagas/dia + feriados liberados
   // =========================
   const AGENDAS = [
-    // 1º GMAR + DBM1/M + DBM2/M
     { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15",
       unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"]
     },
-
-    // 4º GMAR + DBM6/M – Itaipu
     { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26",
       unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"]
     },
-
-    // CER + 2º GMAR – Barra da Tijuca (Seg–Sex, 5/dia)
     { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia: 5,
       unidades:["CER","2º GMar - Barra da Tijuca"]
     },
-
-    // 3º GMAR – Copacabana (Seg–Sex, 5/dia)
     { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", capacidadeDia: 5,
       unidades:["3º GMar - Copacabana"]
     },
-
-    // CBA X – Atividades de Salvamentos Marítimos
     { id:"A5", tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13",
       unidades:["CBA X"]
     },
-
-    // DBM4/M + DBM3/M (Realizado no recreio)
     { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31",
       unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"]
     },
-
-    // DBM5/M – Sepetiba (23/02/2026 a 05/03/2026)
-    { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-05",
+    // ✅ Sepetiba: 23/02/2026 a 06/03/2026 (Terça e Sexta)
+    { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06",
       unidades:["DBM 5/M - Sepetiba"]
     },
   ];
@@ -220,7 +249,7 @@
   }
 
   // =========================
-  // DATAS (LOCAL, sem UTC/Z) ✅ evita aparecer 22/02 quando é 23/02
+  // DATAS LOCAL (evita 22/02 indevido)
   // =========================
   function ymdLocal(dateObj){
     const y = dateObj.getFullYear();
@@ -230,18 +259,16 @@
   }
   function dateFromYMD(ymdStr){
     const [y,m,d] = ymdStr.split("-").map(Number);
-    return new Date(y, m-1, d); // local
+    return new Date(y, m-1, d);
   }
   function formatBR(ymdStr){
     return dateFromYMD(ymdStr).toLocaleDateString("pt-BR");
   }
-
-  function isDiaUtilMF(d){ const day = d.getDay(); return day >= 1 && day <= 5; } // seg-sex
-  function isDiaTS(d){ const day = d.getDay(); return day === 2 || day === 5; }   // ter/sex
+  function isDiaUtilMF(d){ const day = d.getDay(); return day >= 1 && day <= 5; }
+  function isDiaTS(d){ const day = d.getDay(); return day === 2 || day === 5; }
 
   // =========================
-  // FERIADOS (bloquear só nas TS)
-  // (nacionais + RJ comuns; pode ajustar se quiser)
+  // FERIADOS (bloquear só TS)
   // =========================
   function easterDate(year){
     const a = year % 19, b = Math.floor(year/100), c = year % 100;
@@ -256,12 +283,10 @@
     return new Date(Date.UTC(year, month-1, day));
   }
   function ymdUTC(d){ return d.toISOString().slice(0,10); }
-
   function feriadosAno(year){
     const fixed = [
       `${year}-01-01`, `${year}-04-21`, `${year}-05-01`, `${year}-09-07`,
       `${year}-10-12`, `${year}-11-02`, `${year}-11-15`, `${year}-12-25`,
-      // RJ comuns
       `${year}-01-20`, `${year}-04-23`,
     ];
     const easter = easterDate(year);
@@ -280,10 +305,12 @@
   }
 
   // =========================
-  // Firestore counters
-  // counters/{agendaId_YYYY-MM-DD} => MF:{total} TS:{manha,tarde}
+  // Firestore IDs
   // =========================
   function counterId(agendaId, dataYmd){ return `${agendaId}_${dataYmd}`; }
+  function normalizarRg(rg){
+    return (rg || "").toString().trim().replace(/\D/g,""); // só números
+  }
 
   // =========================
   // UI refs
@@ -297,6 +324,29 @@
   const msgOk = document.getElementById("msgOk");
   const msgErr = document.getElementById("msgErr");
   const btnAgendar = document.getElementById("btnAgendar");
+
+  const comprovanteBox = document.getElementById("comprovanteBox");
+  const cNome = document.getElementById("cNome");
+  const cRg = document.getElementById("cRg");
+  const cPosto = document.getElementById("cPosto");
+  const cUnidade = document.getElementById("cUnidade");
+  const cData = document.getElementById("cData");
+  const cTurno = document.getElementById("cTurno");
+  const cEmail = document.getElementById("cEmail");
+  const cProto = document.getElementById("cProto");
+  const btnNovo = document.getElementById("btnNovo");
+
+  btnNovo.addEventListener("click", () => {
+    comprovanteBox.style.display = "none";
+    document.getElementById("formAgendamento").style.display = "block";
+    msgOk.style.display = "none";
+    msgErr.style.display = "none";
+    contadorVagas.style.display = "none";
+    dataSelect.innerHTML = `<option value="">Selecione a Data</option>`;
+    unidadeEl.value = "";
+    campoTurno.style.display = "none";
+    avisoAgenda.style.display = "none";
+  });
 
   let agendaAtual = null;
   let counterCache = new Map();
@@ -368,7 +418,7 @@
         datas.push(dYmd);
       } else {
         if (!isDiaTS(d)) continue;
-        if (isFeriado(dYmd)) continue; // bloqueia feriados só TS
+        if (isFeriado(dYmd)) continue;
         datas.push(dYmd);
       }
     }
@@ -466,12 +516,19 @@
     }
 
     const nome = document.getElementById("nome").value.trim();
-    const rg = document.getElementById("rg").value.trim();
+    const rgRaw = document.getElementById("rg").value.trim();
+    const rgNorm = normalizarRg(rgRaw);
     const email = document.getElementById("email").value.trim();
     const posto = document.getElementById("posto").value;
     const unidade = unidadeEl.value;
     const data = dataSelect.value;
     const turno = (agendaAtual.tipo === "TS") ? (turnoEl.value || "") : "";
+
+    if (!rgNorm){
+      msgErr.textContent = "❌ Informe um RG válido (somente números).";
+      msgErr.style.display = "block";
+      return;
+    }
 
     if (!data){
       msgErr.textContent = "❌ Selecione a data.";
@@ -490,7 +547,17 @@
       const agRef = doc(collection(db, "agendamentos"));
       const cRef  = doc(db, "counters", counterId(agendaAtual.id, data));
 
+      // ✅ bloqueio 1 agendamento por RG (collection rg_locks)
+      const lockRef = doc(db, "rg_locks", rgNorm);
+
       await runTransaction(db, async (tx) => {
+        // 1) bloqueio RG
+        const lockSnap = await tx.get(lockRef);
+        if (lockSnap.exists()) {
+          throw new Error("RG_JA_AGENDADO");
+        }
+
+        // 2) controle de vagas
         const cSnap = await tx.get(cRef);
         const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
 
@@ -512,29 +579,60 @@
           }
         }
 
+        // 3) grava agendamento
         tx.set(agRef, {
           agendaId: agendaAtual.id,
           tipoAgenda: agendaAtual.tipo,
-          nome, rg, email, posto, unidade,
+          nome,
+          rg: rgRaw,
+          rg_norm: rgNorm,
+          email,
+          posto,
+          unidade,
           data,
           data_br: formatBR(data),
-          turno: turno || ""
+          turno: turno || "",
+          criadoEm: serverTimestamp()
+        });
+
+        // 4) grava trava do RG
+        tx.set(lockRef, {
+          rg_norm: rgNorm,
+          agendamentoId: agRef.id,
+          criadoEm: serverTimestamp()
         });
       });
 
       msgOk.style.display = "block";
-      e.target.reset();
-      turnoEl.value = "";
-      clearContador();
+
+      // ✅ comprovante
+      const turnoTxt = (agendaAtual.tipo === "TS") ? turno : "Livre demanda";
+      cNome.textContent = nome;
+      cRg.textContent = rgRaw;
+      cPosto.textContent = posto;
+      cUnidade.textContent = unidade;
+      cData.textContent = formatBR(data);
+      cTurno.textContent = turnoTxt;
+      cEmail.textContent = email;
+      cProto.textContent = `${agendaAtual.id}-${rgNorm}-${data.replaceAll("-","")}`;
+
+      document.getElementById("formAgendamento").style.display = "none";
+      comprovanteBox.style.display = "block";
 
       // recarrega datas para refletir vagas
       await preencherDatasDisponiveis(agendaAtual);
 
     } catch(err){
       console.error(err);
-      msgErr.textContent = (String(err?.message).includes("LOTADO"))
-        ? "❌ Essa data/turno acabou de lotar. Selecione outra opção."
-        : "❌ Não foi possível agendar. Tente novamente.";
+
+      if (String(err?.message).includes("RG_JA_AGENDADO")){
+        msgErr.textContent = "❌ Este RG já possui agendamento registrado. Procure a administração para cancelar/remarcar.";
+      } else if (String(err?.message).includes("LOTADO")){
+        msgErr.textContent = "❌ Essa data/turno acabou de lotar. Selecione outra opção.";
+      } else {
+        msgErr.textContent = "❌ Não foi possível agendar. Tente novamente.";
+      }
+
       msgErr.style.display = "block";
     } finally {
       btnAgendar.disabled = false;
@@ -543,4 +641,3 @@
 </script>
 </body>
 </html>
-
