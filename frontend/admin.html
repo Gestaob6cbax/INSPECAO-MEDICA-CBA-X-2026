@@ -7,21 +7,16 @@
 
   <style>
     body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-    .box { max-width:1180px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; }
+    .box { max-width:1200px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; }
     h2 { margin:0 0 10px 0; }
-
-    input, select, button {
-      padding:10px; border-radius:10px; font-size:14px; border:1px solid #ccc; box-sizing:border-box;
-    }
+    input, select, button { padding:10px; border-radius:10px; font-size:14px; border:1px solid #ccc; box-sizing:border-box; }
     button { border:none; background:#0b3c5d; color:#fff; cursor:pointer; font-weight:bold; }
     button:hover { background:#092f49; }
     button:disabled { opacity:.6; cursor:not-allowed; }
-
     .danger { background:#c0392b; }
     .danger:hover { background:#a93226; }
-
-    .muted { background:#777; }
-    .muted:hover { background:#666; }
+    .gray { background:#555; }
+    .gray:hover { background:#444; }
 
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
     .hidden { display:none; }
@@ -30,11 +25,13 @@
     th, td { border:1px solid #e4e4e4; padding:8px; text-align:left; vertical-align:top; }
     th { background:#f6f8fb; }
 
-    .ok { display:none; margin-top:10px; padding:10px; border-radius:10px; background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; font-weight:bold; }
-    .err { display:none; margin-top:10px; padding:10px; border-radius:10px; background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; font-weight:bold; }
+    .ok, .err { display:none; margin-top:10px; padding:10px; border-radius:10px; font-weight:bold; }
+    .ok  { background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; }
+    .err { background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; }
 
-    .small { font-size:12px; color:#555; }
-    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #ddd; background:#fafafa; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+    .small { font-size:12px; color:#666; margin-top:8px; }
+    .nowrap { white-space:nowrap; }
   </style>
 </head>
 
@@ -44,14 +41,15 @@
 
     <!-- LOGIN PIN -->
     <div class="row" id="pinArea">
-      <input type="password" id="pin" placeholder="Digite o PIN" style="max-width:240px;">
+      <input type="password" id="pin" placeholder="Digite o PIN" style="max-width:260px;">
       <button type="button" id="btnEntrar">Entrar</button>
-      <span class="small">PIN de acesso somente para administradores.</span>
+      <span class="small">PIN: <span class="mono">B6CBAX2023</span></span>
     </div>
 
     <div id="adminArea" class="hidden">
+
       <div class="row">
-        <select id="filtroUnidade" style="min-width:300px;">
+        <select id="filtroUnidade" style="min-width:320px;">
           <option value="">Todas as unidades</option>
           <option>1º GMar - Botafogo</option>
           <option>DBM 1/M - Paquetá</option>
@@ -67,29 +65,25 @@
           <option>DBM 5/M - Sepetiba</option>
         </select>
 
-        <input id="filtroRG" placeholder="Filtrar por RG (opcional)" style="max-width:220px;">
-        <button type="button" id="btnAtualizar">Atualizar</button>
+        <button type="button" id="btnAtualizar">Atualizar tabela</button>
+        <button type="button" class="gray" id="btnExportar">Exportar Excel</button>
 
-        <button type="button" id="btnExcluirSelecionados" class="danger" disabled>
+        <button type="button" class="danger" id="btnExcluirSelecionados" disabled>
           Excluir selecionados
         </button>
-
-        <button type="button" id="btnLimparSelecao" class="muted" disabled>
-          Limpar seleção
-        </button>
-
-        <span class="pill" id="badgeSelecao">Selecionados: 0</span>
       </div>
 
       <div class="ok" id="msgOk">✅ Operação realizada com sucesso.</div>
       <div class="err" id="msgErr">❌ Não foi possível realizar a operação.</div>
 
+      <div class="small">
+        Dica: marque vários itens na primeira coluna e clique em <b>Excluir selecionados</b>.
+      </div>
+
       <table>
         <thead>
           <tr>
-            <th style="width:38px;">
-              <input type="checkbox" id="chkAll" title="Selecionar todos">
-            </th>
+            <th class="nowrap"><input type="checkbox" id="checkAll"> Todos</th>
             <th>Data</th>
             <th>Turno</th>
             <th>Unidade</th>
@@ -97,34 +91,28 @@
             <th>RG</th>
             <th>Posto/Grad</th>
             <th>E-mail</th>
-            <th style="width:120px;">Ações</th>
+            <th class="nowrap">Ações</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
-
-      <div class="small" style="margin-top:10px;">
-        ✅ Ao excluir, o sistema devolve a vaga e <b>libera o RG</b> removendo <code>rg_locks/{rg_norm}</code>.
-      </div>
     </div>
   </div>
+
+  <!-- XLSX para exportar Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore,
-      collection, query, where, orderBy, limit, getDocs,
+      getFirestore, collection, query, where, orderBy, limit, getDocs,
       doc, runTransaction
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // =========================
-    // PIN
-    // =========================
+    // ✅ PIN
     const PIN_CORRETO = "B6CBAX2023";
 
-    // =========================
     // Firebase
-    // =========================
     const firebaseConfig = {
       apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
       authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -137,29 +125,23 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // =========================
-    // UI
-    // =========================
     const pinArea = document.getElementById("pinArea");
     const adminArea = document.getElementById("adminArea");
     const btnEntrar = document.getElementById("btnEntrar");
     const pinEl = document.getElementById("pin");
 
     const filtroUnidade = document.getElementById("filtroUnidade");
-    const filtroRG = document.getElementById("filtroRG");
-
     const btnAtualizar = document.getElementById("btnAtualizar");
-    const tbody = document.getElementById("tbody");
+    const btnExportar = document.getElementById("btnExportar");
+    const btnExcluirSelecionados = document.getElementById("btnExcluirSelecionados");
 
+    const tbody = document.getElementById("tbody");
     const msgOk = document.getElementById("msgOk");
     const msgErr = document.getElementById("msgErr");
+    const checkAll = document.getElementById("checkAll");
 
-    const chkAll = document.getElementById("chkAll");
-    const btnExcluirSelecionados = document.getElementById("btnExcluirSelecionados");
-    const btnLimparSelecao = document.getElementById("btnLimparSelecao");
-    const badgeSelecao = document.getElementById("badgeSelecao");
-
-    const selectedIds = new Set();
+    let cacheAgendamentos = []; // usado para exportar excel
+    let selectedIds = new Set();
 
     function showOk(text){
       msgErr.style.display="none";
@@ -174,19 +156,8 @@
       setTimeout(()=> msgErr.style.display="none", 6000);
     }
 
-    function normalizeRG(rg){
-      return String(rg || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    }
-
     function counterDocId(agendaId, ymd){
       return `${agendaId}_${ymd}`;
-    }
-
-    function updateSelectionUI(){
-      const n = selectedIds.size;
-      badgeSelecao.textContent = `Selecionados: ${n}`;
-      btnExcluirSelecionados.disabled = (n === 0);
-      btnLimparSelecao.disabled = (n === 0);
     }
 
     btnEntrar.addEventListener("click", async () => {
@@ -203,207 +174,225 @@
       await carregarTabela();
     });
 
-    btnLimparSelecao.addEventListener("click", () => {
+    checkAll.addEventListener("change", () => {
+      const checked = checkAll.checked;
       selectedIds.clear();
-      chkAll.checked = false;
-      // desmarca checkboxes visíveis
-      document.querySelectorAll('input[type="checkbox"][data-rowchk="1"]').forEach(c => c.checked = false);
-      updateSelectionUI();
-    });
-
-    chkAll.addEventListener("change", () => {
-      const check = chkAll.checked;
-      document.querySelectorAll('input[type="checkbox"][data-rowchk="1"]').forEach(c => {
-        c.checked = check;
-        const id = c.getAttribute("data-id");
-        if (check) selectedIds.add(id);
-        else selectedIds.delete(id);
+      tbody.querySelectorAll('input[type="checkbox"][data-id]').forEach(cb => {
+        cb.checked = checked;
+        if (checked) selectedIds.add(cb.dataset.id);
       });
-      updateSelectionUI();
+      atualizarBotaoExcluirSelecionados();
     });
 
-    btnExcluirSelecionados.addEventListener("click", async () => {
-      if (!selectedIds.size) return;
-      const ok = confirm(`Excluir ${selectedIds.size} agendamento(s)?\n(A(s) vaga(s) voltará(ão) e o(s) RG(s) será(ão) liberado(s).)`);
-      if (!ok) return;
-
-      btnExcluirSelecionados.disabled = true;
-      btnAtualizar.disabled = true;
-
-      let sucesso = 0;
-      let falha = 0;
-
-      // processa um a um (mais seguro para Firestore e para devolver vaga corretamente)
-      for (const id of Array.from(selectedIds)) {
-        try {
-          await excluirEDevolverVagaELiberarRG(id);
-          sucesso++;
-          selectedIds.delete(id);
-        } catch(e) {
-          console.error(e);
-          falha++;
-        }
-      }
-
-      chkAll.checked = false;
-      updateSelectionUI();
-
-      if (falha === 0) showOk(`✅ Excluídos ${sucesso} agendamento(s). Vagas devolvidas e RG(s) liberado(s).`);
-      else showErr(`❌ Excluídos ${sucesso}. Falharam ${falha}. Atualize e tente novamente nos que falharam.`);
-
-      await carregarTabela();
-      btnAtualizar.disabled = false;
-    });
+    function atualizarBotaoExcluirSelecionados(){
+      btnExcluirSelecionados.disabled = selectedIds.size === 0;
+      btnExcluirSelecionados.textContent = selectedIds.size
+        ? `Excluir selecionados (${selectedIds.size})`
+        : "Excluir selecionados";
+    }
 
     async function carregarTabela(){
       tbody.innerHTML = "";
+      cacheAgendamentos = [];
       selectedIds.clear();
-      chkAll.checked = false;
-      updateSelectionUI();
+      checkAll.checked = false;
+      atualizarBotaoExcluirSelecionados();
 
       const uni = filtroUnidade.value;
-      const rgFilter = normalizeRG(filtroRG.value);
 
-      // Busca base (limit 1000)
       let qAg;
       if (uni){
         qAg = query(
           collection(db, "agendamentos"),
           where("unidade","==",uni),
           orderBy("data","asc"),
-          limit(1000)
+          limit(2000)
         );
       } else {
         qAg = query(
           collection(db, "agendamentos"),
           orderBy("data","asc"),
-          limit(1000)
+          limit(2000)
         );
       }
 
       const snap = await getDocs(qAg);
 
-      const docs = [];
-      snap.forEach(d => docs.push(d));
-
-      // filtro por RG no cliente (opcional)
-      const filtrados = rgFilter
-        ? docs.filter(d => normalizeRG(d.data()?.rg_norm || d.data()?.rg) === rgFilter)
-        : docs;
-
-      if (!filtrados.length){
+      if (!snap.size){
         const tr = document.createElement("tr");
         tr.innerHTML = `<td colspan="9">Nenhum agendamento encontrado.</td>`;
         tbody.appendChild(tr);
         return;
       }
 
-      for (const d of filtrados) {
+      snap.forEach((d) => {
         const v = d.data();
+        cacheAgendamentos.push({ id: d.id, ...v });
+
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-          <td>
-            <input type="checkbox" data-rowchk="1" data-id="${d.id}">
+          <td class="nowrap">
+            <input type="checkbox" data-id="${d.id}">
           </td>
-          <td>${v.data_br || ""}</td>
-          <td>${v.turno || (v.tipoAgenda === "MF" ? "Livre demanda" : "")}</td>
+          <td class="nowrap">${v.data_br || ""}</td>
+          <td class="nowrap">${v.turno || ""}</td>
           <td>${v.unidade || ""}</td>
           <td>${v.nome || ""}</td>
-          <td>${v.rg || ""}</td>
-          <td>${v.posto || ""}</td>
+          <td class="mono">${v.rg || ""}</td>
+          <td class="nowrap">${v.posto || ""}</td>
           <td>${v.email || ""}</td>
-          <td>
+          <td class="nowrap">
             <button class="danger" data-del="${d.id}">Excluir</button>
           </td>
         `;
 
-        // checkbox
-        const chk = tr.querySelector('input[type="checkbox"][data-rowchk="1"]');
-        chk.addEventListener("change", () => {
-          const id = chk.getAttribute("data-id");
-          if (chk.checked) selectedIds.add(id);
+        // checkbox select
+        tr.querySelector('input[type="checkbox"][data-id]').addEventListener("change", (ev) => {
+          const id = ev.target.dataset.id;
+          if (ev.target.checked) selectedIds.add(id);
           else selectedIds.delete(id);
-          updateSelectionUI();
+          atualizarBotaoExcluirSelecionados();
         });
 
-        // excluir individual
+        // excluir 1
         tr.querySelector("button[data-del]").addEventListener("click", async () => {
-          const ok = confirm("Tem certeza que deseja excluir este agendamento?\n(A vaga voltará e o RG será liberado.)");
+          const ok = confirm("Tem certeza que deseja excluir este agendamento?\n(A vaga voltará e o RG será liberado)");
           if (!ok) return;
-
-          try {
-            await excluirEDevolverVagaELiberarRG(d.id);
-            showOk("✅ Agendamento excluído. Vaga devolvida e RG liberado.");
-            await carregarTabela();
-          } catch(e){
-            console.error(e);
-            showErr("❌ Não foi possível excluir. Verifique permissões/regras do Firestore.");
-          }
+          await excluirEDevolverVagaELiberarRG(d.id);
         });
 
         tbody.appendChild(tr);
-      }
+      });
     }
 
-    // =========================
-    // EXCLUIR + DEVOLVER VAGA + LIBERAR RG
-    // =========================
+    // 🔥 Excluir: devolve vaga + libera RG (deleta rg_locks/{rg_norm})
     async function excluirEDevolverVagaELiberarRG(docId){
       const agRef = doc(db, "agendamentos", docId);
 
-      await runTransaction(db, async (tx) => {
-        const agSnap = await tx.get(agRef);
-        if (!agSnap.exists()) throw new Error("AG_NAO_EXISTE");
+      try {
+        await runTransaction(db, async (tx) => {
+          const agSnap = await tx.get(agRef);
+          if (!agSnap.exists()) throw new Error("NAO_EXISTE");
 
-        const ag = agSnap.data();
+          const ag = agSnap.data();
 
-        const agendaId = ag.agendaId;
-        const data = ag.data;           // YYYY-MM-DD
-        const turno = ag.turno || "";   // "Manhã" / "Tarde" / "" para MF
-        const tipoAgenda = ag.tipoAgenda || ""; // "TS" ou "MF" (pode existir)
+          const agendaId = ag.agendaId;
+          const data = ag.data;           // YYYY-MM-DD
+          const turno = ag.turno || "";   // Manhã/Tarde/"" (MF)
+          const rgLockId = ag.rg_lock_id || ag.rg_norm || ""; // ✅ importante
 
-        if (!agendaId || !data) throw new Error("DADOS_INVALIDOS");
+          if (!agendaId || !data) throw new Error("DADOS_INVALIDOS");
 
-        // counter
-        const cRef = doc(db, "counters", counterDocId(agendaId, data));
-        const cSnap = await tx.get(cRef);
-        const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
+          // 1) devolve vaga no counter
+          const cRef = doc(db, "counters", counterDocId(agendaId, data));
+          const cSnap = await tx.get(cRef);
+          const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
 
-        let total = Number(c.total || 0);
-        let manha = Number(c.manha || 0);
-        let tarde = Number(c.tarde || 0);
+          let total = c.total || 0;
+          let manha = c.manha || 0;
+          let tarde = c.tarde || 0;
 
-        // Decide se é controle por turno (TS) ou total (MF)
-        // - se tipoAgenda vier "TS" => usa manha/tarde
-        // - se tipoAgenda vier "MF" => usa total
-        // - fallback: se tiver turno Manhã/Tarde => usa manha/tarde
-        const isTS = (tipoAgenda === "TS") || (turno === "Manhã" || turno === "Tarde");
+          const temControlePorTurno =
+            (typeof c.manha === "number" || typeof c.tarde === "number") &&
+            (ag.tipoAgenda === "TS" || turno === "Manhã" || turno === "Tarde");
 
-        if (isTS) {
-          if (turno === "Manhã") manha = Math.max(0, manha - 1);
-          else if (turno === "Tarde") tarde = Math.max(0, tarde - 1);
-          // garante que o doc exista/atualize
-          tx.set(cRef, { manha, tarde }, { merge:true });
-        } else {
-          total = Math.max(0, total - 1);
-          tx.set(cRef, { total }, { merge:true });
-        }
+          if (temControlePorTurno && (turno === "Manhã" || turno === "Tarde")) {
+            if (turno === "Manhã") manha = Math.max(0, manha - 1);
+            if (turno === "Tarde") tarde = Math.max(0, tarde - 1);
+            tx.set(cRef, { manha, tarde }, { merge:true });
+          } else {
+            total = Math.max(0, total - 1);
+            tx.set(cRef, { total }, { merge:true });
+          }
 
-        // 🔓 liberar RG lock
-        const rgNorm = normalizeRG(ag.rg_norm || ag.rg);
-        if (rgNorm) {
-          const rgLockRef = doc(db, "rg_locks", rgNorm);
-          // delete é idempotente (se não existir, ok)
-          tx.delete(rgLockRef);
-        }
+          // 2) deleta lock do RG
+          if (rgLockId){
+            const lockRef = doc(db, "rg_locks", String(rgLockId));
+            tx.delete(lockRef);
+          }
 
-        // delete agendamento
-        tx.delete(agRef);
-      });
+          // 3) deleta agendamento
+          tx.delete(agRef);
+        });
+
+        showOk("✅ Agendamento excluído, vaga devolvida e RG liberado.");
+        await carregarTabela();
+      } catch(e){
+        console.error(e);
+        showErr("❌ Não foi possível excluir.");
+      }
     }
+
+    // Excluir vários (em sequência, com feedback)
+    btnExcluirSelecionados.addEventListener("click", async () => {
+      if (selectedIds.size === 0) return;
+
+      const ok = confirm(`Excluir ${selectedIds.size} agendamento(s)?\n(A vaga voltará e o RG será liberado)`);
+      if (!ok) return;
+
+      btnExcluirSelecionados.disabled = true;
+      btnExcluirSelecionados.textContent = "Excluindo...";
+
+      let success = 0;
+      let fail = 0;
+
+      // processa um a um (seguro e simples)
+      for (const id of Array.from(selectedIds)){
+        try{
+          await excluirEDevolverVagaELiberarRG(id);
+          success++;
+        }catch{
+          fail++;
+        }
+      }
+
+      selectedIds.clear();
+      atualizarBotaoExcluirSelecionados();
+      btnExcluirSelecionados.textContent = "Excluir selecionados";
+
+      if (fail === 0) showOk(`✅ ${success} excluído(s).`);
+      else showErr(`⚠️ Excluídos: ${success} | Falharam: ${fail}.`);
+    });
+
+    // =========================
+    // EXPORTAR EXCEL (.xlsx)
+    // =========================
+    btnExportar.addEventListener("click", () => {
+      try{
+        if (!cacheAgendamentos.length){
+          alert("Não há dados para exportar.");
+          return;
+        }
+
+        const rows = cacheAgendamentos.map(a => ({
+          "Data": a.data_br || "",
+          "Turno": a.turno || "",
+          "Unidade": a.unidade || "",
+          "Nome": a.nome || "",
+          "RG": a.rg || "",
+          "Posto/Grad": a.posto || "",
+          "E-mail": a.email || "",
+          "AgendaID": a.agendaId || "",
+          "TipoAgenda": a.tipoAgenda || "",
+          "Data(YYYY-MM-DD)": a.data || "",
+          "DocID": a.id || ""
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
+
+        const uni = filtroUnidade.value ? filtroUnidade.value.replace(/[^\w]+/g,"_") : "TODAS_UNIDADES";
+        const filename = `agendamentos_${uni}_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+        XLSX.writeFile(wb, filename);
+        showOk("✅ Excel exportado com sucesso.");
+      } catch(e){
+        console.error(e);
+        showErr("❌ Não foi possível exportar o Excel.");
+      }
+    });
   </script>
 </body>
 </html>
-
-
