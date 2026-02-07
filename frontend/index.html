@@ -82,10 +82,11 @@
 
   /* impressão */
   @media print{
-    body{ background:#fff; }
-    .container, form, .small, #msgOk, #msgErr, #avisoAgenda, #contadorVagas{ display:none !important; }
-    #comprovanteBox{ display:block !important; border:none; }
-  }
+  body{ background:#fff; }
+  .container{ max-width:100%; margin:0; border-radius:0; }
+  form, .small, #msgOk, #msgErr, #avisoAgenda, #contadorVagas, #btnNovo{ display:none !important; }
+  #comprovanteBox{ display:block !important; border:none; }
+}
 </style>
 </head>
 
