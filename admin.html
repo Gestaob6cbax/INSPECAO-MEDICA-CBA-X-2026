@@ -9,37 +9,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        /* Estilo Profissional CBA X - Padrão Médico (Vinho/Vermelho Escuro) */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
         header { background: #8b0000; color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
-        
         .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
-        
         .stats-row { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
         .stat-card { background: white; padding: 20px; border-radius: 12px; flex: 1; min-width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid #8b0000; text-align: center; }
         .stat-card span { display: block; font-size: 14px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
         .stat-card strong { font-size: 28px; color: #333; }
-
         .controls { background: white; padding: 20px; border-radius: 12px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); flex-wrap: wrap; }
-        .controls select { padding: 12px; border-radius: 8px; border: 1px solid #ddd; flex-grow: 1; outline: none; font-size: 14px; }
-        
         button { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; display: flex; align-items: center; gap: 8px; }
         .btn-refresh { background: #007bff; color: white; }
         .btn-danger { background: #dc3545; color: white; display: none; }
         .btn-export { background: #28a745; color: white; }
-        button:hover { opacity: 0.8; transform: translateY(-1px); }
-
         .table-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 12px; color: #666; border-bottom: 2px solid #eee; text-transform: uppercase; }
         td { padding: 15px; font-size: 13px; border-bottom: 1px solid #eee; }
-        tr:hover { background: #fff5f5; }
-
         .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; }
         .btn-delete-row { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 18px; }
-
-        @media print { .header, .controls, .col-check, .col-del { display: none; } }
     </style>
 </head>
 <body>
@@ -62,56 +50,44 @@
     </div>
 
     <div class="controls">
-        <select id="filtroLocal" onchange="carregarDados()">
-            <option value="">Filtrar: Todos os Locais</option>
-            <option value="1GMAR">1º GMAR - BOTAFOGO</option>
-            <option value="2GMAR">2º GMAR - BARRA</option>
-            <option value="3GMAR">3º GMAR - COPACABANA</option>
-            <option value="4GMAR">4º GMAR - ITAIPU</option>
-        </select>
-
-        <button class="btn-refresh" onclick="carregarDados()">🔄 Atualizar</button>
-        
+        <button class="btn-refresh" onclick="carregarDados()">🔄 Atualizar Lista</button>
         <button id="btnExcluirMassa" class="btn-danger" onclick="cancelarSelecionados()">
             🗑️ Excluir Selecionados (<span id="numSel">0</span>)
         </button>
-
         <div style="flex-grow: 1;"></div>
-        
-        <button class="btn-export" onclick="exportarSelecionados()">📊 Exportar Excel</button>
+        <button class="btn-export" onclick="exportarExcel()">📊 Exportar para Excel</button>
     </div>
 
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th class="col-check"><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
-                    <th>Local</th>
-                    <th>Unidade</th>
+                    <th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
+                    <th>Local Inspeção</th>
+                    <th>Unidade Origem</th>
                     <th>Data</th>
-                    <th>Horário</th>
-                    <th>Nome</th>
+                    <th>Turno</th>
+                    <th>Nome do Militar</th>
                     <th>Posto/Grad</th>
                     <th>RG</th>
-                    <th class="col-del">Ações</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabela">
-                <tr><td colspan="9" style="padding: 40px; text-align: center;">Carregando dados médicos...</td></tr>
+                <tr><td colspan="9" style="padding: 40px; text-align: center;">Carregando dados da inspeção...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // Usando as mesmas credenciais do seu banco de dados funcional
+    // CREDENCIAIS CORRIGIDAS PARA O PROJETO DE INSPEÇÃO MÉDICA
     const firebaseConfig = {
-        apiKey: "AIzaSyD3Z8mJPvGrRzwpYLymAXYcRQat2ccUqVM",
-        authDomain: "agendamento-odonto-cbax.firebaseapp.com",
-        projectId: "agendamento-odonto-cbax",
-        storageBucket: "agendamento-odonto-cbax.firebasestorage.app",
-        messagingSenderId: "545212689993",
-        appId: "1:545212689993:web:b4b85a03bb2dcac9739998"
+        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+        authDomain: "inspecao-saude-cbax.firebaseapp.com",
+        projectId: "inspecao-saude-cbax",
+        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -119,43 +95,37 @@
 
     async function carregarDados() {
         const tabela = document.getElementById("tabela");
-        const filtro = document.getElementById("filtroLocal").value;
         const contador = document.getElementById("contador");
-        
-        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Sincronizando...</td></tr>";
+        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Buscando dados no Firebase...</td></tr>";
 
         try {
-            // Importante: Altere aqui para a coleção que você usa na Médica se for diferente de "agendamentos"
-            const snapshot = await db.collection("agendamentos").get();
+            const snapshot = await db.collection("agendamentos").orderBy("data", "asc").get();
             tabela.innerHTML = "";
             let total = 0;
 
             snapshot.forEach(doc => {
                 const d = doc.data();
-                const local = d.unidade || d.localInspeção || "CBA X";
-                
-                if (filtro && !local.includes(filtro)) return;
-
                 total++;
                 tabela.innerHTML += `
                     <tr>
-                        <td class="col-check"><input type="checkbox" class="checkItem" value="${doc.id}" onchange="atualizarBotaoMassa()"></td>
-                        <td><span class="badge-local">${local}</span></td>
-                        <td>${d.unidadeServe || "CBA X"}</td>
-                        <td>${d.data || ""}</td>
-                        <td>${d.horario || ""}</td>
+                        <td><input type="checkbox" class="checkItem" value="${doc.id}" onchange="atualizarBotaoMassa()"></td>
+                        <td><span class="badge-local">${d.unidade || "Não inf."}</span></td>
+                        <td>${d.unidadeServe || ""}</td>
+                        <td>${d.data ? d.data.split('-').reverse().join('/') : ""}</td>
+                        <td>${d.turno || "Livre"}</td>
                         <td><strong>${d.nome || ""}</strong></td>
                         <td>${d.posto || ""}</td>
                         <td>${d.rg || ""}</td>
-                        <td class="col-del"><button class="btn-delete-row" onclick="excluirIndividual('${doc.id}', '${d.nome}')">🗑️</button></td>
+                        <td><button class="btn-delete-row" onclick="excluirIndividual('${doc.id}', '${d.nome}')">🗑️</button></td>
                     </tr>`;
             });
 
             contador.innerText = total;
-            if (total === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>Nenhum registro encontrado.</td></tr>";
+            if (total === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>Nenhum agendamento encontrado.</td></tr>";
             atualizarBotaoMassa();
         } catch (e) {
-            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center; padding:20px;'>Erro ao conectar com o banco de dados.</td></tr>";
+            console.error(e);
+            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center; padding:20px;'>Erro de conexão com a Inspeção Médica.</td></tr>";
         }
     }
 
@@ -173,7 +143,7 @@
     }
 
     async function excluirIndividual(id, nome) {
-        if (confirm(`Deseja remover o agendamento médico de ${nome}?`)) {
+        if (confirm(`Excluir agendamento de ${nome}?`)) {
             await db.collection("agendamentos").doc(id).delete();
             carregarDados();
         }
@@ -181,33 +151,36 @@
 
     async function cancelarSelecionados() {
         const checks = document.querySelectorAll(".checkItem:checked");
-        if (confirm(`Remover definitivamente ${checks.length} registros selecionados?`)) {
+        if (confirm(`Excluir os ${checks.length} selecionados?`)) {
             for (let cb of checks) await db.collection("agendamentos").doc(cb.value).delete();
             carregarDados();
         }
     }
 
-    function exportarSelecionados() {
-        const checks = document.querySelectorAll(".checkItem:checked");
-        const alvo = checks.length > 0 ? Array.from(checks) : Array.from(document.querySelectorAll(".checkItem"));
-        
-        const dados = alvo.map(cb => {
-            const r = cb.closest('tr').cells;
+    function exportarExcel() {
+        const rows = Array.from(document.querySelectorAll("#tabela tr"));
+        if (rows.length === 0 || rows[0].innerText.includes("Nenhum")) {
+            alert("Não há dados para exportar.");
+            return;
+        }
+
+        const dados = rows.map(tr => {
+            const tds = tr.cells;
             return {
-                "Local": r[1].innerText,
-                "Unidade Origem": r[2].innerText,
-                "Data": r[3].innerText,
-                "Horário": r[4].innerText,
-                "Nome": r[5].innerText,
-                "Posto": r[6].innerText,
-                "RG": r[7].innerText
+                "Local": tds[1].innerText,
+                "Origem": tds[2].innerText,
+                "Data": tds[3].innerText,
+                "Turno": tds[4].innerText,
+                "Nome": tds[5].innerText,
+                "Posto": tds[6].innerText,
+                "RG": tds[7].innerText
             };
         });
 
         const ws = XLSX.utils.json_to_sheet(dados);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Agendamentos_Medicos");
-        XLSX.writeFile(wb, "Relatorio_Medica_2026.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Inspeção_Médica");
+        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_2026.xlsx");
     }
 
     carregarDados();
