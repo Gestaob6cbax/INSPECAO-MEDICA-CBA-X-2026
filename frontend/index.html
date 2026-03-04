@@ -197,4 +197,14 @@
             document.getElementById("cRg").textContent = dados.rg;
             document.getElementById("cUnidade").textContent = uniEl.options[uniEl.selectedIndex].text;
             document.getElementById("cData").textContent = dados.data.split('-').reverse().join('/');
-            document.
+            document.getElementById("cTurno").textContent = dados.turno;
+            document.getElementById("formAgendamento").style.display = "none";
+            document.getElementById("comprovanteBox").style.display = "block";
+        } catch (err) {
+            alert("Erro ao salvar.");
+            btn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
