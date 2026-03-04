@@ -1,245 +1,113 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>INSPEÇÃO MÉDICA 2026 – CBA X</title>
-<style>
-  body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-  /* TOPO AZUL PADRONIZADO PARA MÉDICA */
-  .header-topo { background: #003366; color: white; text-align: center; padding: 20px; border-bottom: 5px solid #001a33; }
-  .container { max-width: 720px; margin: 30px auto; background:#fff; padding:20px; border-radius:12px; text-align:center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-  .logo { max-width:180px; width:100%; margin-bottom:10px; }
-  input, select, button { width:100%; padding:12px; margin-bottom:12px; border-radius:10px; border:1px solid #ccc; font-size:15px; box-sizing:border-box; }
-  /* BOTÃO AZUL */
-  button { background:#003366; color:#fff; border:none; cursor:pointer; font-weight:bold; font-size: 16px; }
-  button:hover { background:#001a33; }
-  button:disabled { opacity:0.6; cursor:not-allowed; }
-  #campoTurno { display:none; }
-  #avisoAgenda { display:none; background:#fff3cd; border:1px solid #ffeeba; padding:12px; border-radius:10px; margin:10px 0; font-size:13px; color:#856404; text-align:left; line-height:1.4; }
-  .mono { font-family: ui-monospace, monospace; font-weight: bold; }
-  #comprovanteBox{ display:none; text-align:left; background:#f8fafc; border:1px solid #dbe3ee; border-radius:12px; padding:20px; margin-top:14px; }
-  #comprovanteBox h3{ margin:0 0 15px 0; color: #003366; border-bottom: 1px solid #dbe3ee; padding-bottom: 10px; }
-  .linha{ margin:8px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
-  .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
-  .btnSecondary{ background:#4b5563; }
-  @media print{
-    body{ background:#fff; }
-    .header-topo { display:none; }
-    .container{ max-width:100%; margin:0; border-radius:0; box-shadow: none; }
-    form, h2, p, .logo, #avisoAgenda { display:none !important; }
-    #comprovanteBox{ display:block !important; border:none; width: 100%; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento 2026 - CBA X</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .form-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; border-top: 8px solid #0a2c6d; }
+        h2 { color: #0a2c6d; text-align: center; margin-bottom: 25px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #444; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #0a2c6d; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        button:hover { background: #001a4d; }
+    </style>
 </head>
 <body>
 
-<div class="header-topo">
-    <h1 style="margin: 0; font-size: 24px;">INSPEÇÃO DE SAÚDE 2026</h1>
-    <h2 style="margin: 5px 0 0 0; font-size: 20px;">ESPECIALIDADE: MÉDICA</h2>
-    <p style="margin: 5px 0 0 0;">CBA X - Comando de Bombeiros de Área</p>
-</div>
-
-<div class="container">
-  <img src="logo_cba_x.png" alt="Logo CBA X" class="logo" />
-  <h2>AGENDAMENTO ONLINE</h2>
-  <form id="formAgendamento" autocomplete="off">
-    <input type="text" id="nome" placeholder="Nome completo" required />
-    <input type="text" id="rg" placeholder="RG (Apenas números)" required />
-    <input type="tel" id="telefone" placeholder="Telefone / WhatsApp" required />
-    <select id="unidadeServe" required>
-      <option value="">Unidade onde você serve atualmente</option>
-      <option>CBA X (Sede)</option>
-      <option>1º GMar - Botafogo</option>
-      <option>2º GMar - Barra da Tijuca</option>
-      <option>3º GMar - Copacabana</option>
-      <option>4º GMar - Itaipu</option>
-      <option>DBM 1/M - Paquetá</option>
-      <option>DBM 2/M - Piscinão de Ramos</option>
-      <option>DBM 3/M - Recreio dos Bandeirantes</option>
-      <option>DBM 4/M - Barra de Guaratiba</option>
-      <option>DBM 5/M - Sepetiba</option>
-      <option>DBM 6/M - Itaipu</option>
-      <option>CER</option>
-      <option>Outra Unidade</option>
-    </select>
-    <input type="email" id="email" placeholder="E-mail funcional ou pessoal" required />
+<div class="form-card">
+    <h2>Agendamento Odontológico 2026</h2>
+    
+    <label>Posto/Graduação</label>
     <select id="posto" required>
-      <option value="">Selecione seu Posto / Graduação</option>
-      <option>SD BM</option><option>CB BM</option><option>3º SGT BM</option>
-      <option>2º SGT BM</option><option>1º SGT BM</option><option>SUBTEN BM</option>
-      <option>2º TEN BM</option><option>1º TEN BM</option><option>CAP BM</option>
-      <option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
+        <option value="">Selecione...</option>
+        <option value="Cel">Coronel</option>
+        <option value="Ten Cel">Tenente Coronel</option>
+        <option value="Maj">Major</option>
+        <option value="Cap">Capitão</option>
+        <option value="1º Ten">1º Tenente</option>
+        <option value="2º Ten">2º Tenente</option>
+        <option value="Subten">Subtenente</option>
+        <option value="1º Sgt">1º Sargento</option>
+        <option value="2º Sgt">2º Sargento</option>
+        <option value="3º Sgt">3º Sargento</option>
+        <option value="Cb">Cabo</option>
+        <option value="Sd">Soldado</option>
     </select>
-    <select id="unidade" required>
-      <option value="">Selecione o LOCAL para realizar a Inspeção</option>
-      <option>1º GMar - Botafogo</option>
-      <option>DBM 1/M - Paquetá</option>
-      <option>DBM 2/M - Piscinão de Ramos</option>
-      <option>CER</option>
-      <option>2º GMar - Barra da Tijuca</option>
-      <option>3º GMar - Copacabana</option>
-      <option>4º GMar - Itaipu</option>
-      <option>DBM 6/M - Itaipu</option>
-      <option>CBA X</option>
-      <option>DBM 3/M - Recreio dos Bandeirantes</option>
-      <option>DBM 4/M - Barra de Guaratiba</option>
-      <option>DBM 5/M - Sepetiba</option>
-    </select>
-    <div id="avisoAgenda">⚠️ <b>ATENÇÃO</b><br>Esta unidade realiza inspeção apenas às <b>TERÇAS e SEXTAS</b>.</div>
-    <select id="dataSelect" required><option value="">Selecione a Data</option></select>
-    <div id="campoTurno">
-      <select id="turno">
-        <option value="">Selecione o Turno</option>
-        <option value="Manhã">Manhã (07:30 - 12:00)</option>
-        <option value="Tarde">Tarde (13:00 - 17:30)</option>
-      </select>
-    </div>
-    <button type="submit" id="btnAgendar">Confirmar Agendamento</button>
-  </form>
 
-  <div id="comprovanteBox">
-    <h3>✅ Agendamento Confirmado</h3>
-    <div class="linha"><b>Nome:</b> <span id="cNome"></span></div>
-    <div class="linha"><b>RG:</b> <span id="cRg"></span></div>
-    <div class="linha"><b>Unidade Serve:</b> <span id="cUnidadeServe"></span></div>
-    <div class="linha"><b>Local Inspeção:</b> <span id="cUnidade"></span></div>
-    <div class="linha"><b>Data:</b> <span id="cData"></span></div>
-    <div class="linha"><b>Turno:</b> <span id="cTurno"></span></div>
-    <div class="linha"><b>Protocolo:</b> <span id="cProto" class="mono"></span></div>
-    <div class="btnRow">
-      <button type="button" onclick="window.print()">🖨️ Imprimir</button>
-      <button type="button" class="btnSecondary" onclick="location.reload()">Novo Agendamento</button>
-    </div>
-  </div>
+    <label>Nome Completo</label>
+    <input type="text" id="nome" placeholder="Digite seu nome completo" required>
+
+    <label>RG Militar</label>
+    <input type="number" id="rg" placeholder="Somente números" required>
+
+    <label>Unidade de Origem (Onde serve)</label>
+    <input type="text" id="unidadeServe" placeholder="Ex: 2º GMAR, CBA X, etc" required>
+
+    <label>Local da Inspeção (Onde quer ser atendido)</label>
+    <select id="unidade" required>
+        <option value="">Selecione o local...</option>
+        <option value="1GMAR">1º GMAR - BOTAFOGO</option>
+        <option value="2GMAR">2º GMAR - BARRA</option>
+        <option value="3GMAR">3º GMAR - COPACABANA</option>
+        <option value="4GMAR">4º GMAR - ITAIPU</option>
+    </select>
+
+    <label>Data Escolhida</label>
+    <input type="date" id="data" required>
+
+    <label>Horário</label>
+    <input type="time" id="horario" required>
+
+    <button onclick="salvarAgendamento()">Confirmar Agendamento</button>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, collection, doc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+<script>
+    // Configuração do Firebase (A mesma do seu banco funcional)
+    const firebaseConfig = {
+        apiKey: "AIzaSyD3Z8mJPvGrRzwpYLymAXYcRQat2ccUqVM",
+        authDomain: "agendamento-odonto-cbax.firebaseapp.com",
+        projectId: "agendamento-odonto-cbax",
+        storageBucket: "agendamento-odonto-cbax.firebasestorage.app",
+        messagingSenderId: "545212689993",
+        appId: "1:545212689993:web:b4b85a03bb2dcac9739998"
+    };
 
-  // CONFIGURAÇÃO FIREBASE
-  const firebaseConfig = {
-    apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-    authDomain: "inspecao-saude-cbax.firebaseapp.com",
-    projectId: "inspecao-saude-cbax",
-    storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-    messagingSenderId: "1011281662526",
-    appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-  };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const AGENDAS = [
-    { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15", unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"] },
-    { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"] },
-    { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER","2º GMar - Barra da Tijuca"] },
-    { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["3º GMar - Copacabana"] },
-    { id:"A5", tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13", unidades:["CBA X"] },
-    { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"] },
-    { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
-  ];
-
-  const unidadeEl = document.getElementById("unidade");
-  const dataSelect = document.getElementById("dataSelect");
-  const turnoEl = document.getElementById("turno");
-  const campoTurno = document.getElementById("campoTurno");
-  const avisoAgenda = document.getElementById("avisoAgenda");
-
-  function formatBR(ymd) { return ymd.split('-').reverse().join('/'); }
-
-  unidadeEl.addEventListener("change", () => {
-    dataSelect.innerHTML = '<option value="">Selecione a Data</option>';
-    campoTurno.style.display = "none";
-    avisoAgenda.style.display = "none";
-    const unidadeSelecionada = unidadeEl.value;
-    const agenda = AGENDAS.find(a => a.unidades.includes(unidadeSelecionada));
-    if (!agenda) return;
-    if (agenda.tipo === "TS") avisoAgenda.style.display = "block";
-    let dataAtual = new Date(agenda.inicio + "T12:00:00");
-    const dataFim = new Date(agenda.fim + "T12:00:00");
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    while (dataAtual <= dataFim) {
-      if (dataAtual >= hoje) {
-        const diaSemana = dataAtual.getDay();
-        let pode = (agenda.tipo === "TS" && (diaSemana === 2 || diaSemana === 5)) || (agenda.tipo === "MF" && (diaSemana >= 1 && diaSemana <= 5));
-        if (pode) {
-          const ymd = dataAtual.toISOString().split('T')[0];
-          const opt = document.createElement("option"); opt.value = ymd; opt.textContent = formatBR(ymd);
-          dataSelect.appendChild(opt);
-        }
-      }
-      dataAtual.setDate(dataAtual.getDate() + 1);
-    }
-  });
-
-  dataSelect.addEventListener("change", () => {
-    const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
-    campoTurno.style.display = (agenda && agenda.tipo === "TS") ? "block" : "none";
-  });
-
-  document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById("btnAgendar");
-    const rgNorm = document.getElementById("rg").value.replace(/\D/g, "");
-    btn.disabled = true;
-
-    try {
-      const agRef = doc(collection(db, "agendamentos"));
-      const lockRef = doc(db, "rg_locks", rgNorm);
-
-      await runTransaction(db, async (tx) => {
-        const lockSnap = await tx.get(lockRef);
-        if (lockSnap.exists()) throw new Error("RG_JA_AGENDADO");
-
+    async function salvarAgendamento() {
         const dados = {
-          nome: document.getElementById("nome").value.trim(),
-          rg: document.getElementById("rg").value.trim(),
-          telefone: document.getElementById("telefone").value.trim(),
-          unidadeServe: document.getElementById("unidadeServe").value,
-          email: document.getElementById("email").value.trim(),
-          posto: document.getElementById("posto").value,
-          unidade: unidadeEl.value,
-          data: dataSelect.value,
-          data_br: formatBR(dataSelect.value),
-          turno: (campoTurno.style.display === "block") ? turnoEl.value : "Livre Demanda",
-          criadoEm: serverTimestamp()
+            posto: document.getElementById("posto").value,
+            nome: document.getElementById("nome").value,
+            rg: document.getElementById("rg").value,
+            unidadeServe: document.getElementById("unidadeServe").value,
+            unidade: document.getElementById("unidade").value,
+            data: document.getElementById("data").value,
+            horario: document.getElementById("horario").value,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        tx.set(agRef, dados);
-        tx.set(lockRef, { rg: rgNorm, criadoEm: serverTimestamp() });
+        if (!dados.nome || !dados.rg || !dados.unidade) {
+            alert("Por favor, preencha todos os campos obrigatórios.");
+            return;
+        }
 
-        // LINK DA PLANILHA MÉDICA
-        fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            rg: dados.rg,
-            tipo: "saude",
-            data: dados.data_br,
-            local: dados.unidade
-          })
-        });
-
-        document.getElementById("cNome").textContent = dados.nome;
-        document.getElementById("cRg").textContent = dados.rg;
-        document.getElementById("cUnidadeServe").textContent = dados.unidadeServe;
-        document.getElementById("cUnidade").textContent = dados.unidade;
-        document.getElementById("cData").textContent = dados.data_br;
-        document.getElementById("cTurno").textContent = dados.turno;
-        document.getElementById("cProto").textContent = `IS-${rgNorm}-${dados.data.replace(/-/g,"")}`;
-      });
-
-      document.getElementById("formAgendamento").style.display = "none";
-      document.getElementById("comprovanteBox").style.display = "block";
-
-    } catch (err) {
-      alert(err.message === "RG_JA_AGENDADO" ? "Este RG já possui um agendamento marcado." : "Erro ao salvar. Tente novamente.");
-      btn.disabled = false;
+        try {
+            await db.collection("agendamentos").add(dados);
+            alert("Agendamento realizado com sucesso!");
+            location.reload(); // Limpa o formulário
+        } catch (error) {
+            console.error("Erro ao salvar: ", error);
+            alert("Erro ao salvar agendamento. Tente novamente.");
+        }
     }
-  });
 </script>
+
 </body>
 </html>
