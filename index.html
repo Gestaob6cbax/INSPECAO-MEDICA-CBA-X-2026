@@ -9,90 +9,31 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
     <style>
-        :root {
-            --primary: #0b3c5d;
-            --accent: #1d2731;
-            --bg: #f2f4f8;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-        }
-
-        .container { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 15px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 500px; 
-        }
-
+        :root { --primary: #0b3c5d; --bg: #f2f4f8; }
+        body { font-family: Arial, sans-serif; background: var(--bg); padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
         .header { text-align: center; margin-bottom: 25px; }
-        .header img { width: 80px; margin-bottom: 10px; }
-        .header h2 { color: var(--primary); margin: 0; font-size: 22px; }
-
-        label { display: block; margin-top: 15px; font-weight: bold; color: var(--accent); font-size: 14px; }
-
-        input, select { 
-            width: 100%; 
-            padding: 12px; 
-            margin-top: 5px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            font-size: 16px; /* Evita zoom automático no iPhone */
-        }
-
-        button { 
-            width: 100%; 
-            padding: 15px; 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            margin-top: 25px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: 0.3s;
-        }
-
-        button:hover { background: #092f49; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-
-        .loading { display: none; text-align: center; margin-top: 10px; color: var(--primary); font-weight: bold; }
-        
-        #mensagem { 
-            margin-top: 20px; 
-            padding: 15px; 
-            border-radius: 8px; 
-            display: none; 
-            text-align: center; 
-            font-weight: bold; 
-        }
-        .sucesso { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .erro { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .header h2 { color: var(--primary); }
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; margin-top: 25px; font-weight: bold; cursor: pointer; }
+        #mensagem { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; text-align: center; font-weight: bold; }
+        .sucesso { background: #d4edda; color: #155724; }
+        .erro { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/Logo_CBMERJ.png" alt="Logo">
         <h2>Inspeção de Saúde 2026</h2>
-        <p>CBA X - Agendamento Online</p>
+        <p>CBA X - Agendamento</p>
     </div>
 
     <form id="formAgendamento">
-        <label>Local da Inspeção (Onde você quer ir):</label>
+        <label>Local da Inspeção:</label>
         <select id="localInspecao" required>
-            <option value="">Selecione o local...</option>
+            <option value="">Selecione...</option>
             <option>1º GMar - Botafogo</option>
             <option>2º GMar - Barra da Tijuca</option>
             <option>3º GMar - Copacabana</option>
@@ -100,43 +41,33 @@
             <option>CBA X</option>
         </select>
 
-        <label>Data Escolhida:</label>
+        <label>Data:</label>
         <input type="date" id="dataInspecao" required>
 
         <label>Turno:</label>
         <select id="turno" required>
-            <option value="Manhã">Manhã (08:00 às 12:00)</option>
-            <option value="Tarde">Tarde (13:00 às 17:00)</option>
+            <option value="Manhã">Manhã</option>
+            <option value="Tarde">Tarde</option>
         </select>
-
-        <hr style="margin-top: 25px; border: 0; border-top: 1px solid #eee;">
 
         <label>Posto/Graduação:</label>
         <select id="posto" required>
             <option value="">Selecione...</option>
-            <option>Coronel</option>
-            <option>Tenente-Coronel</option>
-            <option>Major</option>
-            <option>Capitão</option>
-            <option>1º Tenente</option>
-            <option>2º Tenente</option>
-            <option>Subtenente</option>
-            <option>1º Sargento</option>
-            <option>2º Sargento</option>
-            <option>3º Sargento</option>
-            <option>Cabo</option>
-            <option>Soldado</option>
+            <option>Coronel</option><option>Tenente-Coronel</option><option>Major</option>
+            <option>Capitão</option><option>1º Tenente</option><option>2º Tenente</option>
+            <option>Subtenente</option><option>1º Sargento</option><option>2º Sargento</option>
+            <option>3º Sargento</option><option>Cabo</option><option>Soldado</option>
         </select>
 
-        <label>RG (Apenas números):</label>
-        <input type="number" id="rg" placeholder="Ex: 12345" required>
+        <label>RG:</label>
+        <input type="number" id="rg" required>
 
         <label>Nome Completo:</label>
-        <input type="text" id="nome" placeholder="Digite seu nome" required>
+        <input type="text" id="nome" required>
 
-        <label>Unidade em que Serve (Origem):</label>
+        <label>Unidade em que Serve:</label>
         <select id="unidadeServe" required>
-            <option value="">Selecione sua unidade atual...</option>
+            <option value="">Selecione a sua unidade...</option>
             <option>CBA X (Sede)</option>
             <option>1º GMar - Botafogo</option>
             <option>2º GMar - Barra da Tijuca</option>
@@ -152,21 +83,19 @@
             <option>Outra Unidade</option>
         </select>
 
-        <label>Telefone / WhatsApp:</label>
-        <input type="tel" id="telefone" placeholder="(21) 99999-9999" required>
+        <label>Telefone:</label>
+        <input type="tel" id="telefone" required>
 
         <label>E-mail:</label>
-        <input type="email" id="email" placeholder="seuemail@exemplo.com" required>
+        <input type="email" id="email" required>
 
         <button type="submit" id="btnEnviar">Confirmar Agendamento</button>
-        <div class="loading" id="loader">Processando...</div>
     </form>
 
     <div id="mensagem"></div>
 </div>
 
 <script>
-    // Configuração do Firebase (Utilizando as suas chaves enviadas anteriormente)
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
         authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -179,17 +108,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const form = document.getElementById("formAgendamento");
-    const msgDiv = document.getElementById("mensagem");
-    const btn = document.getElementById("btnEnviar");
-    const loader = document.getElementById("loader");
-
-    form.onsubmit = async (e) => {
+    document.getElementById("formAgendamento").onsubmit = async (e) => {
         e.preventDefault();
-        
+        const btn = document.getElementById("btnEnviar");
+        const msg = document.getElementById("mensagem");
         btn.disabled = true;
-        loader.style.display = "block";
-        msgDiv.style.display = "none";
 
         const dados = {
             unidade: document.getElementById("localInspecao").value,
@@ -199,39 +122,31 @@
             posto: document.getElementById("posto").value,
             rg: document.getElementById("rg").value,
             nome: document.getElementById("nome").value.toUpperCase(),
-            unidadeServe: document.getElementById("unidadeServe").value,
+            unidadeServe: document.getElementById("unidadeServe").value, // Captura do Select
             telefone: document.getElementById("telefone").value,
             email: document.getElementById("email").value,
             criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         try {
-            // Verifica se o RG já agendou
-            const rgCheck = await db.collection("rg_locks").doc(dados.rg).get();
-            if (rgCheck.exists) {
-                throw new Error("Este RG já possui um agendamento realizado.");
-            }
+            const check = await db.collection("rg_locks").doc(dados.rg).get();
+            if (check.exists) throw new Error("RG já agendado.");
 
-            // Grava no Firestore usando Transação para garantir a vaga (se houver contador)
-            // Aqui simplificado para gravação direta, conforme seu fluxo anterior:
             await db.collection("agendamentos").add(dados);
-            await db.collection("rg_locks").doc(dados.rg).set({ data: dados.data });
+            await db.collection("rg_locks").doc(dados.rg).set({ ocupado: true });
 
-            msgDiv.innerHTML = "✅ Agendamento realizado com sucesso!<br>Aguardamos você no dia " + dados.data_br;
-            msgDiv.className = "sucesso";
-            msgDiv.style.display = "block";
-            form.reset();
-
+            msg.innerHTML = "✅ Agendado com sucesso!";
+            msg.className = "sucesso";
+            msg.style.display = "block";
+            document.getElementById("formAgendamento").reset();
         } catch (error) {
-            msgDiv.innerHTML = "❌ Erro: " + error.message;
-            msgDiv.className = "erro";
-            msgDiv.style.display = "block";
+            msg.innerHTML = "❌ " + error.message;
+            msg.className = "erro";
+            msg.style.display = "block";
         } finally {
             btn.disabled = false;
-            loader.style.display = "none";
         }
     };
 </script>
-
 </body>
 </html>
