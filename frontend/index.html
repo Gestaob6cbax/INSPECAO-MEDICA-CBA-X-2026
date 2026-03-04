@@ -19,7 +19,6 @@
         #avisoAgenda { display:none; background:#fff3cd; border:1px solid #ffeeba; padding:15px; border-radius:10px; margin:10px 0; font-size:14px; color:#856404; line-height:1.4; grid-column: span 2; }
         #comprovanteBox { display:none; text-align:left; background:#f8fafc; border:2px solid #8b0000; border-radius:12px; padding:30px; margin-top:20px; }
         .linha { margin:12px 0; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 6px; display: flex; justify-content: space-between; }
-        @media (max-width: 600px) { .grid-campos { grid-template-columns: 1fr; } .campo-cheio { grid-column: span 1; } }
     </style>
 </head>
 <body>
@@ -65,10 +64,10 @@
                     <option value="DBM 3/M - Recreio">DBM 3/M / DBM 4/M (Ter e Sex)</option>
                 </select>
             </div>
-            <div id="avisoAgenda">⚠️ Unidade com limite de vagas por turno (Manhã e Tarde).</div>
+            <div id="avisoAgenda">⚠️ Unidade com limite fixo de vagas por turno.</div>
             <div>
                 <label>Data Disponível</label>
-                <select id="dataSelect" required><option value="">Escolha o local...</option></select>
+                <select id="dataSelect" required><option value="">Escolha o local primeiro</option></select>
             </div>
             <div id="campoTurno" style="display:none;">
                 <label>Turno</label>
@@ -113,12 +112,12 @@
     const db = getFirestore(app);
 
     const AGENDAS = [
-        { id:"A1", tipo:"MF", limite: 5,  inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER","3º GMar - Copacabana"] },
-        { id:"A2", tipo:"TS", limite: 10, inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
-        { id:"A3", tipo:"TS", limite: 10, inicio:"2026-03-10", fim:"2026-03-13", unidades:["CBA X"] },
-        { id:"A4", tipo:"TS", limite: 7,  inicio:"2026-03-17", fim:"2026-05-15", unidades:["GMars-Sede"] },
-        { id:"A5", tipo:"TS", limite: 7,  inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar - Itaipu"] },
-        { id:"A6", tipo:"TS", limite: 7,  inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 3/M - Recreio"] }
+        { tipo:"MF", limite: 5,  inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER","3º GMar - Copacabana"] },
+        { tipo:"TS", limite: 10, inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
+        { tipo:"TS", limite: 10, inicio:"2026-03-10", fim:"2026-03-13", unidades:["CBA X"] },
+        { tipo:"TS", limite: 7,  inicio:"2026-03-17", fim:"2026-05-15", unidades:["GMars-Sede"] },
+        { tipo:"TS", limite: 7,  inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar - Itaipu"] },
+        { tipo:"TS", limite: 7,  inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 3/M - Recreio"] }
     ];
 
     const uniEl = document.getElementById("unidade");
@@ -132,9 +131,10 @@
         if (!agenda) return;
 
         const temTurno = (agenda.tipo === "TS");
-        document.getElementById("avisoAgenda").style.display = temTurno ? "block" : "none";
         campoT.style.display = temTurno ? "block" : "none";
+        document.getElementById("avisoAgenda").style.display = temTurno ? "block" : "none";
         
+        // AJUSTE DINÂMICO DO TEXTO DO MENU
         if(temTurno) {
             turnoEl.options[0].text = `Manhã (${agenda.limite} vagas)`;
             turnoEl.options[1].text = `Tarde (${agenda.limite} vagas)`;
@@ -176,7 +176,7 @@
             const snapshot = await getDocs(q);
             
             if (snapshot.size >= agenda.limite) {
-                alert(`⚠️ ESGOTADO: O turno da ${turnoSel} para esta data já atingiu o limite de ${agenda.limite} vagas.`);
+                alert(`⚠️ ESGOTADO: O turno da ${turnoSel} para este dia já atingiu o limite de ${agenda.limite} vagas.`);
                 btn.disabled = false; btn.innerText = "Confirmar Agendamento";
                 return;
             }
@@ -197,14 +197,4 @@
             document.getElementById("cRg").textContent = dados.rg;
             document.getElementById("cUnidade").textContent = uniEl.options[uniEl.selectedIndex].text;
             document.getElementById("cData").textContent = dados.data.split('-').reverse().join('/');
-            document.getElementById("cTurno").textContent = dados.turno;
-            document.getElementById("formAgendamento").style.display = "none";
-            document.getElementById("comprovanteBox").style.display = "block";
-        } catch (err) {
-            alert("Erro ao salvar.");
-            btn.disabled = false;
-        }
-    });
-</script>
-</body>
-</html>
+            document.
