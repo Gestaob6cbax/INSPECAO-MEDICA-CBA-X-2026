@@ -2,15 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>INSPEÇÃO DE SAÚDE – CBA X</title>
- 
+
 <style>
   body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
   .container { max-width: 720px; margin: 30px auto; background:#fff; padding:20px; border-radius:12px; text-align:center; }
   .logo { max-width:180px; width:100%; margin-bottom:10px; }
- 
+
   input, select, button {
     width:100%; padding:10px; margin-bottom:10px; border-radius:10px;
     border:1px solid #ccc; font-size:14px; box-sizing:border-box;
@@ -18,39 +17,39 @@ content="width=device-width, initial-scale=1.0" />
   button { background:#0b3c5d; color:#fff; border:none; cursor:pointer; font-weight:bold; }
   button:hover { background:#092f49; }
   button:disabled { opacity:0.6; cursor:not-allowed; }
- 
+
   #campoTurno { display:none; }
- 
+
   .msg { display:none; margin-top:10px; padding:10px; border-radius:10px; font-weight:bold; text-align:center; }
   .ok { background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; }
   .err { background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; }
- 
+
   #avisoAgenda {
     display:none; background:#fff3cd; border:1px solid #ffeeba;
     padding:12px; border-radius:10px; margin:10px 0; font-size:13px;
     color:#856404; text-align:left; line-height:1.4;
   }
- 
+
   #contadorVagas {
     display:none; background:#eef4ff; border:1px solid #cfe0ff;
     padding:12px; border-radius:10px; margin:-2px 0 10px 0;
     font-size:13px; color:#163a7a; text-align:left; line-height:1.4;
   }
- 
+
   .tag { display:inline-block; padding:2px 8px; border-radius:999px; font-weight:bold; font-size:12px; margin-left:6px; }
   .tag-ok { background:#e7f6ea; border:1px solid #bfe8c7; color:#1f5b2b; }
   .tag-bad{ background:#ffe8e8; border:1px solid #f2bcbc; color:#8a1f1f; }
- 
+
   .small { font-size:12px; color:#666; margin-top:10px; }
   .mono { font-family: ui-monospace, monospace; }
- 
+
   /* Comprovante */
   #comprovanteBox{ display:none; text-align:left; background:#f8fafc; border:1px solid #dbe3ee; border-radius:12px; padding:14px; margin-top:14px; }
   #comprovanteBox h3{ margin:0 0 8px 0; }
   .linha{ margin:6px 0; }
   .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
   .btnSecondary{ background:#4b5563; }
- 
+
   @media print{
     body{ background:#fff; }
     .container{ max-width:100%; margin:0; border-radius:0; }
@@ -59,38 +58,22 @@ content="width=device-width, initial-scale=1.0" />
   }
 </style>
 </head>
- 
+
 <body>
 <div class="container">
   <img src="logo-cbax.png" alt="Logo CBA X" class="logo" />
   <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
   <p>Sistema de Agendamento</p>
- 
+
   <form id="formAgendamento" autocomplete="off">
     <input type="text" id="nome" placeholder="Nome completo" required />
     <input type="text" id="rg" placeholder="RG" required />
     
     <input type="tel" id="telefone" placeholder="Telefone / WhatsApp (ex: 21999999999)" required />
-    
-    <select id="unidadeServe" required>
-      <option value="">Selecione a Unidade onde você serve</option>
-      <option>CBA X (Sede)</option>
-      <option>1º GMar - Botafogo</option>
-      <option>2º GMar - Barra da Tijuca</option>
-      <option>3º GMar - Copacabana</option>
-      <option>4º GMar - Itaipu</option>
-      <option>DBM 1/M - Paquetá</option>
-      <option>DBM 2/M - Piscinão de Ramos</option>
-      <option>DBM 3/M - Recreio dos Bandeirantes</option>
-      <option>DBM 4/M - Barra de Guaratiba</option>
-      <option>DBM 5/M - Sepetiba</option>
-      <option>DBM 6/M - Itaipu</option>
-      <option>CER</option>
-      <option>Outra Unidade</option>
-    </select>
+    <input type="text" id="unidadeServe" placeholder="Unidade em que serve (Ex: 1º GMar, DBM...)" required />
     
     <input type="email" id="email" placeholder="E-mail" required />
- 
+
     <select id="posto" required>
       <option value="">Selecione o Posto / Graduação</option>
       <option>SD BM</option>
@@ -106,7 +89,7 @@ content="width=device-width, initial-scale=1.0" />
       <option>TEN CEL BM</option>
       <option>CEL BM</option>
     </select>
- 
+
     <select id="unidade" required>
       <option value="">Selecione o Local da Inspeção</option>
       <option>1º GMar - Botafogo</option>
@@ -122,20 +105,20 @@ content="width=device-width, initial-scale=1.0" />
       <option>DBM 4/M - Barra de Guaratiba</option>
       <option>DBM 5/M - Sepetiba</option>
     </select>
- 
+
     <div id="avisoAgenda">
       ⚠️ <b>ATENÇÃO – UNIDADE COM INSPEÇÃO EM DIAS ESPECÍFICOS</b><br>
       • Esta unidade realiza inspeção apenas às <b>TERÇAS e SEXTAS</b>.<br><br>
       <b>HORÁRIOS</b><br>
       • <b>MANHÃ</b>: 07:30 – 12:00 | • <b>TARDE</b>: 13:00 – 17:30
     </div>
- 
+
     <select id="dataSelect" required>
       <option value="">Selecione a Data</option>
     </select>
- 
+
     <div id="contadorVagas"></div>
- 
+
     <div id="campoTurno">
       <select id="turno">
         <option value="">Selecione o Turno</option>
@@ -143,13 +126,13 @@ content="width=device-width, initial-scale=1.0" />
         <option value="Tarde">Tarde</option>
       </select>
     </div>
- 
+
     <button type="submit" id="btnAgendar">Agendar</button>
- 
+
     <div id="msgOk" class="msg ok">✅ Agendamento realizado com sucesso.</div>
     <div id="msgErr" class="msg err">❌ Não foi possível agendar. Tente novamente.</div>
   </form>
- 
+
   <div id="comprovanteBox">
     <h3>✅ Comprovante de Agendamento</h3>
     <div class="linha"><b>Nome:</b> <span id="cNome"></span></div>
@@ -162,18 +145,20 @@ content="width=device-width, initial-scale=1.0" />
     <div class="linha"><b>Turno:</b> <span id="cTurno"></span></div>
     <div class="linha"><b>E-mail:</b> <span id="cEmail"></span></div>
     <div class="linha"><b>Protocolo:</b> <span id="cProto" class="mono"></span></div>
- 
+
     <div class="btnRow">
       <button type="button" onclick="window.print()">🖨️ Imprimir comprovante</button>
       <button type="button" class="btnSecondary" id="btnNovo">Novo agendamento</button>
     </div>
   </div>
 </div>
- 
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, collection, doc, getDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
- 
+  import {
+    getFirestore, collection, doc, getDoc, runTransaction, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
   const firebaseConfig = {
     apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
     authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -184,7 +169,7 @@ content="width=device-width, initial-scale=1.0" />
   };
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
- 
+
   const AGENDAS = [
     { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15", unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"] },
     { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"] },
@@ -194,7 +179,7 @@ content="width=device-width, initial-scale=1.0" />
     { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"] },
     { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
   ];
- 
+
   function acharAgendaPorUnidade(unidade){ return AGENDAS.find(a => a.unidades.includes(unidade)) || null; }
   function getCapacidadeTS(dataYmd){ return (dataYmd < "2026-03-04") ? 10 : 6; }
   function ymdLocal(dateObj){ return `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,"0")}-${String(dateObj.getDate()).padStart(2,"0")}`; }
@@ -202,35 +187,36 @@ content="width=device-width, initial-scale=1.0" />
   function formatBR(ymdStr){ return dateFromYMD(ymdStr).toLocaleDateString("pt-BR"); }
   function isDiaUtilMF(d){ return d.getDay() >= 1 && d.getDay() <= 5; }
   function isDiaTS(d){ return d.getDay() === 2 || d.getDay() === 5; }
- 
+
   const unidadeEl = document.getElementById("unidade");
   const dataSelect = document.getElementById("dataSelect");
   const turnoEl = document.getElementById("turno");
   const btnAgendar = document.getElementById("btnAgendar");
- 
+
   document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
     e.preventDefault();
     const nome = document.getElementById("nome").value.trim();
     const rg = document.getElementById("rg").value.trim();
     const telefone = document.getElementById("telefone").value.trim();
-    const unidadeServe = document.getElementById("unidadeServe").value; // Alterado para pegar o valor do Select
+    const unidadeServe = document.getElementById("unidadeServe").value.trim();
     const email = document.getElementById("email").value.trim();
     const posto = document.getElementById("posto").value;
     const unidadeInspecao = unidadeEl.value;
     const data = dataSelect.value;
     const turno = (acharAgendaPorUnidade(unidadeInspecao)?.tipo === "TS") ? turnoEl.value : "";
- 
+
     btnAgendar.disabled = true;
- 
+
     try {
       const agRef = doc(collection(db, "agendamentos"));
       const rgNorm = rg.replace(/\D/g,"");
       const lockRef = doc(db, "rg_locks", rgNorm);
- 
+      const agendaAt = acharAgendaPorUnidade(unidadeInspecao);
+
       await runTransaction(db, async (tx) => {
         const lockSnap = await tx.get(lockRef);
         if (lockSnap.exists()) throw new Error("RG_JA_AGENDADO");
- 
+
         tx.set(agRef, {
           nome, rg, telefone, unidadeServe, email, posto,
           unidade: unidadeInspecao, data, data_br: formatBR(data), turno,
@@ -238,7 +224,7 @@ content="width=device-width, initial-scale=1.0" />
         });
         tx.set(lockRef, { rg_norm: rgNorm, criadoEm: serverTimestamp() });
       });
- 
+
       document.getElementById("cNome").textContent = nome;
       document.getElementById("cRg").textContent = rg;
       document.getElementById("cTelefone").textContent = telefone;
@@ -249,7 +235,7 @@ content="width=device-width, initial-scale=1.0" />
       document.getElementById("cTurno").textContent = turno || "Livre demanda";
       document.getElementById("cEmail").textContent = email;
       document.getElementById("cProto").textContent = `IS-${rgNorm}-${data.replaceAll("-","")}`;
- 
+
       document.getElementById("formAgendamento").style.display = "none";
       document.getElementById("comprovanteBox").style.display = "block";
     } catch(err) {
@@ -259,7 +245,7 @@ content="width=device-width, initial-scale=1.0" />
     }
   });
 
-  // O restante da lógica de datas deve seguir abaixo para o funcionamento completo.
+  // O restante das funções de lógica de datas (preencherDatasDisponiveis, etc.) deve ser mantido conforme seu código original
 </script>
 </body>
 </html>
