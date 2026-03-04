@@ -1,202 +1,105 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin – Inspeção de Saúde CBA X</title>
-
-  <style>
-    body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-    .box { max-width:1200px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; }
-    h2 { margin:0 0 10px 0; }
-    input, select, button { padding:10px; border-radius:10px; font-size:14px; border:1px solid #ccc; box-sizing:border-box; }
-    button { border:none; background:#0b3c5d; color:#fff; cursor:pointer; font-weight:bold; }
-    button:hover { background:#092f49; }
-    button:disabled { opacity:.6; cursor:not-allowed; }
-    .danger { background:#c0392b; }
-    .danger:hover { background:#a93226; }
-    .gray { background:#555; }
-    .gray:hover { background:#444; }
-
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
-    .hidden { display:none; }
-
-    /* Estilo para a área de Login Centralizada */
-    #pinArea { 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-      padding: 40px 20px;
-    }
-    .login-container { width: 100%; max-width: 320px; text-align: center; }
-    .logo-admin { max-width: 150px; margin-bottom: 20px; }
-    
-    .password-wrapper { position: relative; width: 100%; margin-bottom: 10px; }
-    .password-wrapper input { width: 100%; padding-right: 40px; }
-    .toggle-pass { 
-      position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
-      cursor: pointer; background: none; border: none; color: #666; font-size: 18px; padding: 0;
-    }
-
-    table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
-    th, td { border:1px solid #e4e4e4; padding:8px; text-align:left; vertical-align:top; }
-    th { background:#f6f8fb; }
-
-    .ok, .err { display:none; margin-top:10px; padding:10px; border-radius:10px; font-weight:bold; }
-    .ok  { background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; }
-    .err { background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; }
-
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
-    .small { font-size:12px; color:#666; margin-top:8px; }
-    .nowrap { white-space:nowrap; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Médica 2026</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f2f4f8; margin: 0; padding: 0; }
+        .header-admin { background: #003366; color: white; text-align: center; padding: 20px; }
+        .container { max-width: 95%; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #003366; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .btn-export { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+        .stats { display: flex; gap: 20px; margin-bottom: 20px; }
+        .card { background: #e7eff6; padding: 15px; border-radius: 8px; flex: 1; text-align: center; border: 1px solid #003366; }
+    </style>
 </head>
-
 <body>
-  <div class="box">
-    
-    <div id="pinArea">
-      <div class="login-container">
-        <img src="logo-cbax.png" alt="Logo CBA X" class="logo-admin">
-        <h2>Acesso Administrativo</h2>
-        <p class="small">Inspeção de Saúde CBA X</p>
-        
-        <div class="password-wrapper">
-          <input type="password" id="pin" placeholder="Digite o PIN">
-          <button type="button" class="toggle-pass" id="btnTogglePass" title="Ver senha">👁️</button>
+
+<div class="header-admin">
+    <h1>PAINEL DE CONTROLE - INSPEÇÃO MÉDICA 2026</h1>
+    <p>CBA X - Gestão de Agendamentos</p>
+</div>
+
+<div class="container">
+    <div class="stats">
+        <div class="card">
+            <strong style="color: #003366;">Total de Agendados</strong>
+            <div id="totalAgendados" style="font-size: 24px; font-weight: bold;">Carregando...</div>
         </div>
-        
-        <button type="button" id="btnEntrar" style="width: 100%;">Entrar</button>
-        <div class="small" style="margin-top: 15px;">PIN: <span class="mono">B6CBAX2023</span></div>
-      </div>
     </div>
 
-    <div id="adminArea" class="hidden">
-      <h2>Painel de Controle</h2>
-      <div class="row">
-        <select id="filtroUnidade" style="min-width:320px;">
-          <option value="">Todas as unidades</option>
-          <option>1º GMar - Botafogo</option>
-          <option>DBM 1/M - Paquetá</option>
-          <option>DBM 2/M - Piscinão de Ramos</option>
-          <option>CER</option>
-          <option>2º GMar - Barra da Tijuca</option>
-          <option>3º GMar - Copacabana</option>
-          <option>4º GMar - Itaipu</option>
-          <option>DBM 6/M - Itaipu</option>
-          <option>CBA X</option>
-          <option>DBM 3/M - Recreio dos Bandeirantes</option>
-          <option>DBM 4/M - Barra de Guaratiba</option>
-          <option>DBM 5/M - Sepetiba</option>
-        </select>
+    <button class="btn-export" onclick="exportarTabela()">📊 Baixar Lista (Excel)</button>
 
-        <button type="button" id="btnAtualizar">Atualizar tabela</button>
-        <button type="button" class="gray" id="btnExportar">Exportar Excel</button>
-        <button type="button" class="danger" id="btnExcluirSelecionados" disabled>Excluir selecionados</button>
-      </div>
-
-      <div class="ok" id="msgOk"></div>
-      <div class="err" id="msgErr"></div>
-
-      <table>
+    <table id="tabelaAgendamentos">
         <thead>
-          <tr>
-            <th class="nowrap"><input type="checkbox" id="checkAll"> Todos</th>
-            <th>Data</th>
-            <th>Turno</th>
-            <th>Local Inspeção</th>
-            <th>Unidade Serve</th>
-            <th>Nome</th>
-            <th>RG</th>
-            <th>Posto/Grad</th>
-            <th>Telefone</th>
-            <th class="nowrap">Ações</th>
-          </tr>
+            <tr>
+                <th>Data</th>
+                <th>Posto</th>
+                <th>Nome</th>
+                <th>RG</th>
+                <th>Unidade Serve</th>
+                <th>Local Inspeção</th>
+                <th>Turno</th>
+            </tr>
         </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </div>
+        <tbody id="corpoTabela">
+            </tbody>
+    </table>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-  <script type="module">
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, query, where, orderBy, limit, getDocs, doc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    const PIN_CORRETO = "B6CBAX2023";
     const firebaseConfig = {
-      apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-      authDomain: "inspecao-saude-cbax.firebaseapp.com",
-      projectId: "inspecao-saude-cbax",
-      storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-      messagingSenderId: "1011281662526",
-      appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+        authDomain: "inspecao-saude-cbax.firebaseapp.com",
+        projectId: "inspecao-saude-cbax",
+        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+        messagingSenderId: "1011281662526",
+        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const pinArea = document.getElementById("pinArea");
-    const adminArea = document.getElementById("adminArea");
-    const pinEl = document.getElementById("pin");
-    const btnTogglePass = document.getElementById("btnTogglePass");
+    // Buscar dados em tempo real
+    const q = query(collection(db, "agendamentos"), orderBy("criadoEm", "desc"));
 
-    // Lógica para Ver/Esconder Senha
-    btnTogglePass.addEventListener("click", () => {
-      const type = pinEl.getAttribute("type") === "password" ? "text" : "password";
-      pinEl.setAttribute("type", type);
-      btnTogglePass.textContent = type === "password" ? "👁️" : "🙈";
+    onSnapshot(q, (snapshot) => {
+        const corpoTabela = document.getElementById("corpoTabela");
+        corpoTabela.innerHTML = "";
+        let total = 0;
+
+        snapshot.forEach((doc) => {
+            const d = doc.data();
+            total++;
+            const row = `<tr>
+                <td>${d.data_br}</td>
+                <td>${d.posto}</td>
+                <td>${d.nome}</td>
+                <td>${d.rg}</td>
+                <td>${d.unidadeServe}</td>
+                <td>${d.unidade}</td>
+                <td>${d.turno}</td>
+            </tr>`;
+            corpoTabela.innerHTML += row;
+        });
+        document.getElementById("totalAgendados").textContent = total;
     });
+</script>
 
-    document.getElementById("btnEntrar").addEventListener("click", async () => {
-      if (pinEl.value !== PIN_CORRETO){
-        alert("PIN incorreto.");
-        return;
-      }
-      pinArea.classList.add("hidden");
-      adminArea.classList.remove("hidden");
-      await carregarTabela();
-    });
-
-    // --- O restante do seu código (carregarTabela, exportar, excluir) continua exatamente o mesmo daqui para baixo ---
-    // (As funções de carregarTabela, exportar e excluir já incluem Telefone e UnidadeServe conforme solicitado anteriormente)
-
-    const filtroUnidade = document.getElementById("filtroUnidade");
-    const tbody = document.getElementById("tbody");
-    const checkAll = document.getElementById("checkAll");
-    const btnExcluirSelecionados = document.getElementById("btnExcluirSelecionados");
-    let cacheAgendamentos = [];
-    let selectedIds = new Set();
-
-    async function carregarTabela(){
-      tbody.innerHTML = ""; cacheAgendamentos = []; selectedIds.clear(); checkAll.checked = false;
-      const uni = filtroUnidade.value;
-      let qAg = uni ? 
-        query(collection(db, "agendamentos"), where("unidade","==",uni), orderBy("data","asc"), limit(2000)) :
-        query(collection(db, "agendamentos"), orderBy("data","asc"), limit(2000));
-      const snap = await getDocs(qAg);
-      if (!snap.size){ tbody.innerHTML = `<tr><td colspan="10">Nenhum registro.</td></tr>`; return; }
-      snap.forEach(d => {
-        const v = d.data(); cacheAgendamentos.push({ id: d.id, ...v });
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><input type="checkbox" data-id="${d.id}"></td>
-          <td>${v.data_br || ""}</td>
-          <td>${v.turno || ""}</td>
-          <td>${v.unidade || ""}</td>
-          <td>${v.unidadeServe || ""}</td>
-          <td>${v.nome || ""}</td>
-          <td class="mono">${v.rg || ""}</td>
-          <td>${v.posto || ""}</td>
-          <td>${v.telefone || ""}</td>
-          <td><button class="danger" onclick="excluirEDevolverVaga('${d.id}')">Excluir</button></td>`;
-        tbody.appendChild(tr);
-      });
+<script>
+    function exportarTabela() {
+        const table = document.getElementById("tabelaAgendamentos");
+        let html = table.outerHTML;
+        window.open('data:application/vnd.ms-excel,' + encodeURIComponent(html));
     }
+</script>
 
-    document.getElementById("btnExportar").addEventListener("click", () => {
-      const rows = cacheAgendamentos.map(a => ({
-        "Data": a.data_br, "Turno": a.turno, "Local": a.unidade, "Serve": a.unidadeServe,
-        "Posto": a.posto, "RG": a.rg, "
+</body>
+</html>
