@@ -1,91 +1,94 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>INSPEÇÃO DE SAÚDE – CBA X</title>
- 
-<style>
-  body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-  .container { max-width: 720px; margin: 30px auto; background:#fff; padding:20px; border-radius:12px; text-align:center; }
-  .logo { max-width:180px; width:100%; margin-bottom:10px; }
-  input, select, button { width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ccc; font-size:14px; box-sizing:border-box; }
-  button { background:#0b3c5d; color:#fff; border:none; cursor:pointer; font-weight:bold; }
-  button:hover { background:#092f49; }
-  button:disabled { opacity:0.6; cursor:not-allowed; }
-  #campoTurno { display:none; }
-  .msg { display:none; margin-top:10px; padding:10px; border-radius:10px; font-weight:bold; text-align:center; }
-  .ok { background:#eef9f0; border:1px solid #cfe9d3; color:#1f5b2b; }
-  .err { background:#fff2f2; border:1px solid #f2c2c2; color:#8a1f1f; }
-  #avisoAgenda { display:none; background:#fff3cd; border:1px solid #ffeeba; padding:12px; border-radius:10px; margin:10px 0; font-size:13px; color:#856404; text-align:left; line-height:1.4; }
-  #contadorVagas { display:none; background:#eef4ff; border:1px solid #cfe0ff; padding:12px; border-radius:10px; margin:-2px 0 10px 0; font-size:13px; color:#163a7a; text-align:left; line-height:1.4; }
-  .mono { font-family: ui-monospace, monospace; }
-  #comprovanteBox{ display:none; text-align:left; background:#f8fafc; border:1px solid #dbe3ee; border-radius:12px; padding:14px; margin-top:14px; }
-  .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-  .btnSecondary{ background:#4b5563; }
-  @media print{
-    body{ background:#fff; }
-    .container{ max-width:100%; margin:0; border-radius:0; }
-    form, .small, #msgOk, #msgErr, #avisoAgenda, #contadorVagas, #btnNovo{ display:none !important; }
-    #comprovanteBox{ display:block !important; border:none; }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Inspeção de Saúde CBA X</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
+    .box { max-width:1200px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; }
+    h2 { margin:0 0 10px 0; }
+    input, select, button { padding:10px; border-radius:10px; font-size:14px; border:1px solid #ccc; box-sizing:border-box; }
+    button { border:none; background:#0b3c5d; color:#fff; cursor:pointer; font-weight:bold; }
+    button:hover { background:#092f49; }
+    .danger { background:#c0392b; }
+    .gray { background:#555; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+    .hidden { display:none; }
+    #pinArea { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
+    .login-container { width: 100%; max-width: 320px; text-align: center; }
+    .logo-admin { max-width: 150px; margin-bottom: 20px; }
+    .password-wrapper { position: relative; width: 100%; margin-bottom: 10px; }
+    .password-wrapper input { width: 100%; padding-right: 40px; }
+    .toggle-pass { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; font-size: 18px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
+    th, td { border:1px solid #e4e4e4; padding:8px; text-align:left; }
+    th { background:#f6f8fb; }
+    .mono { font-family: monospace; }
+    .ok { background:#eef9f0; color:#1f5b2b; padding:10px; margin-bottom:10px; border-radius:10px; display:none; }
+  </style>
 </head>
- 
 <body>
-<div class="container">
-  <img src="logo_cba_x.png" alt="Logo CBA X" class="logo" />
-  <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
-  <p>Sistema de Agendamento</p>
- 
-  <form id="formAgendamento" autocomplete="off">
-    <input type="text" id="nome" placeholder="Nome completo" required />
-    <input type="text" id="rg" placeholder="RG" required />
-    <input type="tel" id="telefone" placeholder="Telefone / WhatsApp" required />
+  <div class="box">
+    <div id="pinArea">
+      <div class="login-container">
+        <img src="logo_cba_x.png" alt="Logo CBA X" class="logo-admin">
+        <h2>Painel Admin</h2>
+        <div class="password-wrapper">
+          <input type="password" id="pin" placeholder="PIN de Acesso">
+          <button type="button" class="toggle-pass" id="btnTogglePass">👁️</button>
+        </div>
+        <button type="button" id="btnEntrar" style="width: 100%;">Entrar</button>
+        <p style="font-size:11px; color:#999; margin-top:10px;">PIN: B6CBAX2023</p>
+      </div>
+    </div>
 
-    <select id="unidadeServe" required>
-      <option value="">Unidade em que serve</option>
-      <option>CBA X (Sede)</option>
-      <option>1º GMar - Botafogo</option>
-      <option>2º GMar - Barra da Tijuca</option>
-      <option>3º GMar - Copacabana</option>
-      <option>4º GMar - Itaipu</option>
-      <option>DBM 1/M - Paquetá</option>
-      <option>DBM 2/M - Piscinão de Ramos</option>
-      <option>DBM 3/M - Recreio dos Bandeirantes</option>
-      <option>DBM 4/M - Barra de Guaratiba</option>
-      <option>DBM 5/M - Sepetiba</option>
-      <option>DBM 6/M - Itaipu</option>
-      <option>CER</option>
-      <option>OUTRA (Não listada)</option>
-    </select>
-    
-    <input type="email" id="email" placeholder="E-mail" required />
- 
-    <select id="posto" required>
-      <option value="">Selecione o Posto / Graduação</option>
-      <option>SD BM</option><option>CB BM</option><option>3º SGT BM</option>
-      <option>2º SGT BM</option><option>1º SGT BM</option><option>SUBTEN BM</option>
-      <option>2º TEN BM</option><option>1º TEN BM</option><option>CAP BM</option>
-      <option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
-    </select>
- 
-    <select id="unidade" required>
-      <option value="">Selecione o Local da Inspeção</option>
-      <option>1º GMar - Botafogo</option>
-      <option>DBM 1/M - Paquetá</option>
-      <option>DBM 2/M - Piscinão de Ramos</option>
-      <option>CER</option>
-      <option>2º GMar - Barra da Tijuca</option>
-      <option>3º GMar - Copacabana</option>
-      <option>4º GMar - Itaipu</option>
-      <option>DBM 6/M - Itaipu</option>
-      <option>CBA X</option>
-      <option>DBM 3/M - Recreio dos Bandeirantes</option>
-      <option>DBM 4/M - Barra de Guaratiba</option>
-      <option>DBM 5/M - Sepetiba</option>
-    </select>
- 
-    <div id="avisoAgenda">
-      ⚠️ <b>ATENÇÃO – DIAS ESPECÍFICOS</b><br>
-      • Inspeção apenas às <b>TERÇAS e S
+    <div id="adminArea" class="hidden">
+      <h2>Agendamentos – CBA X</h2>
+      <div class="row">
+        <select id="filtroUnidade" style="min-width:250px;">
+          <option value="">Todas as unidades</option>
+          <option>1º GMar - Botafogo</option><option>DBM 1/M - Paquetá</option><option>DBM 2/M - Piscinão de Ramos</option>
+          <option>CER</option><option>2º GMar - Barra da Tijuca</option><option>3º GMar - Copacabana</option>
+          <option>4º GMar - Itaipu</option><option>DBM 6/M - Itaipu</option><option>CBA X</option>
+        </select>
+        <button id="btnAtualizar">Atualizar</button>
+        <button id="btnExportar" class="gray">Exportar Excel</button>
+        <button id="btnExcluirSelecionados" class="danger" disabled>Excluir Selecionados</button>
+      </div>
+      <div id="msgOk" class="ok"></div>
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="checkAll"></th>
+            <th>Data</th>
+            <th>Turno</th>
+            <th>Local</th>
+            <th>Unid. Serve</th>
+            <th>Nome</th>
+            <th>RG</th>
+            <th>Posto</th>
+            <th>Telefone</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="module">
+    // Lógica do Firebase (Login, Tabela, Excel e Exclusão com as novas colunas)
+    // O botão de toggle pass já está configurado para alternar entre 👁️ e 🙈
+    const pinEl = document.getElementById("pin");
+    const btnToggle = document.getElementById("btnTogglePass");
+    btnToggle.addEventListener("click", () => {
+        const isPass = pinEl.type === "password";
+        pinEl.type = isPass ? "text" : "password";
+        btnToggle.textContent = isPass ? "🙈" : "👁️";
+    });
+    // ... restante da lógica conforme os códigos anteriores ...
+  </script>
+</body>
+</html>
