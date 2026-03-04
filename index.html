@@ -146,8 +146,8 @@
       • Esta unidade realiza inspeção apenas às <b>TERÇAS e SEXTAS</b>.<br>
       • <b>Feriados NÃO aparecem</b> para agendamento.<br><br>
       <b>HORÁRIOS</b><br>
-      • <b>MANHÃ</b>: 07:30 – 12:00 (10 vagas)<br>
-      • <b>TARDE</b>: 13:00 – 17:30 (10 vagas)
+      • <b>MANHÃ</b>: 07:30 – 12:00 (6 vagas)<br>
+      • <b>TARDE</b>: 13:00 – 17:30 (6 vagas)
     </div>
 
     <select id="dataSelect" required>
@@ -216,9 +216,7 @@
   const db = getFirestore(app);
 
   // =========================
-  // AGENDAS (conforme sua lista)
-  // TS = Terça/Sexta (10 manhã + 10 tarde) + feriados bloqueados
-  // MF = Seg–Sex (livre demanda) 5 vagas/dia + feriados liberados
+  // AGENDAS
   // =========================
   const AGENDAS = [
     { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15",
@@ -239,7 +237,6 @@
     { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31",
       unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"]
     },
-    // ✅ Sepetiba: 23/02/2026 a 06/03/2026 (Terça e Sexta)
     { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06",
       unidades:["DBM 5/M - Sepetiba"]
     },
@@ -250,7 +247,17 @@
   }
 
   // =========================
-  // DATAS LOCAL (evita 22/02 indevido)
+  // LOGICA DE CAPACIDADE (Nova regra: 6 manhã / 6 tarde para datas >= 2026-03-04)
+  // =========================
+  function getCapacidadeTS(dataYmd){
+    // Mantém 10 para datas passadas ou agendamentos já feitos antes da mudança
+    // Para novas datas (a partir de hoje 2026-03-03 ou amanhã 2026-03-04), limita a 6
+    if (dataYmd < "2026-03-04") return 10;
+    return 6;
+  }
+
+  // =========================
+  // DATAS LOCAL
   // =========================
   function ymdLocal(dateObj){
     const y = dateObj.getFullYear();
@@ -269,7 +276,7 @@
   function isDiaTS(d){ const day = d.getDay(); return day === 2 || day === 5; }
 
   // =========================
-  // FERIADOS (bloquear só TS)
+  // FERIADOS
   // =========================
   function easterDate(year){
     const a = year % 19, b = Math.floor(year/100), c = year % 100;
@@ -291,9 +298,9 @@
       `${year}-01-20`, `${year}-04-23`,
     ];
     const easter = easterDate(year);
+    const goodFriday = new Date(easter); goodFriday.setUTCDate(easter.getUTCDate() - 2);
     const carnivalMon = new Date(easter); carnivalMon.setUTCDate(easter.getUTCDate() - 48);
     const carnivalTue = new Date(easter); carnivalTue.setUTCDate(easter.getUTCDate() - 47);
-    const goodFriday  = new Date(easter); goodFriday.setUTCDate(easter.getUTCDate() - 2);
     const corpus      = new Date(easter); corpus.setUTCDate(easter.getUTCDate() + 60);
     const movable = [ymdUTC(carnivalMon), ymdUTC(carnivalTue), ymdUTC(goodFriday), ymdUTC(corpus)];
     return new Set([...fixed, ...movable]);
@@ -305,17 +312,11 @@
     return false;
   }
 
-  // =========================
-  // Firestore IDs
-  // =========================
   function counterId(agendaId, dataYmd){ return `${agendaId}_${dataYmd}`; }
   function normalizarRg(rg){
-    return (rg || "").toString().trim().replace(/\D/g,""); // só números
+    return (rg || "").toString().trim().replace(/\D/g,"");
   }
 
-  // =========================
-  // UI refs
-  // =========================
   const unidadeEl = document.getElementById("unidade");
   const dataSelect = document.getElementById("dataSelect");
   const campoTurno = document.getElementById("campoTurno");
@@ -366,13 +367,13 @@
       `📊 <b>CONTROLE DE VAGAS</b> ${tagSituacao(disp)}<br>` +
       `• Vagas restantes: <b>${restantes}</b> de ${limite} (livre demanda)`;
   }
-  function setContadorTS(restManha, restTarde){
+  function setContadorTS(restManha, restTarde, limite){
     const disp = (restManha > 0 || restTarde > 0);
     contadorVagas.style.display = "block";
     contadorVagas.innerHTML =
       `📊 <b>CONTROLE DE VAGAS</b> ${tagSituacao(disp)}<br>` +
-      `• Manhã (07:30–12:00): <b>${restManha}</b> / 10<br>` +
-      `• Tarde (13:00–17:30): <b>${restTarde}</b> / 10`;
+      `• Manhã (07:30–12:00): <b>${restManha}</b> / ${limite}<br>` +
+      `• Tarde (13:00–17:30): <b>${restTarde}</b> / ${limite}`;
   }
   function clearContador(){ contadorVagas.style.display="none"; contadorVagas.innerHTML=""; }
 
@@ -382,23 +383,24 @@
     const c = counterCache.get(dataYmd) || { manha:0, tarde:0 };
     const manha = c.manha || 0;
     const tarde = c.tarde || 0;
+    const limite = getCapacidadeTS(dataYmd);
 
     const optManha = Array.from(turnoEl.options).find(o => o.value === "Manhã");
     const optTarde = Array.from(turnoEl.options).find(o => o.value === "Tarde");
 
     if (optManha){
-      optManha.disabled = manha >= 10;
-      optManha.textContent = (manha >= 10) ? "Manhã (ESGOTADO)" : "Manhã";
+      optManha.disabled = manha >= limite;
+      optManha.textContent = (manha >= limite) ? `Manhã (ESGOTADO)` : "Manhã";
     }
     if (optTarde){
-      optTarde.disabled = tarde >= 10;
-      optTarde.textContent = (tarde >= 10) ? "Tarde (ESGOTADO)" : "Tarde";
+      optTarde.disabled = tarde >= limite;
+      optTarde.textContent = (tarde >= limite) ? `Tarde (ESGOTADO)` : "Tarde";
     }
 
-    setContadorTS(Math.max(0, 10-manha), Math.max(0, 10-tarde));
+    setContadorTS(Math.max(0, limite-manha), Math.max(0, limite-tarde), limite);
 
-    if (turnoEl.value === "Manhã" && manha >= 10) turnoEl.value = "";
-    if (turnoEl.value === "Tarde" && tarde >= 10) turnoEl.value = "";
+    if (turnoEl.value === "Manhã" && manha >= limite) turnoEl.value = "";
+    if (turnoEl.value === "Tarde" && tarde >= limite) turnoEl.value = "";
   }
 
   async function preencherDatasDisponiveis(agenda){
@@ -444,10 +446,11 @@
       } else {
         const manha = c?.manha || 0;
         const tarde = c?.tarde || 0;
-        const restManha = Math.max(0, 10 - manha);
-        const restTarde = Math.max(0, 10 - tarde);
+        const limite = getCapacidadeTS(dataYmd);
+        const restManha = Math.max(0, limite - manha);
+        const restTarde = Math.max(0, limite - tarde);
 
-        if (manha < 10 || tarde < 10){
+        if (manha < limite || tarde < limite){
           counterCache.set(dataYmd, { manha, tarde });
           const opt = document.createElement("option");
           opt.value = dataYmd;
@@ -547,18 +550,14 @@
     try {
       const agRef = doc(collection(db, "agendamentos"));
       const cRef  = doc(db, "counters", counterId(agendaAtual.id, data));
-
-      // ✅ bloqueio 1 agendamento por RG (collection rg_locks)
       const lockRef = doc(db, "rg_locks", rgNorm);
 
       await runTransaction(db, async (tx) => {
-        // 1) bloqueio RG
         const lockSnap = await tx.get(lockRef);
         if (lockSnap.exists()) {
           throw new Error("RG_JA_AGENDADO");
         }
 
-        // 2) controle de vagas
         const cSnap = await tx.get(cRef);
         const c = cSnap.exists() ? cSnap.data() : { total:0, manha:0, tarde:0 };
 
@@ -570,17 +569,17 @@
         } else {
           const manha = c.manha || 0;
           const tarde = c.tarde || 0;
+          const limite = getCapacidadeTS(data);
 
           if (turno === "Manhã"){
-            if (manha >= 10) throw new Error("LOTADO");
+            if (manha >= limite) throw new Error("LOTADO");
             tx.set(cRef, { manha: manha + 1 }, { merge:true });
           } else {
-            if (tarde >= 10) throw new Error("LOTADO");
+            if (tarde >= limite) throw new Error("LOTADO");
             tx.set(cRef, { tarde: tarde + 1 }, { merge:true });
           }
         }
 
-        // 3) grava agendamento
         tx.set(agRef, {
           agendaId: agendaAtual.id,
           tipoAgenda: agendaAtual.tipo,
@@ -596,7 +595,6 @@
           criadoEm: serverTimestamp()
         });
 
-        // 4) grava trava do RG
         tx.set(lockRef, {
           rg_norm: rgNorm,
           agendamentoId: agRef.id,
@@ -606,7 +604,6 @@
 
       msgOk.style.display = "block";
 
-      // ✅ comprovante
       const turnoTxt = (agendaAtual.tipo === "TS") ? turno : "Livre demanda";
       cNome.textContent = nome;
       cRg.textContent = rgRaw;
@@ -620,12 +617,10 @@
       document.getElementById("formAgendamento").style.display = "none";
       comprovanteBox.style.display = "block";
 
-      // recarrega datas para refletir vagas
       await preencherDatasDisponiveis(agendaAtual);
 
     } catch(err){
       console.error(err);
-
       if (String(err?.message).includes("RG_JA_AGENDADO")){
         msgErr.textContent = "❌ Este RG já possui agendamento registrado. Procure a administração para cancelar/remarcar.";
       } else if (String(err?.message).includes("LOTADO")){
@@ -633,7 +628,6 @@
       } else {
         msgErr.textContent = "❌ Não foi possível agendar. Tente novamente.";
       }
-
       msgErr.style.display = "block";
     } finally {
       btnAgendar.disabled = false;
@@ -642,4 +636,3 @@
 </script>
 </body>
 </html>
-
