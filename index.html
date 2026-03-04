@@ -3,25 +3,29 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>INSPEÇÃO DE SAÚDE – CBA X</title>
+<title>INSPEÇÃO MÉDICA 2026 – CBA X</title>
 <style>
   body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
+  /* TOPO AZUL PADRONIZADO PARA MÉDICA */
+  .header-topo { background: #003366; color: white; text-align: center; padding: 20px; border-bottom: 5px solid #001a33; }
   .container { max-width: 720px; margin: 30px auto; background:#fff; padding:20px; border-radius:12px; text-align:center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
   .logo { max-width:180px; width:100%; margin-bottom:10px; }
   input, select, button { width:100%; padding:12px; margin-bottom:12px; border-radius:10px; border:1px solid #ccc; font-size:15px; box-sizing:border-box; }
-  button { background:#0b3c5d; color:#fff; border:none; cursor:pointer; font-weight:bold; font-size: 16px; }
-  button:hover { background:#092f49; }
+  /* BOTÃO AZUL */
+  button { background:#003366; color:#fff; border:none; cursor:pointer; font-weight:bold; font-size: 16px; }
+  button:hover { background:#001a33; }
   button:disabled { opacity:0.6; cursor:not-allowed; }
   #campoTurno { display:none; }
   #avisoAgenda { display:none; background:#fff3cd; border:1px solid #ffeeba; padding:12px; border-radius:10px; margin:10px 0; font-size:13px; color:#856404; text-align:left; line-height:1.4; }
   .mono { font-family: ui-monospace, monospace; font-weight: bold; }
   #comprovanteBox{ display:none; text-align:left; background:#f8fafc; border:1px solid #dbe3ee; border-radius:12px; padding:20px; margin-top:14px; }
-  #comprovanteBox h3{ margin:0 0 15px 0; color: #0b3c5d; border-bottom: 1px solid #dbe3ee; padding-bottom: 10px; }
+  #comprovanteBox h3{ margin:0 0 15px 0; color: #003366; border-bottom: 1px solid #dbe3ee; padding-bottom: 10px; }
   .linha{ margin:8px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
   .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
   .btnSecondary{ background:#4b5563; }
   @media print{
     body{ background:#fff; }
+    .header-topo { display:none; }
     .container{ max-width:100%; margin:0; border-radius:0; box-shadow: none; }
     form, h2, p, .logo, #avisoAgenda { display:none !important; }
     #comprovanteBox{ display:block !important; border:none; width: 100%; }
@@ -29,10 +33,16 @@
 </style>
 </head>
 <body>
+
+<div class="header-topo">
+    <h1 style="margin: 0; font-size: 24px;">INSPEÇÃO DE SAÚDE 2026</h1>
+    <h2 style="margin: 5px 0 0 0; font-size: 20px;">ESPECIALIDADE: MÉDICA</h2>
+    <p style="margin: 5px 0 0 0;">CBA X - Comando de Bombeiros de Área</p>
+</div>
+
 <div class="container">
   <img src="logo_cba_x.png" alt="Logo CBA X" class="logo" />
-  <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
-  <p>Sistema de Agendamento 2026</p>
+  <h2>AGENDAMENTO ONLINE</h2>
   <form id="formAgendamento" autocomplete="off">
     <input type="text" id="nome" placeholder="Nome completo" required />
     <input type="text" id="rg" placeholder="RG (Apenas números)" required />
@@ -108,6 +118,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import { getFirestore, collection, doc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+  // CONFIGURAÇÃO FIREBASE
   const firebaseConfig = {
     apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
     authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -199,7 +210,7 @@
         tx.set(agRef, dados);
         tx.set(lockRef, { rg: rgNorm, criadoEm: serverTimestamp() });
 
-        // --- ENVIO PARA A PLANILHA (DENTRO DA TRANSAÇÃO) ---
+        // LINK DA PLANILHA MÉDICA
         fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
           method: "POST",
           mode: "no-cors",
@@ -212,7 +223,6 @@
           })
         });
 
-        // Preencher Comprovante
         document.getElementById("cNome").textContent = dados.nome;
         document.getElementById("cRg").textContent = dados.rg;
         document.getElementById("cUnidadeServe").textContent = dados.unidadeServe;
