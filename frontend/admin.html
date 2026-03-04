@@ -26,7 +26,8 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 12px; color: #666; border-bottom: 2px solid #eee; text-transform: uppercase; }
         td { padding: 15px; font-size: 13px; border-bottom: 1px solid #eee; }
-        .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; }
+        .badge-site { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; }
+        .badge-planilha { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #c3e6cb; }
         .btn-delete-row { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 18px; }
     </style>
 </head>
@@ -40,19 +41,19 @@
 <div class="container">
     <div class="stats-row">
         <div class="stat-card">
-            <span>Agendamentos Médicos</span>
+            <span>Total Consolidado</span>
             <strong id="contador">0</strong>
         </div>
         <div class="stat-card">
-            <span>Especialidade</span>
-            <strong style="color: #8b0000; font-size: 18px;">Clínica Médica / Geral</strong>
+            <span>Status do Sistema</span>
+            <strong style="color: #28a745; font-size: 18px;">Conectado (Firebase + Planilha)</strong>
         </div>
     </div>
 
     <div class="controls">
-        <button class="btn-refresh" onclick="carregarDados()">🔄 Atualizar Lista</button>
+        <button class="btn-refresh" onclick="carregarDados()">🔄 Atualizar Tudo</button>
         <button id="btnExcluirMassa" class="btn-danger" onclick="cancelarSelecionados()">
-            🗑️ Excluir Selecionados (<span id="numSel">0</span>)
+            🗑️ Excluir do Firebase (<span id="numSel">0</span>)
         </button>
         <div style="flex-grow: 1;"></div>
         <button class="btn-export" onclick="exportarExcel()">📊 Exportar para Excel</button>
@@ -63,25 +64,27 @@
             <thead>
                 <tr>
                     <th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
-                    <th>Local Inspeção</th>
+                    <th>Local de Inspeção</th>
                     <th>Unidade Origem</th>
                     <th>Data</th>
                     <th>Turno</th>
                     <th>Nome do Militar</th>
                     <th>Posto/Grad</th>
                     <th>RG</th>
-                    <th>Ações</th>
+                    <th>Fonte</th>
                 </tr>
             </thead>
             <tbody id="tabela">
-                <tr><td colspan="9" style="padding: 40px; text-align: center;">Carregando dados da inspeção...</td></tr>
+                <tr><td colspan="9" style="padding: 40px; text-align: center;">Sincronizando dados...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // CREDENCIAIS CORRIGIDAS PARA O PROJETO DE INSPEÇÃO MÉDICA
+    // URL DO SEU GOOGLE APPS SCRIPT
+    const SCRIPT_URL_PLANILHA = "https://script.google.com/macros/s/AKfycbxuNjVbW1FJ5l23Syh9UJJM5xeCpw0H5pOFAHPSO5txkZ1p0LizvJdrtlvyxoKS0Gy6SQ/exec";
+
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
         authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -96,36 +99,70 @@
     async function carregarDados() {
         const tabela = document.getElementById("tabela");
         const contador = document.getElementById("contador");
-        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Buscando dados no Firebase...</td></tr>";
+        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Buscando dados atualizados...</td></tr>";
+
+        let listaFinal = [];
 
         try {
+            // 1. BUSCAR DO FIREBASE
             const snapshot = await db.collection("agendamentos").orderBy("data", "asc").get();
-            tabela.innerHTML = "";
-            let total = 0;
-
             snapshot.forEach(doc => {
                 const d = doc.data();
-                total++;
+                listaFinal.push({
+                    id: doc.id,
+                    local: d.unidade,
+                    origem: d.unidadeServe,
+                    data: d.data,
+                    turno: d.turno || "Livre",
+                    nome: d.nome,
+                    posto: d.posto,
+                    rg: d.rg,
+                    fonte: "SITE",
+                    podeExcluir: true
+                });
+            });
+
+            // 2. BUSCAR DA PLANILHA (NOMES JÁ AGENDADOS MANUALMENTE)
+            try {
+                const res = await fetch(SCRIPT_URL_PLANILHA + "?action=getNomes");
+                if(res.ok) {
+                    const dadosPlanilha = await res.json();
+                    dadosPlanilha.forEach(p => {
+                        listaFinal.push({
+                            ...p,
+                            fonte: "PLANILHA",
+                            podeExcluir: false
+                        });
+                    });
+                }
+            } catch(e) { console.warn("Erro ao ler planilha ou sem dados manuais."); }
+
+            // Ordenar por data
+            listaFinal.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+            tabela.innerHTML = "";
+            listaFinal.forEach(item => {
+                const dataFormatada = item.data ? item.data.split('-').reverse().join('/') : "---";
                 tabela.innerHTML += `
-                    <tr>
-                        <td><input type="checkbox" class="checkItem" value="${doc.id}" onchange="atualizarBotaoMassa()"></td>
-                        <td><span class="badge-local">${d.unidade || "Não inf."}</span></td>
-                        <td>${d.unidadeServe || ""}</td>
-                        <td>${d.data ? d.data.split('-').reverse().join('/') : ""}</td>
-                        <td>${d.turno || "Livre"}</td>
-                        <td><strong>${d.nome || ""}</strong></td>
-                        <td>${d.posto || ""}</td>
-                        <td>${d.rg || ""}</td>
-                        <td><button class="btn-delete-row" onclick="excluirIndividual('${doc.id}', '${d.nome}')">🗑️</button></td>
+                    <tr style="${item.fonte === 'PLANILHA' ? 'background:#f9fff9' : ''}">
+                        <td>${item.podeExcluir ? `<input type="checkbox" class="checkItem" value="${item.id}" onchange="atualizarBotaoMassa()">` : ''}</td>
+                        <td><span class="badge-site">${item.local || "Não inf."}</span></td>
+                        <td>${item.origem || ""}</td>
+                        <td>${dataFormatada}</td>
+                        <td>${item.turno}</td>
+                        <td><strong>${item.nome}</strong></td>
+                        <td>${item.posto}</td>
+                        <td>${item.rg}</td>
+                        <td><span class="${item.fonte === 'SITE' ? 'badge-site' : 'badge-planilha'}">${item.fonte}</span></td>
                     </tr>`;
             });
 
-            contador.innerText = total;
-            if (total === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>Nenhum agendamento encontrado.</td></tr>";
+            contador.innerText = listaFinal.length;
             atualizarBotaoMassa();
+
         } catch (e) {
             console.error(e);
-            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center; padding:20px;'>Erro de conexão com a Inspeção Médica.</td></tr>";
+            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center;'>Erro de conexão. Verifique o console.</td></tr>";
         }
     }
 
@@ -142,45 +179,37 @@
         btn.style.display = selecionados > 0 ? "flex" : "none";
     }
 
-    async function excluirIndividual(id, nome) {
-        if (confirm(`Excluir agendamento de ${nome}?`)) {
-            await db.collection("agendamentos").doc(id).delete();
-            carregarDados();
-        }
-    }
-
     async function cancelarSelecionados() {
         const checks = document.querySelectorAll(".checkItem:checked");
-        if (confirm(`Excluir os ${checks.length} selecionados?`)) {
-            for (let cb of checks) await db.collection("agendamentos").doc(cb.value).delete();
+        if (confirm(`Excluir os ${checks.length} registros do SITE?`)) {
+            for (let cb of checks) {
+                await db.collection("agendamentos").doc(cb.value).delete();
+            }
             carregarDados();
         }
     }
 
     function exportarExcel() {
         const rows = Array.from(document.querySelectorAll("#tabela tr"));
-        if (rows.length === 0 || rows[0].innerText.includes("Nenhum")) {
-            alert("Não há dados para exportar.");
-            return;
-        }
-
         const dados = rows.map(tr => {
             const tds = tr.cells;
+            if(tds.length < 8) return null;
             return {
-                "Local": tds[1].innerText,
-                "Origem": tds[2].innerText,
+                "Local Inspeção": tds[1].innerText,
+                "Unidade Origem": tds[2].innerText,
                 "Data": tds[3].innerText,
                 "Turno": tds[4].innerText,
-                "Nome": tds[5].innerText,
-                "Posto": tds[6].innerText,
-                "RG": tds[7].innerText
+                "Nome do Militar": tds[5].innerText,
+                "Posto/Grad": tds[6].innerText,
+                "RG": tds[7].innerText,
+                "Fonte": tds[8].innerText
             };
-        });
+        }).filter(x => x !== null);
 
         const ws = XLSX.utils.json_to_sheet(dados);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Inspeção_Médica");
-        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_2026.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Agendamentos_2026");
+        XLSX.writeFile(wb, "Relatorio_Geral_CBAX.xlsx");
     }
 
     carregarDados();
