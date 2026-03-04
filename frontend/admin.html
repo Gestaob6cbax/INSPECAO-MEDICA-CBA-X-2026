@@ -16,7 +16,6 @@
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
     .hidden { display:none; }
     
-    /* Login Centralizado */
     #pinArea { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
     .login-container { width: 100%; max-width: 320px; text-align: center; }
     .logo-admin { max-width: 150px; margin-bottom: 20px; }
@@ -71,6 +70,7 @@
         <button id="btnExcluirSelecionados" class="danger" disabled>Excluir Selecionados</button>
       </div>
       <div id="msgOk" class="ok"></div>
+      
       <table>
         <thead>
           <tr>
@@ -83,7 +83,6 @@
             <th>RG</th>
             <th>Posto/Grad</th>
             <th>Telefone</th>
-            <th>Ação</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -92,6 +91,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getFirestore, collection, query, where, orderBy, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -111,15 +111,17 @@
     const pinEl = document.getElementById("pin");
     const btnEntrar = document.getElementById("btnEntrar");
     const btnToggle = document.getElementById("btnTogglePass");
+    const tbody = document.getElementById("tbody");
+    let cacheDados = []; // Guarda os dados para o Excel
 
-    // Lógica do Olho (Ver senha)
+    // Lógica do Olho
     btnToggle.addEventListener("click", () => {
       const isPass = pinEl.type === "password";
       pinEl.type = isPass ? "text" : "password";
       btnToggle.textContent = isPass ? "🙈" : "👁️";
     });
 
-    // Lógica do Botão Entrar
+    // Entrar
     btnEntrar.addEventListener("click", () => {
       if (pinEl.value === "B6CBAX2023") {
         document.getElementById("pinArea").classList.add("hidden");
@@ -130,26 +132,32 @@
       }
     });
 
-    // Permitir dar Enter no teclado para entrar
-    pinEl.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") btnEntrar.click();
-    });
+    // Enter no teclado
+    pinEl.addEventListener("keypress", (e) => { if (e.key === "Enter") btnEntrar.click(); });
 
+    // CARREGAR TABELA
     async function carregarTabela() {
-      const tbody = document.getElementById("tbody");
-      tbody.innerHTML = "<tr><td colspan='10'>Carregando...</td></tr>";
+      tbody.innerHTML = "<tr><td colspan='9'>Carregando registros...</td></tr>";
+      cacheDados = [];
       
-      const q = query(collection(db, "agendamentos"), orderBy("data", "asc"));
+      const uni = document.getElementById("filtroUnidade").value;
+      let q = query(collection(db, "agendamentos"), orderBy("data", "asc"));
+      
+      if(uni) {
+        q = query(collection(db, "agendamentos"), where("unidade", "==", uni), orderBy("data", "asc"));
+      }
+
       const snap = await getDocs(q);
-      
       tbody.innerHTML = "";
+      
       if (snap.empty) {
-        tbody.innerHTML = "<tr><td colspan='10'>Nenhum registro encontrado.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='9'>Nenhum agendamento encontrado.</td></tr>";
         return;
       }
 
       snap.forEach(d => {
         const v = d.data();
+        cacheDados.push(v); // Salva para o Excel
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><input type="checkbox" class="sel" data-id="${d.id}"></td>
@@ -161,13 +169,42 @@
           <td class="mono">${v.rg}</td>
           <td>${v.posto}</td>
           <td>${v.telefone || "-"}</td>
-          <td><button class="danger" onclick="alert('Use a exclusão por seleção para segurança')">Excluir</button></td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // O restante das funções de Exportar e Excluir seguem a mesma lógica anterior
-  </script>
-</body>
-</html>
+    document.getElementById("btnAtualizar").addEventListener("click", carregarTabela);
+
+    // FUNÇÃO EXPORTAR PARA EXCEL
+    document.getElementById("btnExportar").addEventListener("click", () => {
+      if (cacheDados.length === 0) {
+        alert("Não há dados na tabela para exportar!");
+        return;
+      }
+
+      // Organiza os dados para o Excel com as novas colunas
+      const dadosExcel = cacheDados.map(item => ({
+        "Data": item.data_br || item.data,
+        "Turno": item.turno || "N/A",
+        "Local da Inspeção": item.unidade,
+        "Unidade que Serve": item.unidadeServe || "N/A",
+        "Nome Completo": item.nome,
+        "RG": item.rg,
+        "Posto/Graduação": item.posto,
+        "Telefone": item.telefone || "N/A",
+        "E-mail": item.email || "N/A"
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Agendamentos");
+      
+      // Gera o arquivo
+      XLSX.writeFile(workbook, "Relatorio_Inspecao_CBAX.xlsx");
+    });
+
+    // Checkbox selecionar todos
+    document.getElementById("checkAll").addEventListener("change", (e) => {
+      const checkboxes = document.querySelectorAll(".sel");
+      checkboxes.forEach(cb => cb.checked =
