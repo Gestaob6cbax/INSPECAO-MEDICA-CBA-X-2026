@@ -166,4 +166,137 @@
         <div id="avisoAgenda">🚨 Unidade com atendimento exclusivo às TERÇAS e SEXTAS.</div>
 
         <label>Data Disponível</label>
-        <select id="dataSelect" required><option value="">Selec
+        <select id="dataSelect" required><option value="">Selecione primeiro o local...</option></select>
+
+        <div id="campoTurno" style="display:none;">
+            <label>Período</label>
+            <select id="turno">
+                <option value="">Selecione o Turno</option>
+                <option value="Manhã">Manhã (07:30 - 12:00)</option>
+                <option value="Tarde">Tarde (13:00 - 17:30)</option>
+            </select>
+        </div>
+
+        <button type="submit" id="btnAgendar">Finalizar Agendamento</button>
+    </form>
+    
+    <div id="comprovanteBox">
+        <h3>AGENDAMENTO CONFIRMADO</h3>
+        <div class="linha"><span>Militar:</span> <b id="cNome"></b></div>
+        <div class="linha"><span>Local:</span> <b id="cUnidade"></b></div>
+        <div class="linha"><span>Data:</span> <b id="cData"></b></div>
+        <div class="linha"><span>Turno:</span> <b id="cTurno"></b></div>
+        
+        <div class="protocolo" id="cProto"></div>
+        
+        <div class="no-print" style="margin-top:20px;">
+            <button onclick="window.print()" style="background:#28a745; width: 100%;">🖨️ Imprimir Comprovante</button>
+            <button onclick="location.reload()" style="background:#4b5563; width: 100%; margin-top:10px;">Novo Agendamento</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+        authDomain: "inspecao-saude-cbax.firebaseapp.com",
+        projectId: "inspecao-saude-cbax",
+        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+        messagingSenderId: "1011281662526",
+        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    const AGENDAS = [
+        { tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15", unidades:["1º GMar - Botafogo"] },
+        { tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar - Itaipu"] },
+        { tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER","2º GMar - Barra da Tijuca"] },
+        { tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["3º GMar - Copacabana"] },
+        { tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13", unidades:["CBA X"] },
+        { tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 3/M - Recreio"] },
+        { tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
+    ];
+    
+    const unidadeEl = document.getElementById("unidade");
+    const dataSelect = document.getElementById("dataSelect");
+    const campoTurno = document.getElementById("campoTurno");
+    const avisoAgenda = document.getElementById("avisoAgenda");
+
+    unidadeEl.addEventListener("change", () => {
+        dataSelect.innerHTML = '<option value="">Selecione a Data</option>';
+        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
+        if (!agenda) return;
+
+        avisoAgenda.style.display = agenda.tipo === "TS" ? "block" : "none";
+        
+        let dataCursor = new Date(agenda.inicio + "T12:00:00");
+        const dataFim = new Date(agenda.fim + "T12:00:00");
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+        while (dataCursor <= dataFim) {
+            if (dataCursor >= hoje) {
+                const diaSemana = dataCursor.getDay();
+                let pode = (agenda.tipo === "TS" && (diaSemana === 2 || diaSemana === 5)) || 
+                           (agenda.tipo === "MF" && (diaSemana >= 1 && diaSemana <= 5));
+                
+                if (pode) {
+                    const ymd = dataCursor.toISOString().split('T')[0];
+                    const dBR = ymd.split('-').reverse().join('/');
+                    dataSelect.add(new Option(dBR, ymd));
+                }
+            }
+            dataCursor.setDate(dataCursor.getDate() + 1);
+        }
+    });
+
+    dataSelect.addEventListener("change", () => {
+        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
+        campoTurno.style.display = (agenda && agenda.tipo === "TS") ? "block" : "none";
+    });
+
+    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const rg = document.getElementById("rg").value.trim();
+        const btn = document.getElementById("btnAgendar");
+        btn.disabled = true;
+        btn.innerText = "VERIFICANDO...";
+
+        try {
+            const lockRef = doc(db, "rg_locks_inspecao", rg);
+            const lockSnap = await getDoc(lockRef);
+            if (lockSnap.exists()) throw new Error("Atenção: Este RG já possui agendamento ativo.");
+
+            const dados = {
+                nome: document.getElementById("nome").value.toUpperCase(),
+                rg: rg,
+                localNome: unidadeEl.value,
+                data_br: dataSelect.value.split('-').reverse().join('/'),
+                turno: campoTurno.style.display === "block" ? document.getElementById("turno").value : "Demanda Livre",
+                criadoEm: serverTimestamp()
+            };
+
+            await setDoc(doc(collection(db, "agendamentos_inspecao")), dados);
+            await setDoc(lockRef, { rg: rg });
+
+            document.getElementById("cNome").textContent = dados.nome;
+            document.getElementById("cData").textContent = dados.data_br;
+            document.getElementById("cUnidade").textContent = dados.localNome;
+            document.getElementById("cTurno").textContent = dados.turno;
+            document.getElementById("cProto").textContent = `PROT-IS-${rg}-${new Date().getFullYear()}`;
+            
+            document.getElementById("formAgendamento").style.display = "none";
+            document.getElementById("comprovanteBox").style.display = "block";
+        } catch (err) {
+            alert(err.message);
+            btn.disabled = false;
+            btn.innerText = "Finalizar Agendamento";
+        }
+    });
+</script>
+</body>
+</html>
