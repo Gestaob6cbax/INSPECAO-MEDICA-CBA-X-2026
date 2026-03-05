@@ -101,19 +101,17 @@
         </select>
 
         <div id="avisoAgenda">🚨 ATENÇÃO: Inspeções nesta unidade apenas às TERÇAS e SEXTAS.</div>
-
+       
         <select id="dataSelect" required><option value="">Selecione a Data</option></select>
-
         <div id="campoTurno" style="display:none;">
-            <select id="turno">
-                <option value="">Selecione o Turno</option>
-                <option value="Manhã">Manhã (07:30 - 12:00)</option>
-                <option value="Tarde">Tarde (13:00 - 17:30)</option>
-            </select>
+        <select id="turno">
+            <option value="">Selecione</option>
+            <option value="Manhã">Manhã</option>
+            <option value="Tarde">Tarde</option>
+        </select>
         </div>
-
-        <button type="submit" id="btnAgendar">Confirmar Agendamento</button>
-    </form>
+            <button type="submit" class="btn-main" id="btnAgendar">Finalizar Agendamento</button>
+        </form>
     
     <div id="comprovanteBox">
         <h3>✅ AGENDAMENTO CONFIRMADO</h3>
