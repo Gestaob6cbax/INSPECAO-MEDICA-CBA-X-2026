@@ -1,209 +1,200 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>INSPEÇÃO MÉDICA 2026 – CBA X</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspeção de Saúde 2026 - CBA X</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background:#f2f4f8; margin:0; padding:40px 15px; display: flex; flex-direction: column; align-items: center; }
-        .container { max-width: 800px; width: 100%; background:#fff; padding:40px; border-radius:15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 10px solid #8b0000; }
-        h2 { color: #8b0000; text-align: center; margin-bottom: 5px; text-transform: uppercase; font-size: 22px; }
-        .sub { text-align: center; color: #666; margin-bottom: 30px; font-size: 16px; }
-        .grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
-        .campo-cheio { grid-column: span 2; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; font-size: 14px; }
-        input, select, button { width:100%; padding:12px; border-radius:8px; border:2px solid #dce1e8; font-size:15px; box-sizing:border-box; }
-        button { background:#8b0000; color:#fff; border:none; cursor:pointer; font-weight:bold; font-size: 16px; text-transform: uppercase; margin-top: 15px; transition: 0.3s; }
-        button:hover { background:#a00000; }
-        button:disabled { background:#ccc; cursor:not-allowed; }
-        #avisoAgenda { display:none; background:#fff3cd; border:1px solid #ffeeba; padding:12px; border-radius:8px; margin:10px 0; font-size:13px; color:#856404; grid-column: span 2; }
-        #comprovanteBox { display:none; text-align:left; background:#f8fafc; border:2px solid #8b0000; border-radius:12px; padding:25px; margin-top:20px; }
-        .linha { margin:10px 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; display: flex; justify-content: space-between; }
-        @media (max-width: 600px) { .grid-campos { grid-template-columns: 1fr; } .campo-cheio { grid-column: span 1; } }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        
+        /* ✅ CABEÇALHO VERMELHO (Substituindo o Azul) */
+        .header { background-color: #8b0000; color: white; padding: 35px 0; text-align: center; border-bottom: 5px solid #ff0000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .header img { width: 90px; margin-bottom: 12px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3)); }
+        .header h1 { margin: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .header p { margin: 8px 0 0; font-size: 14px; opacity: 0.9; font-weight: bold; }
+        
+        .container { max-width: 550px; margin: -30px auto 50px; background: white; padding: 35px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border-top: 5px solid #8b0000; }
+        
+        /* ✅ TÍTULOS EM VERMELHO */
+        .section-title { color: #8b0000; font-size: 14px; font-weight: bold; border-bottom: 2px solid #f8d7da; padding-bottom: 5px; margin: 25px 0 15px; text-transform: uppercase; display: flex; align-items: center; }
+        .section-title::before { content: "🚨"; margin-right: 8px; }
+        
+        label { display: block; margin-top: 15px; font-size: 13px; font-weight: bold; color: #333; }
+        input, select { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; transition: 0.3s; background-color: #fff; }
+        
+        /* Foco do input em vermelho */
+        input:focus, select:focus { border-color: #8b0000; outline: none; box-shadow: 0 0 8px rgba(139,0,0,0.2); }
+        
+        .aviso-alerta { background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; font-size: 13px; margin-top: 15px; border: 1px solid #f5c6cb; display: none; font-weight: 500; }
+        
+        /* ✅ BOTÃO VERMELHO */
+        button { width: 100%; background-color: #8b0000; color: white; padding: 16px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 30px; text-transform: uppercase; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button:hover { background-color: #a00000; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        button:active { transform: translateY(0); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        #sucesso { display: none; text-align: center; }
+        .resumo { text-align: left; background: #fffafa; padding: 20px; border-radius: 8px; border-left: 5px solid #8b0000; margin-top: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
+        .resumo p { margin: 10px 0; color: #333; font-size: 15px; }
+        .resumo b { color: #8b0000; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Inspeção Médica 2026</h2>
-    <p class="sub">CBA X - Comando de Bombeiros de Área</p>
+<div class="header">
+    <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-ODONTOLOGICA-CBA-X-2026/main/logo-cbax.png" alt="Brasão CBA X">
+    <h1>Agendamento Inspeção de Saúde 2026</h1>
+    <p>CBA X - COMANDO DE BOMBEIROS DE ÁREA</p>
+</div>
 
-    <form id="formAgendamento">
-        <div class="grid-campos">
-            <div class="campo-cheio">
-                <label>Nome Completo (Sem abreviações)</label>
-                <input type="text" id="nome" required />
+<div class="container">
+    <form id="formInspecao">
+        <div class="section-title">Identificação do Militar</div>
+        
+        <label>Nome Completo (Sem abreviações):</label>
+        <input type="text" id="nome" placeholder="Digite seu nome conforme o RG" required>
+
+        <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+                <label>RG Militar:</label>
+                <input type="text" id="rg" placeholder="Somente números" required>
             </div>
-            <div>
-                <label>RG Militar</label>
-                <input type="text" id="rg" required />
-            </div>
-            <div>
-                <label>Posto / Graduação</label>
+            <div style="flex: 1;">
+                <label>Posto / Graduação:</label>
                 <select id="posto" required>
                     <option value="">Selecione...</option>
-                    <option>SD BM</option><option>CB BM</option><option>3º SGT BM</option><option>2º SGT BM</option><option>1º SGT BM</option><option>SUBTEN BM</option><option>2º TEN BM</option><option>1º TEN BM</option><option>CAP BM</option><option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
+                    <option>CEL BM</option><option>TC BM</option><option>MAJ BM</option><option>CAP BM</option>
+                    <option>1º TEN BM</option><option>2º TEN BM</option><option>SUBTEN BM</option>
+                    <option>1º SGT BM</option><option>2º SGT BM</option><option>3º SGT BM</option>
+                    <option>CB BM</option><option>SD BM</option>
                 </select>
-            </div>
-            <div class="campo-cheio">
-                <label>Unidade onde serve atualmente</label>
-                <select id="unidadeServe" required>
-                    <option value="">Selecione...</option>
-                    <option>CBA X</option><option>1º GMar</option><option>2º GMar</option><option>3º GMar</option><option>4º GMar</option><option>DBM 1/M</option><option>DBM 2/M</option><option>DBM 3/M</option><option>DBM 4/M</option><option>DBM 5/M</option><option>DBM 6/M</option><option>CER</option>
-                </select>
-            </div>
-            <div class="campo-cheio">
-                <label>Local da Inspeção (Onde deseja ser atendido)</label>
-                <select id="unidade" required>
-                    <option value="">Selecione o local...</option>
-                    <option value="CER">CER / 2º GMar (Seg a Sex)</option>
-                    <option value="3º GMar - Copacabana">3º GMar - Copacabana (Seg a Sex)</option>
-                    <option value="DBM 5/M - Sepetiba">DBM 5/M - Sepetiba (Ter e Sex)</option>
-                    <option value="CBA X">CBA X (Ter e Sex)</option>
-                    <option value="GMars-Sede">1º GMar / DBM 1/M / DBM 2/M (Ter e Sex)</option>
-                    <option value="4º GMar - Itaipu">4º GMar / DBM 6/M (Ter e Sex)</option>
-                    <option value="DBM 3/M - Recreio">DBM 3/M / DBM 4/M (Ter e Sex)</option>
-                </select>
-            </div>
-            <div id="avisoAgenda">⚠️ Atenção: Esta unidade possui limite de vagas por turno (Manhã/Tarde).</div>
-            <div>
-                <label>Data Disponível</label>
-                <select id="dataSelect" required><option value="">Escolha o local acima</option></select>
-            </div>
-            <div id="campoTurno" style="display:none;">
-                <label>Turno</label>
-                <select id="turno">
-                    <option value="Manhã">Manhã</option>
-                    <option value="Tarde">Tarde</option>
-                </select>
-            </div>
-            <div class="campo-cheio">
-                <button type="submit" id="btnAgendar">Confirmar Agendamento</button>
             </div>
         </div>
+
+        <div class="section-title">Local e Data da Inspeção</div>
+
+        <label>Local da Inspeção:</label>
+        <select id="unidade" required>
+            <option value="">Selecione o local disponível...</option>
+            <option value="CER">CER / 2º GMar (Segunda a Sexta)</option>
+            <option value="CBA X">CBA X (Terças e Sextas)</option>
+            <option value="DBM 5/M - Sepetiba">DBM 5/M - Sepetiba (Terças e Sextas)</option>
+            <option value="GMARS-SEDE">GMARS SEDE (Terças e Sextas)</option>
+        </select>
+
+        <div id="avisoTS" class="aviso-alerta">
+            ⚠️ <b>IMPORTANTE:</b> Esta unidade atende apenas às <b>TERÇAS e SEXTAS</b>. <br>Limite de 7 vagas por turno.
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+                <label>Data Escolhida:</label>
+                <select id="data" required>
+                    <option value="">Aguardando local...</option>
+                </select>
+            </div>
+            <div style="flex: 1; display: none;" id="boxTurno">
+                <label>Turno:</label>
+                <select id="turno">
+                    <option value="Manhã">Manhã (07:30 - 12:00)</option>
+                    <option value="Tarde">Tarde (13:00 - 17:30)</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" id="btnAcao">Finalizar Agendamento</button>
     </form>
 
-    <div id="comprovanteBox">
-        <h3 style="text-align:center;">✅ AGENDAMENTO CONFIRMADO</h3>
-        <div class="linha"><b>Militar:</b> <span id="cNome"></span></div>
-        <div class="linha"><b>RG:</b> <span id="cRg"></span></div>
-        <div class="linha"><b>Local:</b> <span id="cUnidade"></span></div>
-        <div class="linha"><b>Data:</b> <span id="cData"></span></div>
-        <div class="linha"><b>Turno:</b> <span id="cTurno"></span></div>
-        <button type="button" onclick="window.print()" style="background:#4b5563;">🖨️ Imprimir</button>
-        <button type="button" onclick="location.reload()">Sair</button>
+    <div id="sucesso">
+        <h2 style="color: #8b0000;">✅ Agendamento Confirmado!</h2>
+        <div class="resumo">
+            <p><b>Militar:</b> <span id="resNome"></span></p>
+            <p><b>Local:</b> <span id="resLocal"></span></p>
+            <p><b>Data:</b> <span id="resData"></span></p>
+            <p><b>Turno:</b> <span id="resTurno"></span></p>
+        </div>
+        <button onclick="window.print()" style="background-color: #28a745;">🖨️ Imprimir Comprovante</button>
+        <button onclick="location.reload()" style="background-color: #666; margin-top: 10px;">Fazer Novo Agendamento</button>
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-    // CREDENCIAIS DA INSPEÇÃO MÉDICA
-    const firebaseConfig = {
-        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-        authDomain: "inspecao-saude-cbax.firebaseapp.com",
-        projectId: "inspecao-saude-cbax",
-        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxuNjVbW1FJ5l23Syh9UJJM5xeCpw0H5pOFAHPSO5txkZ1p0LizvJdrtlvyxoKS0Gy6SQ/exec';
+    
+    const regrasUnidades = {
+        "CER": { tipo: "MF", inicio: "2026-03-04", fim: "2026-07-31" },
+        "CBA X": { tipo: "TS", inicio: "2026-03-10", fim: "2026-03-13" },
+        "DBM 5/M - Sepetiba": { tipo: "TS", inicio: "2026-03-04", fim: "2026-03-06" },
+        "GMARS-SEDE": { tipo: "TS", inicio: "2026-03-17", fim: "2026-05-15" }
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const AGENDAS = [
-        { tipo:"MF", limite: 5,  inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER","3º GMar - Copacabana"] },
-        { tipo:"TS", limite: 10, inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
-        { tipo:"TS", limite: 10, inicio:"2026-03-10", fim:"2026-03-13", unidades:["CBA X"] },
-        { tipo:"TS", limite: 7,  inicio:"2026-03-17", fim:"2026-05-15", unidades:["GMars-Sede"] },
-        { tipo:"TS", limite: 7,  inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar - Itaipu"] },
-        { tipo:"TS", limite: 7,  inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 3/M - Recreio"] }
-    ];
-
-    const uniEl = document.getElementById("unidade");
-    const dataEl = document.getElementById("dataSelect");
-    const campoT = document.getElementById("campoTurno");
-    const turnoEl = document.getElementById("turno");
-
-    uniEl.addEventListener("change", () => {
-        dataEl.innerHTML = '<option value="">Selecione a Data</option>';
-        const agenda = AGENDAS.find(a => a.unidades.includes(uniEl.value));
-        if (!agenda) return;
-
-        const temTurno = (agenda.tipo === "TS");
-        campoT.style.display = temTurno ? "block" : "none";
-        document.getElementById("avisoAgenda").style.display = temTurno ? "block" : "none";
+    document.getElementById('unidade').addEventListener('change', function() {
+        const local = this.value;
+        const dataSelect = document.getElementById('data');
+        const avisoTS = document.getElementById('avisoTS');
+        const boxTurno = document.getElementById('boxTurno');
         
-        if(temTurno) {
-            turnoEl.options[0].text = `Manhã (${agenda.limite} vagas)`;
-            turnoEl.options[1].text = `Tarde (${agenda.limite} vagas)`;
+        dataSelect.innerHTML = '<option value="">Carregando...</option>';
+        
+        if (!regrasUnidades[local]) {
+            dataSelect.innerHTML = '<option value="">Selecione o local</option>';
+            boxTurno.style.display = "none";
+            avisoTS.style.display = "none";
+            return;
         }
 
-        let d = new Date(agenda.inicio + "T12:00:00");
-        const fim = new Date(agenda.fim + "T12:00:00");
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        const config = regrasUnidades[local];
+        avisoTS.style.display = (config.tipo === "TS") ? "block" : "none";
+        boxTurno.style.display = (config.tipo === "TS") ? "block" : "none";
+
+        let d = new Date(config.inicio + "T12:00:00");
+        let fim = new Date(config.fim + "T12:00:00");
+        dataSelect.innerHTML = '<option value="">Selecione a data</option>';
 
         while (d <= fim) {
-            if (d >= hoje) {
-                const sem = d.getDay();
-                let pode = (agenda.tipo === "TS" && (sem==2 || sem==5)) || (agenda.tipo === "MF" && (sem>=1 && sem<=5));
-                if (pode) {
-                    const ymd = d.toISOString().split('T')[0];
-                    const opt = document.createElement("option");
-                    opt.value = ymd; opt.textContent = ymd.split('-').reverse().join('/');
-                    dataEl.appendChild(opt);
-                }
+            let diaSemana = d.getDay();
+            let disponivel = (config.tipo === "TS" && (diaSemana === 2 || diaSemana === 5)) || (config.tipo === "MF" && (diaSemana >= 1 && diaSemana <= 5));
+            
+            if (disponivel) {
+                let iso = d.toISOString().split('T')[0];
+                let formatada = iso.split('-').reverse().join('/');
+                dataSelect.innerHTML += `<option value="${iso}">${formatada}</option>`;
             }
             d.setDate(d.getDate() + 1);
         }
     });
 
-    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
+    document.getElementById('formInspecao').addEventListener('submit', function(e) {
         e.preventDefault();
-        const btn = document.getElementById("btnAgendar");
-        btn.disabled = true; btn.innerText = "VERIFICANDO...";
+        const btn = document.getElementById('btnAcao');
+        btn.innerText = "ENVIANDO DADOS...";
+        btn.disabled = true;
 
-        const agenda = AGENDAS.find(a => a.unidades.includes(uniEl.value));
-        const turnoSel = (campoT.style.display === "block") ? turnoEl.value : "Livre Demanda";
-        
-        try {
-            const q = query(collection(db, "agendamentos"), 
-                where("unidade", "==", uniEl.value),
-                where("data", "==", dataEl.value),
-                where("turno", "==", turnoSel)
-            );
-            const snapshot = await getDocs(q);
-            
-            if (snapshot.size >= agenda.limite) {
-                alert(`ESGOTADO: O turno de ${turnoSel} para este dia já atingiu o limite de ${agenda.limite} vagas.`);
-                btn.disabled = false; btn.innerText = "Confirmar Agendamento";
-                return;
-            }
+        const dados = {
+            nome: document.getElementById('nome').value.toUpperCase(),
+            rg: document.getElementById('rg').value,
+            posto: document.getElementById('posto').value,
+            unidade: document.getElementById('unidade').value,
+            data: document.getElementById('data').value,
+            turno: document.getElementById('boxTurno').style.display === "block" ? document.getElementById('turno').value : "Livre Demanda"
+        };
 
-            const dados = {
-                nome: document.getElementById("nome").value.toUpperCase(),
-                rg: document.getElementById("rg").value,
-                posto: document.getElementById("posto").value,
-                unidadeServe: document.getElementById("unidadeServe").value,
-                unidade: uniEl.value,
-                data: dataEl.value,
-                turno: turnoSel,
-                criadoEm: serverTimestamp()
-            };
-
-            await addDoc(collection(db, "agendamentos"), dados);
-            document.getElementById("cNome").textContent = dados.nome;
-            document.getElementById("cRg").textContent = dados.rg;
-            document.getElementById("cUnidade").textContent = uniEl.options[uniEl.selectedIndex].text;
-            document.getElementById("cData").textContent = dados.data.split('-').reverse().join('/');
-            document.getElementById("cTurno").textContent = dados.turno;
-            document.getElementById("formAgendamento").style.display = "none";
-            document.getElementById("comprovanteBox").style.display = "block";
-        } catch (err) {
-            alert("Erro ao salvar. Tente novamente.");
+        fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados)})
+        .then(() => {
+            document.getElementById('formInspecao').style.display = 'none';
+            document.getElementById('sucesso').style.display = 'block';
+            document.getElementById('resNome').innerText = dados.nome;
+            document.getElementById('resLocal').innerText = dados.unidade;
+            document.getElementById('resData').innerText = dados.data.split('-').reverse().join('/');
+            document.getElementById('resTurno').innerText = dados.turno;
+        })
+        .catch(() => {
+            alert("Erro ao enviar. Tente novamente.");
             btn.disabled = false;
-        }
+            btn.innerText = "Finalizar Agendamento";
+        });
     });
 </script>
+
 </body>
 </html>
