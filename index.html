@@ -23,7 +23,7 @@
         #comprovanteBox { display:none; text-align:left; background:#fffafa; border:2px solid #f8d7da; border-radius:12px; padding:25px; margin-top:14px; }
         #comprovanteBox h3 { margin:0 0 15px 0; color: #8b0000; border-bottom: 2px solid #f8d7da; padding-bottom: 10px; text-align: center; }
         .linha { margin:10px 0; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: #333; }
-        .linha b { color: #8b0000; width: 130px; display: inline-block; }
+        .linha b { color: #8b0000; width: 140px; display: inline-block; }
         
         .btnRow { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
         .btnSecondary { background:#4b5563; }
@@ -79,18 +79,13 @@
 
         <select id="unidade" required>
             <option value="">Selecione o LOCAL da Inspeção</option>
-            <option>1º GMar - Botafogo</option>
-            <option>DBM 1/M - Paquetá</option>
-            <option>DBM 2/M - Piscinão de Ramos</option>
-            <option>CER</option>
-            <option>2º GMar - Barra da Tijuca</option>
-            <option>3º GMar - Copacabana</option>
-            <option>4º GMar - Itaipu</option>
-            <option>DBM 6/M - Itaipu</option>
-            <option>CBA X</option>
-            <option>DBM 3/M - Recreio dos Bandeirantes</option>
-            <option>DBM 4/M - Barra de Guaratiba</option>
-            <option>DBM 5/M - Sepetiba</option>
+            <option value="CER + 2º GMar">CER + 2º GMar (Barra da Tijuca)</option>
+            <option value="1º GMar + DBM 1/M + DBM 2/M">1º GMar + DBM 1/M + DBM 2/M</option>
+            <option value="DBM 4/M + DBM 3/M">DBM 4/M + DBM 3/M (Guaratiba/Recreio)</option>
+            <option value="4º GMar + DBM 6/M">4º GMar + DBM 6/M (Itaipu)</option>
+            <option value="3º GMar">3º GMar (Copacabana)</option>
+            <option value="CBA X">CBA X (Sede)</option>
+            <option value="DBM 5/M">DBM 5/M (Sepetiba)</option>
         </select>
 
         <div id="avisoAgenda">🚨 ATENÇÃO: Inspeções nesta unidade apenas às TERÇAS e SEXTAS.</div>
@@ -140,15 +135,15 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     
-    // AGENDA OFICIAL CBA X 2026
+    // Lista de Agendas Unificadas conforme solicitado
     const AGENDAS = [
-        { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15", unidades:["1º GMar - Botafogo","DBM 1/M - Paquetá","DBM 2/M - Piscinão de Ramos"] },
-        { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar - Itaipu","DBM 6/M - Itaipu"] },
-        { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER","2º GMar - Barra da Tijuca"] },
-        { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["3º GMar - Copacabana"] },
+        { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15", unidades:["1º GMar + DBM 1/M + DBM 2/M"] },
+        { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar + DBM 6/M"] },
+        { id:"A3", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER + 2º GMar"] },
+        { id:"A4", tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["3º GMar"] },
         { id:"A5", tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13", unidades:["CBA X"] },
-        { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 4/M - Barra de Guaratiba","DBM 3/M - Recreio dos Bandeirantes"] },
-        { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
+        { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 4/M + DBM 3/M"] },
+        { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M"] },
     ];
     
     const unidadeEl = document.getElementById("unidade");
@@ -179,92 +174,8 @@
         let encontrouData = false;
 
         while (dataAtual <= dataFim) {
-            // Mostra apenas de hoje em diante
+            // Regra: Não mostrar datas que já passaram de HOJE
             if (dataAtual >= hoje) {
                 const diaSemana = dataAtual.getDay();
                 let pode = (agenda.tipo === "TS" && (diaSemana === 2 || diaSemana === 5)) || 
-                           (agenda.tipo === "MF" && (diaSemana >= 1 && diaSemana <= 5));
-                
-                if (pode) {
-                    const ymd = dataAtual.toISOString().split('T')[0];
-                    const opt = document.createElement("option");
-                    opt.value = ymd;
-                    opt.textContent = formatBR(ymd);
-                    dataSelect.appendChild(opt);
-                    encontrouData = true;
-                }
-            }
-            dataAtual.setDate(dataAtual.getDate() + 1);
-        }
-
-        if (!encontrouData) {
-            dataSelect.add(new Option("Nenhuma data disponível para este período", ""));
-        }
-    });
-    
-    dataSelect.addEventListener("change", () => {
-        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
-        campoTurno.style.display = (agenda && agenda.tipo === "TS") ? "block" : "none";
-    });
-    
-    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById("btnAgendar");
-        const rgRaw = document.getElementById("rg").value.trim();
-        const rgNorm = rgRaw.replace(/\D/g, "");
-        
-        btn.disabled = true;
-        btn.innerText = "PROCESSANDO...";
-    
-        try {
-            const agRef = doc(collection(db, "agendamentos"));
-            const lockRef = doc(db, "rg_locks", rgNorm);
-    
-            await runTransaction(db, async (tx) => {
-                const lockSnap = await tx.get(lockRef);
-                if (lockSnap.exists()) throw new Error("RG_JA_AGENDADO");
-    
-                const dados = {
-                    nome: document.getElementById("nome").value.trim().toUpperCase(),
-                    rg: rgRaw,
-                    telefone: document.getElementById("telefone").value.trim(),
-                    unidadeServe: document.getElementById("unidadeServe").value,
-                    email: document.getElementById("email").value.trim(),
-                    posto: document.getElementById("posto").value,
-                    unidade: unidadeEl.value,
-                    data: dataSelect.value,
-                    data_br: formatBR(dataSelect.value),
-                    turno: (campoTurno.style.display === "block") ? (turnoEl.value || "Não informado") : "Livre Demanda",
-                    criadoEm: serverTimestamp()
-                };
-    
-                tx.set(agRef, dados);
-                tx.set(lockRef, { rg: rgNorm, criadoEm: serverTimestamp() });
-                
-                fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(dados)
-                });
-    
-                document.getElementById("cNome").textContent = dados.nome;
-                document.getElementById("cRg").textContent = dados.rg;
-                document.getElementById("cUnidade").textContent = dados.unidade;
-                document.getElementById("cData").textContent = dados.data_br;
-                document.getElementById("cTurno").textContent = dados.turno;
-                document.getElementById("cProto").textContent = `IM26-${rgNorm}-${dados.data.replace(/-/g,"")}`;
-            });
-    
-            document.getElementById("formAgendamento").style.display = "none";
-            document.getElementById("comprovanteBox").style.display = "block";
-    
-        } catch (err) {
-            alert(err.message === "RG_JA_AGENDADO" ? "⚠️ Este RG já possui um agendamento." : "❌ Erro ao salvar.");
-            btn.disabled = false;
-            btn.innerText = "Finalizar Agendamento";
-        }
-    });
-</script>
-</body>
-</html>
+                           (agenda.tipo === "MF" && (diaSem
