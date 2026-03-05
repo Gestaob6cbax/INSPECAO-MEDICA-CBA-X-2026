@@ -24,11 +24,6 @@
         .vagas-esgotado { background: #ffebee; color: #b71c1c; border-color: #ffcdd2; }
 
         .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, #8e1616 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 30px; font-size: 1.1rem; text-transform: uppercase; }
-        
-        #quadroConsulta { margin-top: 30px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; display:none; background: #fff; }
-        .tabela-confirmados { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .tabela-confirmados th { background: #f8f9fa; padding: 10px; border-bottom: 2px solid #ddd; text-align: left; color: var(--cba-red); }
-        .tabela-confirmados td { padding: 8px; border-bottom: 1px solid #eee; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -53,7 +48,7 @@
 
         <div class="section-title">Local e Data</div>
         <label>Unidade de Inspeção</label>
-        <select id="unidadeDestino" onchange="atualizarInterface()">
+        <select id="unidadeDestino" onchange="atualizarVagas()">
             <option value="">Selecione o GMAR...</option>
             <option value="1GMAR">1º GMAR - BOTAFOGO</option>
             <option value="2GMAR">2º GMAR - BARRA</option>
@@ -62,7 +57,7 @@
         </select>
 
         <label>Data Escolhida</label>
-        <select id="data" onchange="atualizarInterface()">
+        <select id="data" onchange="atualizarVagas()">
             <option value="">Selecione a data...</option>
             <option>10/03/2026</option><option>17/03/2026</option><option>24/03/2026</option><option>31/03/2026</option>
         </select>
@@ -71,20 +66,10 @@
 
         <button id="btnSalvar" class="btn-confirmar" onclick="salvar()">Confirmar Agendamento</button>
     </div>
-
-    <div id="quadroConsulta">
-        <div style="background:#f0f0f0; padding:8px; font-size:0.7rem; font-weight:bold; text-align:center; color: #444;">MILITARES CONFIRMADOS NESTA DATA</div>
-        <table class="tabela-confirmados">
-            <thead>
-                <tr><th>Posto</th><th>Nome</th><th>RG</th></tr>
-            </thead>
-            <tbody id="corpoTabela"></tbody>
-        </table>
-    </div>
 </div>
 
 <script>
-    // Suas chaves inseridas com sucesso
+    // Configurações do seu Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAPUZftC2cq-khKiNq6dHBqkQeaoNWrjRc",
         authDomain: "inspecao-medica-cbax.firebaseapp.com",
@@ -96,27 +81,22 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    async function atualizarInterface() {
+    async function atualizarVagas() {
         const local = document.getElementById("unidadeDestino").value;
         const dataSel = document.getElementById("data").value;
         const badge = document.getElementById("statusVagas");
-        const corpo = document.getElementById("corpoTabela");
-        const quadro = document.getElementById("quadroConsulta");
 
         if (!local || !dataSel) return;
 
         badge.style.display = "block";
         badge.innerText = "🔍 CONSULTANDO VAGAS...";
-        quadro.style.display = "block";
 
         const snapshot = await db.collection("agendamentos")
             .where("unidadeDestino", "==", local)
             .where("data", "==", dataSel)
             .get();
 
-        const total = snapshot.size;
-        const limite = 14;
-        const restam = limite - total;
+        const restam = 14 - snapshot.size;
 
         if (restam <= 0) {
             badge.innerText = "❌ DATA ESGOTADA";
@@ -126,16 +106,6 @@
             badge.innerText = `✅ ${restam} VAGAS DISPONÍVEIS`;
             badge.className = "vagas-badge vagas-ok";
             document.getElementById("btnSalvar").disabled = false;
-        }
-
-        corpo.innerHTML = "";
-        if (snapshot.empty) {
-            corpo.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:10px; color:#999;">Nenhum militar agendado ainda.</td></tr>';
-        } else {
-            snapshot.forEach(doc => {
-                const m = doc.data();
-                corpo.innerHTML += `<tr><td>${m.posto}</td><td>${m.nome}</td><td>${m.rg}</td></tr>`;
-            });
         }
     }
 
@@ -153,13 +123,13 @@
 
         try {
             const check = await db.collection("agendamentos").where("rg", "==", d.rg).get();
-            if (!check.empty) return alert("Atenção: Este RG já possui um agendamento realizado!");
+            if (!check.empty) return alert("Este RG já possui um agendamento!");
 
             await db.collection("agendamentos").add(d);
             alert("Agendamento confirmado com sucesso!");
             location.reload();
         } catch (e) { 
-            alert("Erro ao salvar. Verifique se o banco de dados está em 'Modo de Teste'."); 
+            alert("Erro ao salvar. Verifique a conexão."); 
         }
     }
 </script>
