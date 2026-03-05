@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -204,7 +205,7 @@
                     dataSelect.add(new Option(ymd.split('-').reverse().join('/'), ymd));
                 }
             }
-            cursor.setDate(cursor.getDate() + 1); // CORREÇÃO AQUI: getDate()
+            cursor.setDate(cursor.getDate() + 1); // CORREÇÃO: getDate()
         }
     });
 
@@ -215,20 +216,28 @@
 
     document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
         e.preventDefault();
+        const dataEscolhida = dataSelect.value;
         const rg = document.getElementById("rg").value.trim();
         const btn = document.getElementById("btnAgendar");
+
+        if (!dataEscolhida) {
+            alert("Por favor, selecione uma data!");
+            return;
+        }
+
         btn.disabled = true;
 
         try {
             const lockRef = doc(db, "rg_locks_inspecao", rg);
             const lockSnap = await getDoc(lockRef);
-            if (lockSnap.exists()) throw new Error("Atenção: Já existe um agendamento para este RG.");
+            if (lockSnap.exists()) throw new Error("Já existe um agendamento para este RG.");
 
             const dados = {
                 nome: document.getElementById("nome").value.toUpperCase(),
                 rg: rg,
-                localNome: unidadeEl.value,
-                data_br: dataSelect.value.split('-').reverse().join('/'),
+                unidadeOrigem: document.getElementById("unidadeServe").value,
+                localInspecao: unidadeEl.value,
+                data_br: dataEscolhida.split('-').reverse().join('/'),
                 turno: campoTurno.style.display === "block" ? document.getElementById("turno").value : "Geral",
                 criadoEm: serverTimestamp()
             };
@@ -238,7 +247,7 @@
 
             document.getElementById("cNome").textContent = dados.nome;
             document.getElementById("cData").textContent = dados.data_br;
-            document.getElementById("cUnidade").textContent = dados.localNome;
+            document.getElementById("cUnidade").textContent = dados.localInspecao;
             document.getElementById("cTurno").textContent = dados.turno;
             document.getElementById("cProto").textContent = `PROT-IS-${rg}`;
             
