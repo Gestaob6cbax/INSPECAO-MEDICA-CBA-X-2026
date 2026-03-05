@@ -133,24 +133,28 @@ const REGRAS = {
 "DBM4/M + DBM3/M":{inicio:"2026-06-30",fim:"2026-07-31",dias:[2,5],vagas:7,turno:true}
 };
 
-unidade.onchange=()=>{
-    dataSelect.innerHTML='<option value="">Selecione a data</option>';
-    const r=REGRAS[unidade.value];
-    if(!r) {
-        dataSelect.innerHTML='<option value="">Selecione o local primeiro</option>';
+unidade.onchange = () => {
+    dataSelect.innerHTML = '<option value="">Selecione a data</option>';
+    vagasInfo.style.display = "none";
+    btnAgendar.disabled = true;
+    const r = REGRAS[unidade.value];
+    if(!r){
+        dataSelect.innerHTML = '<option value="">Selecione o local primeiro</option>';
         return;
     }
-    campoTurno.style.display=r.turno?"block":"none";
-    let d=new Date(r.inicio + "T12:00:00");
-    const fim=new Date(r.fim + "T12:00:00");
-    while(d<=fim){
+    campoTurno.style.display = r.turno ? "block" : "none";
+    let d = new Date(r.inicio + "T12:00:00");
+    const fim = new Date(r.fim + "T12:00:00");
+    while(d <= fim){
         if(r.dias.includes(d.getDay())){
-            let br=d.toLocaleDateString('pt-BR');
-            dataSelect.add(new Option(br,br));
+            let dia = String(d.getDate()).padStart(2,'0');
+            let mes = String(d.getMonth()+1).padStart(2,'0');
+            let ano = d.getFullYear();
+            let br = `${dia}/${mes}/${ano}`;
+            dataSelect.add(new Option(br, br));
         }
         d.setDate(d.getDate()+1);
     }
-    conferirVagas();
 };
 
 async function conferirVagas(){
@@ -161,8 +165,9 @@ async function conferirVagas(){
         return;
     }
     const r=REGRAS[local];
-    const t=r.turno ? turno.value : "Geral";
-    if(r.turno && !t) {
+    const t = r.turno ? turno.value : "Geral";
+
+    if(r.turno && !turno.value) {
         vagasInfo.style.display="none";
         return;
     }
@@ -219,7 +224,7 @@ document.getElementById("formAgendamento").onsubmit=async(e)=>{
 
         const local = unidade.value;
         const data = dataSelect.value;
-        const t = REGRAS[local].turno ? turno.value : "Geral";
+        const t = REGRAS[local].turno ? (turno.value || "Manhã") : "Geral";
 
         const dados={
             nome: document.getElementById("nome").value.toUpperCase(),
