@@ -26,7 +26,7 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 12px; color: #666; border-bottom: 2px solid #eee; text-transform: uppercase; }
         td { padding: 15px; font-size: 13px; border-bottom: 1px solid #eee; }
-        .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; }
+        .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; font-size: 11px; }
         .btn-delete-row { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 18px; }
     </style>
 </head>
@@ -40,12 +40,12 @@
 <div class="container">
     <div class="stats-row">
         <div class="stat-card">
-            <span>Agendamentos Médicos</span>
+            <span>Total de Agendados</span>
             <strong id="contador">0</strong>
         </div>
         <div class="stat-card">
-            <span>Especialidade</span>
-            <strong style="color: #8b0000; font-size: 18px;">Clínica Médica / Geral</strong>
+            <span>Status do Sistema</span>
+            <strong style="color: green; font-size: 18px;">CONECTADO AO FIREBASE</strong>
         </div>
     </div>
 
@@ -63,30 +63,31 @@
             <thead>
                 <tr>
                     <th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
-                    <th>Local Inspeção</th>
+                    <th>Local da Inspeção</th>
                     <th>Unidade Origem</th>
                     <th>Data</th>
                     <th>Turno</th>
-                    <th>Nome do Militar</th>
                     <th>Posto/Grad</th>
+                    <th>Nome do Militar</th>
                     <th>RG</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabela">
-                <tr><td colspan="9" style="padding: 40px; text-align: center;">Carregando dados da inspeção...</td></tr>
+                <tr><td colspan="9" style="padding: 40px; text-align: center;">Buscando agendamentos...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // CREDENCIAIS CORRIGIDAS PARA O PROJETO DE INSPEÇÃO MÉDICA
+    // CREDENCIAIS IDÊNTICAS AO INDEX.HTML
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
         authDomain: "inspecao-saude-cbax.firebaseapp.com",
         projectId: "inspecao-saude-cbax",
         storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+        messagingSenderId: "1011281662526",
         appId: "1:1011281662526:web:1028e8a8d140684e98376f"
     };
 
@@ -96,36 +97,45 @@
     async function carregarDados() {
         const tabela = document.getElementById("tabela");
         const contador = document.getElementById("contador");
-        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Buscando dados no Firebase...</td></tr>";
+        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Atualizando...</td></tr>";
 
         try {
-            const snapshot = await db.collection("agendamentos").orderBy("data", "asc").get();
+            // LIGADO À COLEÇÃO CORRETA: agendamentos_inspecao
+            const snapshot = await db.collection("agendamentos_inspecao").orderBy("data", "asc").get();
             tabela.innerHTML = "";
             let total = 0;
 
             snapshot.forEach(doc => {
                 const d = doc.data();
                 total++;
+                
+                // Mapeamento dos campos salvos pelo index.html
+                const local = d.localNome || "Não inf.";
+                const origem = d.unidadeOrigem || "CBA X";
+                const dataFormatada = d.data ? d.data.split('-').reverse().join('/') : "---";
+                const turno = d.turno === "MANHA" ? "Manhã" : (d.turno === "TARDE" ? "Tarde" : d.turno);
+                const posto = d.posto || d.puesto || ""; // Suporte a erro de digitação anterior
+
                 tabela.innerHTML += `
                     <tr>
                         <td><input type="checkbox" class="checkItem" value="${doc.id}" onchange="atualizarBotaoMassa()"></td>
-                        <td><span class="badge-local">${d.unidade || "Não inf."}</span></td>
-                        <td>${d.unidadeServe || ""}</td>
-                        <td>${d.data ? d.data.split('-').reverse().join('/') : ""}</td>
-                        <td>${d.turno || "Livre"}</td>
+                        <td><span class="badge-local">${local}</span></td>
+                        <td>${origem}</td>
+                        <td>${dataFormatada}</td>
+                        <td>${turno}</td>
+                        <td>${posto}</td>
                         <td><strong>${d.nome || ""}</strong></td>
-                        <td>${d.posto || ""}</td>
                         <td>${d.rg || ""}</td>
                         <td><button class="btn-delete-row" onclick="excluirIndividual('${doc.id}', '${d.nome}')">🗑️</button></td>
                     </tr>`;
             });
 
             contador.innerText = total;
-            if (total === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>Nenhum agendamento encontrado.</td></tr>";
+            if (total === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>Nenhum agendamento realizado até o momento.</td></tr>";
             atualizarBotaoMassa();
         } catch (e) {
             console.error(e);
-            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center; padding:20px;'>Erro de conexão com a Inspeção Médica.</td></tr>";
+            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center; padding:20px;'>Erro de conexão: Verifique as regras do Firebase.</td></tr>";
         }
     }
 
@@ -143,16 +153,18 @@
     }
 
     async function excluirIndividual(id, nome) {
-        if (confirm(`Excluir agendamento de ${nome}?`)) {
-            await db.collection("agendamentos").doc(id).delete();
+        if (confirm(`Atenção: Deseja realmente excluir o agendamento de ${nome}?`)) {
+            await db.collection("agendamentos_inspecao").doc(id).delete();
             carregarDados();
         }
     }
 
     async function cancelarSelecionados() {
         const checks = document.querySelectorAll(".checkItem:checked");
-        if (confirm(`Excluir os ${checks.length} selecionados?`)) {
-            for (let cb of checks) await db.collection("agendamentos").doc(cb.value).delete();
+        if (confirm(`Confirmar exclusão de ${checks.length} agendamentos?`)) {
+            for (let cb of checks) {
+                await db.collection("agendamentos_inspecao").doc(cb.value).delete();
+            }
             carregarDados();
         }
     }
@@ -167,22 +179,23 @@
         const dados = rows.map(tr => {
             const tds = tr.cells;
             return {
-                "Local": tds[1].innerText,
-                "Origem": tds[2].innerText,
+                "Local da Inspeção": tds[1].innerText,
+                "Unidade Origem": tds[2].innerText,
                 "Data": tds[3].innerText,
                 "Turno": tds[4].innerText,
-                "Nome": tds[5].innerText,
-                "Posto": tds[6].innerText,
+                "Posto/Grad": tds[5].innerText,
+                "Nome": tds[6].innerText,
                 "RG": tds[7].innerText
             };
         });
 
         const ws = XLSX.utils.json_to_sheet(dados);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Inspeção_Médica");
-        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_2026.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Agendamentos_2026");
+        XLSX.writeFile(wb, "Relatorio_Inspeção_CBA_X_2026.xlsx");
     }
 
+    // Carrega os dados assim que abre a página
     carregarDados();
 </script>
 </body>
