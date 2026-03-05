@@ -7,38 +7,17 @@
     <style>
         :root { --primary: #8b0000; --secondary: #ff0000; --bg: #f2f2f2; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin:0; padding:0; }
-        
-        /* ESTILO DO CABEÇALHO COM LOGO */
-        .header-top { 
-            background: linear-gradient(180deg, #9b0000 0%, #720000 100%); 
-            color: white; 
-            padding: 30px 15px; 
-            text-align: center; 
-            border-bottom: 5px solid #ff0000; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
-        }
-        .header-top img {
-            max-width: 100px; /* Largura do logo */
-            height: auto;
-            margin-bottom: 15px;
-            /* Efeito de sombra no logo */
-            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4));
-        }
-        .header-top h2 { margin: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
-        .header-top p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
-
+        .header-top { background: linear-gradient(180deg, #9b0000 0%, #720000 100%); color: white; padding: 30px 15px; text-align: center; border-bottom: 5px solid #ff0000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .header-top img { max-width: 100px; height: auto; margin-bottom: 15px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); }
+        .header-top h2 { margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
         .container { max-width: 450px; margin: -20px auto 50px; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 12px; color: #444; text-transform: uppercase; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 11px; color: #444; text-transform: uppercase; }
         input, select { width:100%; padding:14px; margin-bottom:20px; border-radius:8px; border: 1px solid #ccc; box-sizing: border-box; background: #fafafa; font-size: 15px; }
-        
         .btn-main { background: var(--primary); color: #fff; border:none; padding:18px; width:100%; border-radius:8px; font-weight:bold; cursor:pointer; text-transform: uppercase; font-size: 16px; transition: 0.3s; }
-        .btn-main:hover:not(:disabled) { background: #660000; }
         .btn-main:disabled { background: #ccc; cursor: not-allowed; }
-        
         #vagasInfo { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; display: none; font-size: 14px; }
         .vagas-disponiveis { background: #eaffea; color: #28a745; border: 1px solid #28a745; }
         .vagas-esgotadas { background: #ffeaea; color: #8b0000; border: 1px solid #8b0000; }
-        
         #comprovanteBox { display:none; text-align: center; border: 2px solid #eee; padding: 20px; border-radius: 10px; }
         .info-resumo { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 5px solid var(--primary); }
     </style>
@@ -55,9 +34,12 @@
     <form id="formAgendamento">
         <label>Nome Completo</label>
         <input type="text" id="nome" required placeholder="NOME DO MILITAR">
-        
         <label>RG Militar</label>
         <input type="text" id="rg" required placeholder="APENAS NÚMEROS">
+        <label>Celular (WhatsApp)</label>
+        <input type="tel" id="telefone" required placeholder="(XX) 9XXXX-XXXX">
+        <label>E-mail</label>
+        <input type="email" id="email" required placeholder="militar@cbmerj.rj.gov.br">
 
         <label>Local da Inspeção</label>
         <select id="unidade" required>
@@ -84,7 +66,6 @@
         </div>
 
         <div id="vagasInfo"></div>
-
         <button type="submit" id="btnAgendar" class="btn-main">Finalizar Agendamento</button>
     </form>
 
@@ -115,7 +96,7 @@
     const REGRAS = {
         "CER + 2º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
         "3º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
-        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-05", dias: [2,5], vagas: 10, turno: true },
+        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 10, turno: true },
         "CBA X": { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
         "1º GMAR": { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7, turno: true },
         "4º GMAR": { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7, turno: true },
@@ -129,103 +110,89 @@
     const vagasInfo = document.getElementById("vagasInfo");
     const btnAgendar = document.getElementById("btnAgendar");
 
-    unidadeEl.addEventListener("change", () => {
+    unidadeEl.onchange = () => {
         dataSelect.innerHTML = '<option value="">Selecione a Data</option>';
         vagasInfo.style.display = "none";
-        const regra = REGRAS[unidadeEl.value];
-        if(!regra) return;
-
-        campoTurno.style.display = regra.turno ? "block" : "none";
-        turnoSelect.required = regra.turno;
-        turnoSelect.value = "";
-
-        let cursor = new Date(regra.inicio + "T12:00:00");
-        const fim = new Date(regra.fim + "T12:00:00");
+        const r = REGRAS[unidadeEl.value];
+        if(!r) return;
+        campoTurno.style.display = r.turno ? "block" : "none";
+        turnoSelect.required = r.turno;
+        let cursor = new Date(r.inicio + "T12:00:00");
+        const fim = new Date(r.fim + "T12:00:00");
         const hoje = new Date(); hoje.setHours(0,0,0,0);
-
         while(cursor <= fim) {
-            if(cursor >= hoje && regra.dias.includes(cursor.getDay())) {
+            if(cursor >= hoje && r.dias.includes(cursor.getDay())) {
                 const ymd = cursor.toISOString().split('T')[0];
                 dataSelect.add(new Option(ymd.split('-').reverse().join('/'), ymd));
             }
             cursor.setDate(cursor.getDate() + 1);
         }
-    });
+    };
 
-    async function atualizarVagasReais() {
+    async function conferirVagas() {
         const local = unidadeEl.value;
         const data = dataSelect.value;
-        const regra = REGRAS[local];
-        if(!local || !data || (regra.turno && !turnoSelect.value)) return;
+        const r = REGRAS[local];
+        if(!local || !data || (r.turno && !turnoSelect.value)) return;
 
         vagasInfo.style.display = "block";
-        vagasInfo.innerHTML = "Consultando banco de dados...";
+        vagasInfo.innerHTML = "Verificando disponibilidade...";
         btnAgendar.disabled = true;
 
-        try {
-            const dataBR = data.split('-').reverse().join('/');
-            const tFinal = regra.turno ? turnoSelect.value : "Geral";
+        const dataBR = data.split('-').reverse().join('/');
+        const tFinal = r.turno ? turnoSelect.value : "Geral";
+        const q = query(collection(db, "agendamentos_inspecao"), 
+            where("localInspecao", "==", local),
+            where("data_br", "==", dataBR),
+            where("turno", "==", tFinal));
 
-            // CONTAGEM REAL NO BANCO
-            const q = query(collection(db, "agendamentos_inspecao"), 
-                where("localInspecao", "==", local),
-                where("data_br", "==", dataBR),
-                where("turno", "==", tFinal)
-            );
+        const snap = await getDocs(q);
+        const ocupadas = snap.size;
+        const disponiveis = r.vagas - ocupadas;
 
-            const snap = await getDocs(q);
-            const ocupadas = snap.size;
-            const disponiveis = regra.vagas - ocupadas;
-
-            if(disponiveis <= 0) {
-                vagasInfo.innerHTML = `❌ ESGOTADO (${regra.vagas} MILITARES JÁ AGENDADOS)`;
-                vagasInfo.className = "vagas-esgotadas";
-                btnAgendar.disabled = true;
-            } else {
-                vagasInfo.innerHTML = `✅ DISPONÍVEL: ${disponiveis} VAGAS RESTANTES`;
-                vagasInfo.className = "vagas-disponiveis";
-                btnAgendar.disabled = false;
-            }
-        } catch(e) { console.error(e); }
+        if(disponiveis <= 0) {
+            vagasInfo.innerHTML = `❌ ESGOTADO (${r.vagas} MILITARES JÁ AGENDADOS)`;
+            vagasInfo.className = "vagas-esgotadas";
+            btnAgendar.disabled = true;
+        } else {
+            vagasInfo.innerHTML = `✅ DISPONÍVEL: ${disponiveis} VAGAS RESTANTES`;
+            vagasInfo.className = "vagas-disponiveis";
+            btnAgendar.disabled = false;
+        }
     }
 
-    dataSelect.addEventListener("change", atualizarVagasReais);
-    turnoSelect.addEventListener("change", atualizarVagasReais);
+    dataSelect.onchange = conferirVagas;
+    turnoSelect.onchange = conferirVagas;
 
-    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
+    document.getElementById("formAgendamento").onsubmit = async (e) => {
         e.preventDefault();
         btnAgendar.disabled = true;
         const rg = document.getElementById("rg").value.trim();
-        
         try {
-            const lockRef = doc(db, "rg_locks_inspecao", rg);
-            const lockSnap = await getDoc(lockRef);
-            if(lockSnap.exists()) throw new Error("Atenção: Já consta agendamento para este RG!");
-
-            const localVal = unidadeEl.value;
+            const lock = await getDoc(doc(db, "rg_locks_inspecao", rg));
+            if(lock.exists()) throw new Error("Atenção: Militar já possui agendamento!");
             const dados = {
                 nome: document.getElementById("nome").value.toUpperCase(),
                 rg: rg,
-                localInspecao: localVal,
+                telefone: document.getElementById("telefone").value,
+                email: document.getElementById("email").value,
+                localInspecao: unidadeEl.value,
                 data_br: dataSelect.value.split('-').reverse().join('/'),
-                turno: REGRAS[localVal].turno ? turnoSelect.value : "Geral",
+                turno: REGRAS[unidadeEl.value].turno ? turnoSelect.value : "Geral",
                 criadoEm: serverTimestamp()
             };
-
             await setDoc(doc(collection(db, "agendamentos_inspecao")), dados);
-            await setDoc(lockRef, { rg: rg });
-
+            await setDoc(doc(db, "rg_locks_inspecao", rg), { rg });
             document.getElementById("formAgendamento").style.display = "none";
             document.getElementById("comprovanteBox").style.display = "block";
             document.getElementById("resumo").innerHTML = `
                 <strong>Militar:</strong> ${dados.nome}<br>
                 <strong>RG:</strong> ${dados.rg}<br>
                 <strong>Local:</strong> ${dados.localInspecao}<br>
-                <strong>Data:</strong> ${dados.data_br}<br>
-                <strong>Turno:</strong> ${dados.turno}
+                <strong>Data:</strong> ${dados.data_br} - ${dados.turno}
             `;
         } catch(err) { alert(err.message); btnAgendar.disabled = false; }
-    });
+    };
 </script>
 </body>
 </html>
