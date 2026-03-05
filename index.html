@@ -27,7 +27,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         
-        /* AJUSTE DO LOGO */
         .header-top img {
             max-width: 100px;
             height: auto;
@@ -77,13 +76,14 @@
         }
 
         @media print { .no-print { display: none; } .container { box-shadow: none; margin-top: 20px; } }
-   </head>
+   </style>
+</head>
 <body>
 
 <div class="header-top">
-<img src="logo_cba_x.png" alt="Logo CBA X">
-<h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
-<p>Sistema Centralizado de Agendamento</p>
+    <img src="logo_cba_x.png" alt="Logo CBA X" onerror="this.src='https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-ODONTOLOGICA-CBA-X-2026/main/logo_cba_x.png'">
+    <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
+    <p>Sistema Centralizado de Agendamento</p>
 </div>
 
 <div class="container">
@@ -204,7 +204,7 @@
                     dataSelect.add(new Option(ymd.split('-').reverse().join('/'), ymd));
                 }
             }
-            cursor.setDate(cursor.setDate() + 1);
+            cursor.setDate(cursor.getDate() + 1); // CORREÇÃO AQUI: getDate()
         }
     });
 
@@ -252,4 +252,3 @@
 </script>
 </body>
 </html>
-
