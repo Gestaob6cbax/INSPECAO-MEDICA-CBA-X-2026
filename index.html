@@ -1,240 +1,62 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INSPEÇÃO MÉDICA 2026 - CBA X</title>
+    <title>Inspeção Médica 2026 - CBA X</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
-        .header-top { background: #8b0000; color: white; padding: 30px 15px; text-align: center; border-bottom: 6px solid #ff0000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .header-top img { max-width: 100px; margin-bottom: 15px; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5)); }
-        .header-top h2 { margin: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1.5px; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f9; margin: 0; padding: 0; }
         
-        .container { max-width: 550px; margin: -30px auto 60px; background: #ffffff; padding: 40px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border-top: 5px solid #8b0000; }
-        
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; font-size: 14px; }
-        input, select { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: all 0.3s; }
-        input:focus, select:focus { border-color: #8b0000; outline: none; box-shadow: 0 0 8px rgba(139,0,0,0.2); }
+        header { 
+            background: #8b0000; color: white; text-align: center; 
+            padding: 25px 15px; border-bottom: 5px solid #660000;
+        }
+        header img { width: 90px; height: auto; margin-bottom: 10px; }
+        header h1 { font-size: 1.3rem; margin: 5px 0; text-transform: uppercase; }
+        header p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
 
-        /* CONTADOR DE VAGAS ESTILIZADO */
-        #displayVagas { display: none; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 20px; border: 2px solid #ddd; }
-        .vagas-ok { background-color: #e6fffa; border-color: #38a169 !important; color: #2f855a; }
-        .vagas-lotado { background-color: #fff5f5; border-color: #e53e3e !important; color: #c53030; }
+        .container { 
+            background: white; width: 94%; max-width: 550px; 
+            margin: 20px auto; padding: 25px; 
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        }
 
-        button { width: 100%; padding: 18px; background: #8b0000; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background: #a00000; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        button:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+        .step { display: none; }
+        .step.active { display: block; }
 
-        #comprovanteBox { display: none; background: #fff; border: 3px solid #8b0000; border-radius: 15px; padding: 30px; margin-top: 20px; }
-        .linha-comprovante { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; font-size: 15px; }
-        .linha-comprovante b { color: #8b0000; }
+        h2 { font-size: 1.1rem; color: #8b0000; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; text-transform: uppercase; }
+        label { font-weight: 600; margin-top: 15px; display: block; font-size: 0.9rem; color: #444; }
+        input, select { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ced4da; border-radius: 8px; font-size: 16px; }
+
+        .aviso-unidade { 
+            background: #fff3cd; color: #856404; padding: 12px; 
+            border-radius: 8px; border-left: 5px solid #ffc107; 
+            margin: 15px 0; font-size: 0.9rem; font-weight: bold; 
+        }
+
+        .vagas-box { 
+            background: #e6fffa; color: #234e52; padding: 15px; 
+            border-radius: 8px; border: 1px solid #b2f5ea; 
+            margin: 15px 0; font-size: 1rem; font-weight: bold; text-align: center;
+        }
+        .lotado { background: #fff5f5 !important; color: #c53030 !important; border-color: #feb2b2 !important; }
+
+        .btn-principal { 
+            margin-top: 20px; padding: 18px; background: #8b0000; 
+            color: white; border: none; width: 100%; 
+            font-size: 17px; font-weight: bold; border-radius: 10px;
+            cursor: pointer; transition: 0.3s; text-transform: uppercase;
+        }
+        .btn-principal:disabled { background: #ccc; cursor: not-allowed; }
+
+        .resumo-item { margin-bottom: 10px; font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .resumo-label { font-weight: bold; color: #333; width: 130px; display: inline-block; }
 
         @media print {
-            .header-top, #formAgendamento, button { display: none !important; }
-            .container { box-shadow: none; margin: 0; border: none; width: 100%; }
-            #comprovanteBox { display: block !important; border: 2px solid #000; }
+            header, .btn-principal, .no-print { display: none !important; }
+            .container { box-shadow: none; border: none; width: 100%; margin: 0; padding: 0; }
         }
-    </style>
-</head>
-<body>
-
-<div class="header-top">
-    <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-MEDICA-CBA-X-2026/main/logo_cba_x.png" alt="Logo CBA X">
-    <h2>INSPEÇÃO MÉDICA 2026</h2>
-    <p>COMANDO DE BOMBEIROS DE ÁREA - CBA X</p>
-</div>
-
-<div class="container">
-    <form id="formAgendamento" autocomplete="off">
-        <label>Nome Completo (Sem abreviações):</label>
-        <input type="text" id="nomeMilitar" required placeholder="Ex: JOÃO DA SILVA">
-
-        <label>RG Militar:</label>
-        <input type="number" id="rgMilitar" required placeholder="Apenas números">
-
-        <label>Unidade de Destino (Local da Inspeção):</label>
-        <select id="localInspecao" required>
-            <option value="">-- Selecione o Local --</option>
-            <option value="CER" data-limite="5">CER (Barra da Tijuca)</option>
-            <option value="2GMAR" data-limite="5">2º GMAR (Barra da Tijuca)</option>
-            <option value="3GMAR" data-limite="5">3º GMAR (Copacabana)</option>
-            <option value="DBM5M" data-limite="20">DBM 5/M (Sepetiba) - 10 Manhã / 10 Tarde</option>
-            <option value="CBAX" data-limite="20">CBA X (Sede) - 10 Manhã / 10 Tarde</option>
-            <option value="1GMAR" data-limite="14">1º GMAR (Botafogo) - 7 Manhã / 7 Tarde</option>
-            <option value="DBM1M" data-limite="14">DBM 1/M (Paquetá) - 7 Manhã / 7 Tarde</option>
-            <option value="DBM2M" data-limite="14">DBM 2/M (Ramos) - 7 Manhã / 7 Tarde</option>
-            <option value="4GMAR" data-limite="14">4º GMAR (Itaipu) - 7 Manhã / 7 Tarde</option>
-            <option value="DBM6M" data-limite="14">DBM 6/M (Itaipu) - 7 Manhã / 7 Tarde</option>
-            <option value="RECREIO" data-limite="14">DBM 3/M ou 4/M (Recreio) - 7 Manhã / 7 Tarde</option>
-        </select>
-
-        <label>Data da Inspeção:</label>
-        <select id="dataInspecao" required>
-            <option value="">Selecione o local primeiro...</option>
-        </select>
-
-        <div id="setorTurno" style="display:none;">
-            <label>Turno Desejado:</label>
-            <select id="turnoInspecao">
-                <option value="Manha">MANHÃ (Início 07:30)</option>
-                <option value="Tarde">TARDE (Início 13:00)</option>
-            </select>
-        </div>
-
-        <div id="displayVagas">Carregando vagas...</div>
-
-        <button type="submit" id="btnConfirmar">Confirmar Agendamento</button>
-    </form>
-
-    <div id="comprovanteBox">
-        <h3 style="text-align:center; color:#8b0000; text-transform:uppercase;">Comprovante de Agendamento</h3>
-        <div class="linha-comprovante"><span>Militar:</span> <b id="resNome"></b></div>
-        <div class="linha-comprovante"><span>RG:</span> <b id="resRg"></b></div>
-        <div class="linha-comprovante"><span>Local:</span> <b id="resLocal"></b></div>
-        <div class="linha-comprovante"><span>Data:</span> <b id="resData"></b></div>
-        <div class="linha-comprovante"><span>Turno:</span> <b id="resTurno"></b></div>
-        <div class="linha-comprovante"><span>Protocolo:</span> <b id="resProtocolo"></b></div>
-        <p style="font-size:12px; color:#666; margin-top:20px;">* Apresente este comprovante impresso ou digital no local da inspeção.</p>
-        <button onclick="window.print()" style="background:#28a745;">Imprimir</button>
-        <button onclick="location.reload()" style="background:#4b5563; margin-top:10px;">Novo Agendamento</button>
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-        authDomain: "inspecao-saude-cbax.firebaseapp.com",
-        projectId: "inspecao-saude-cbax",
-        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-        messagingSenderId: "1011281662526",
-        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const localSelect = document.getElementById("localInspecao");
-    const dataSelect = document.getElementById("dataInspecao");
-    const turnoSelect = document.getElementById("turnoInspecao");
-    const displayVagas = document.getElementById("displayVagas");
-    const btnSubmit = document.getElementById("btnConfirmar");
-
-    // Gerador de Calendário Inteligente
-    localSelect.addEventListener("change", () => {
-        dataSelect.innerHTML = '<option value="">-- Escolha a Data --</option>';
-        const local = localSelect.value;
-        if (!local) return;
-
-        // Regra de Turnos (Mostra ou esconde se tiver divisão)
-        const temTurno = !["CER", "2GMAR", "3GMAR"].includes(local);
-        document.getElementById("setorTurno").style.display = temTurno ? "block" : "none";
-
-        let dInicio = new Date("2026-02-23T12:00:00");
-        let dFim = new Date("2026-07-31T12:00:00");
-        let diasPermitidos = [2, 5]; // Terças e Sextas por padrão
-
-        // Exceção: Unidades que atendem Segunda a Sexta
-        if (["CER", "2GMAR", "3GMAR"].includes(local)) diasPermitidos = [1, 2, 3, 4, 5];
-
-        while (dInicio <= dFim) {
-            if (diasPermitidos.includes(dInicio.getDay())) {
-                let dataIso = dInicio.toISOString().split('T')[0];
-                let opt = document.createElement("option");
-                opt.value = dataIso;
-                opt.textContent = dataIso.split('-').reverse().join('/');
-                dataSelect.appendChild(opt);
-            }
-            dInicio.setDate(dInicio.getDate() + 1);
-        }
-    });
-
-    // CONTADOR DE VAGAS EM TEMPO REAL (Lê o banco de dados)
-    async function validarVagas() {
-        const local = localSelect.value;
-        const data = dataSelect.value;
-        if (!local || !data) return;
-
-        const infoLocal = localSelect.options[localSelect.selectedIndex];
-        let limiteTotal = parseInt(infoLocal.dataset.limite);
-        
-        // Se houver turno, o limite é dividido por 2 (Manhã/Tarde)
-        const temTurno = !["CER", "2GMAR", "3GMAR"].includes(local);
-        let limiteEfetivo = temTurno ? (limiteTotal / 2) : limiteTotal;
-        let turnoBusca = temTurno ? turnoSelect.value : "Geral";
-
-        displayVagas.style.display = "block";
-        displayVagas.innerHTML = "Consultando disponibilidade...";
-
-        // BUSCA NO FIREBASE QUANTOS MILITARES JÁ AGENDARAM (Lendo seus dados antigos e novos)
-        const q = query(collection(db, "agendamentos_medica"), 
-                        where("localId", "==", local), 
-                        where("data", "==", data), 
-                        where("turno", "==", turnoBusca));
-        
-        const snapshot = await getDocs(q);
-        const ocupadas = snapshot.size;
-
-        // O Contador que você pediu: Ocupadas / Limite
-        displayVagas.innerHTML = `VAGAS PREENCHIDAS: ${ocupadas} de ${limiteEfetivo} disponíveis`;
-        
-        if (ocupadas >= limiteEfetivo) {
-            displayVagas.className = "vagas-lotado";
-            displayVagas.innerHTML = `❌ ESGOTADO (${ocupadas}/${limiteEfetivo} vagas)`;
-            btnSubmit.disabled = true;
-        } else {
-            displayVagas.className = "vagas-ok";
-            btnSubmit.disabled = false;
-        }
-    }
-
-    dataSelect.addEventListener("change", validarVagas);
-    turnoSelect.addEventListener("change", validarVagas);
-
-    // SALVAMENTO DOS DADOS
-    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        btnSubmit.disabled = true;
-        btnSubmit.innerText = "Processando...";
-
-        const dados = {
-            nomeMilitar: document.getElementById("nomeMilitar").value.toUpperCase(),
-            rgMilitar: document.getElementById("rgMilitar").value,
-            localId: localSelect.value,
-            localNome: localSelect.options[localSelect.selectedIndex].text,
-            data: dataSelect.value,
-            turno: (document.getElementById("setorTurno").style.display === "block") ? turnoSelect.value : "Turno Único",
-            protocolo: "MED-" + Date.now().toString().slice(-6),
-            criadoEm: serverTimestamp()
-        };
-
-        try {
-            // Salva no Firebase
-            await addDoc(collection(db, "agendamentos_medica"), dados);
-
-            // Envia para a sua Planilha via Webhook
-            fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
-                method: "POST", mode: "no-cors", body: JSON.stringify(dados)
-            });
-
-            // Mostra Comprovante
-            document.getElementById("formAgendamento").style.display = "none";
-            document.getElementById("comprovanteBox").style.display = "block";
-            document.getElementById("resNome").innerText = dados.nomeMilitar;
-            document.getElementById("resRg").innerText = dados.rgMilitar;
-            document.getElementById("resLocal").innerText = dados.localNome;
-            document.getElementById("resData").innerText = dados.data.split('-').reverse().join('/');
-            document.getElementById("resTurno").innerText = dados.turno;
-            document.getElementById("resProtocolo").innerText = dados.protocolo;
-
-        } catch (error) {
-            console.error(error);
-            alert("Erro ao conectar com o banco de dados. Tente novamente.");
-            btnSubmit.disabled = false;
-        }
-    });
-</script>
-</body>
-</html>
+    </
