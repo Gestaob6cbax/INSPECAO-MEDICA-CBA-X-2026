@@ -1,6 +1,167 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADM - Inspeção Médica 2026</title>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root { --primary: #8b0000; --secondary: #b8860b; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        header { background: var(--primary); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--secondary); border-radius: 8px; }
+        .container { max-width: 1200px; margin: 20px auto; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; border-left: 8px solid var(--primary); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .stat-card strong { display: block; font-size: 32px; color: #333; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; justify-content: space-between; align-items: center; }
+        button { padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-sync { background: #007bff; color: white; }
+        .btn-export { background: #28a745; color: white; }
+        .table-container { background: white; border-radius: 12px; overflow-x: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f1f1f1; padding: 15px; text-align: left; font-size: 12px; text-transform: uppercase; color: #555; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; }
+        tr:hover { background: #f9f9f9; }
+        .badge { background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .btn-del { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>PAINEL DE CONTROLE - CBA X</h1>
+    <p>Inspeção de Saúde 2026</p>
+</header>
+
+<div class="container">
+    <div class="stat-card">
+        <span>Total de Militares Agendados</span>
+        <strong id="contador">0</strong>
+        <p id="status-conexao" style="color: orange; font-weight: bold; margin-top: 10px;">Tentando conectar...</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn-sync" onclick="carregarDados()">🔄 Sincronizar Banco</button>
+        <button class="btn-export" onclick="exportarExcel()">📊 Exportar Excel</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Local</th>
+                    <th>Data</th>
+                    <th>Turno</th>
+                    <th>Nome</th>
+                    <th>RG</th>
+                    <th>Unidade</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaCorpo">
+                <tr><td colspan="7" style="text-align:center; padding: 40px;">Buscando registros no Firebase...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Configuração do seu Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+        authDomain: "inspecao-saude-cbax.firebaseapp.com",
+        projectId: "inspecao-saude-cbax",
+        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+        messagingSenderId: "1011281662526",
+        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+    };
+
+    // Inicialização
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function carregarDados() {
+        const tabela = document.getElementById("tabelaCorpo");
+        const status = document.getElementById("status-conexao");
+        const contador = document.getElementById("contador");
+
+        try {
+            // BUSCA A COLEÇÃO EXATA
+            const snapshot = await db.collection("agendamentos_inspecao").get();
+            
+            if (snapshot.empty) {
+                tabela.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Nenhum agendamento encontrado no banco.</td></tr>";
+                status.innerText = "CONECTADO: Banco de dados vazio.";
+                status.style.color = "blue";
+                contador.innerText = "0";
+                return;
+            }
+
+            let html = "";
+            let total = 0;
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                total++;
+                html += `
+                    <tr>
+                        <td><span class="badge">${d.localInspecao || '---'}</span></td>
+                        <td>${d.data_br || '---'}</td>
+                        <td>${d.turno || 'Geral'}</td>
+                        <td><strong>${(d.nome || 'SEM NOME').toUpperCase()}</strong></td>
+                        <td>${d.rg || '---'}</td>
+                        <td>${d.unidadeMilitar || '---'}</td>
+                        <td>
+                            <button class="btn-del" onclick="excluirRegistro('${doc.id}', '${d.rg}')">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tabela.innerHTML = html;
+            contador.innerText = total;
+            status.innerText = "CONECTADO: " + total + " registros carregados.";
+            status.style.color = "green";
+
+        } catch (error) {
+            console.error("Erro:", error);
+            status.innerText = "ERRO DE CONEXÃO: " + error.message;
+            status.style.color = "red";
+            tabela.innerHTML = "<tr><td colspan='7' style='text-align:center; color: red;'>Falha ao carregar dados. Verifique as Regras do Firebase.</td></tr>";
+        }
+    }
+
+    async function excluirRegistro(id, rg) {
+        if (confirm("Deseja excluir este militar?")) {
+            try {
+                await db.collection("agendamentos_inspecao").doc(id).delete();
+                if (rg) {
+                    await db.collection("rg_locks_inspecao").doc(rg).delete();
+                }
+                alert("Excluído com sucesso!");
+                carregarDados();
+            } catch (e) {
+                alert("Erro ao excluir.");
+            }
+        }
+    }
+
+    function exportarExcel() {
+        const wb = XLSX.utils.table_to_book(document.querySelector("table"));
+        XLSX.writeFile(wb, "Relatorio_Inspecao_CBAX.xlsx");
+    }
+
+    // Carrega automaticamente ao abrir a página
+    window.onload = carregarDados;
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-br">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADM - Inspeção Médica 2026</title>
