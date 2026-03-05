@@ -162,11 +162,12 @@
                     <th>Turno</th>
                     <th>Nome do Militar</th>
                     <th>RG</th>
+                    <th>Lotação</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabela">
-                <tr><td colspan="7" style="text-align:center; padding: 50px;">Carregando registros do CBA X...</td></tr>
+                <tr><td colspan="8" style="text-align:center; padding: 50px;">Carregando registros do CBA X...</td></tr>
             </tbody>
         </table>
     </div>
@@ -174,11 +175,13 @@
 </div>
 
 <script>
-    // USAR A MESMA CONFIGURAÇÃO DO SEU INDEX
     const firebaseConfig = {
-        apiKey: "AIzaSy...",
+        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
         authDomain: "inspecao-saude-cbax.firebaseapp.com",
-        projectId: "inspecao-saude-cbax"
+        projectId: "inspecao-saude-cbax",
+        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+        messagingSenderId: "1011281662526",
+        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -187,34 +190,49 @@
     async function carregarDados() {
         const tabela = document.getElementById("tabela");
         const contador = document.getElementById("contador");
-        tabela.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Buscando dados...</td></tr>";
+        tabela.innerHTML = "<tr><td colspan='8' style='text-align:center;'>Buscando dados...</td></tr>";
 
         try {
-            // Ordena por data para facilitar sua visualização
-            const snap = await db.collection("agendamentos_inspecao").orderBy("data_br", "asc").get();
+            // Busca todos os documentos da coleção
+            const snap = await db.collection("agendamentos_inspecao").get();
             let total = 0;
+            
+            // Converte para array para ordenar manualmente se necessário, ou usa a ordem do Firestore
+            // Aqui ordenaremos por data (data_br está no formato DD/MM/AAAA)
+            const docs = [];
+            snap.forEach(doc => {
+                docs.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Ordenação por data (converte DD/MM/AAAA para algo comparável)
+            docs.sort((a, b) => {
+                const dateA = a.data_br ? a.data_br.split('/').reverse().join('') : '';
+                const dateB = b.data_br ? b.data_br.split('/').reverse().join('') : '';
+                return dateA.localeCompare(dateB);
+            });
+
             tabela.innerHTML = "";
 
-            snap.forEach(doc => {
-                const d = doc.data();
+            docs.forEach(d => {
                 total++;
                 tabela.innerHTML += `
                     <tr>
-                        <td><input type="checkbox" class="checkItem" value="${doc.id}" onchange="atualizarBotaoMassa()"></td>
+                        <td><input type="checkbox" class="checkItem" value="${d.id}" data-rg="${d.rg}" onchange="atualizarBotaoMassa()"></td>
                         <td><span class="badge-local">${d.localInspecao || ""}</span></td>
                         <td>${d.data_br || ""}</td>
                         <td>${d.turno || ""}</td>
                         <td><strong>${(d.nome || "").toUpperCase()}</strong></td>
                         <td>${d.rg || ""}</td>
+                        <td>${d.unidadeMilitar || ""}</td>
                         <td>
-                            <button class="btn-delete" onclick="excluirIndividual('${doc.id}','${d.nome}')">🗑️</button>
+                            <button class="btn-delete" onclick="excluirIndividual('${d.id}','${d.nome}', '${d.rg}')">🗑️</button>
                         </td>
                     </tr>
                 `;
             });
 
             contador.innerText = total;
-            if (total === 0) tabela.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Nenhum militar agendado ainda.</td></tr>";
+            if (total === 0) tabela.innerHTML = "<tr><td colspan='8' style='text-align:center;'>Nenhum militar agendado ainda.</td></tr>";
 
         } catch (e) {
             console.error(e);
@@ -236,22 +254,38 @@
         btn.style.display = selecionados > 0 ? "flex" : "none";
     }
 
-    async function excluirIndividual(id, nome) {
-        if (confirm("Deseja realmente remover " + nome + " da lista?")) {
-            await db.collection("agendamentos_inspecao").doc(id).delete();
-            // Também removemos o lock do RG para permitir novo agendamento se necessário
-            // Para ser 100% preciso, precisaríamos buscar o RG, mas excluir aqui já ajuda no controle.
-            carregarDados();
+    async function excluirIndividual(id, nome, rg) {
+        if (confirm("Deseja realmente remover " + nome + " da lista? Isso também permitirá que o RG " + rg + " faça um novo agendamento.")) {
+            try {
+                // Remove o agendamento
+                await db.collection("agendamentos_inspecao").doc(id).delete();
+                // Remove o lock do RG
+                if(rg) {
+                    await db.collection("rg_locks_inspecao").doc(rg).delete();
+                }
+                carregarDados();
+            } catch (error) {
+                alert("Erro ao excluir: " + error.message);
+            }
         }
     }
 
     async function excluirSelecionados() {
         const checks = document.querySelectorAll(".checkItem:checked");
-        if (confirm("Excluir permanentemente estes " + checks.length + " registros?")) {
-            for (let cb of checks) {
-                await db.collection("agendamentos_inspecao").doc(cb.value).delete();
+        if (confirm("Excluir permanentemente estes " + checks.length + " registros e liberar os RGs?")) {
+            try {
+                for (let cb of checks) {
+                    const id = cb.value;
+                    const rg = cb.getAttribute('data-rg');
+                    await db.collection("agendamentos_inspecao").doc(id).delete();
+                    if(rg) {
+                        await db.collection("rg_locks_inspecao").doc(rg).delete();
+                    }
+                }
+                carregarDados();
+            } catch (error) {
+                alert("Erro na exclusão em massa: " + error.message);
             }
-            carregarDados();
         }
     }
 
