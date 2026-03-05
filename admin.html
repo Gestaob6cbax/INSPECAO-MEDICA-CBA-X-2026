@@ -1,86 +1,82 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADM - Inspeção Médica 2026</title>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>INSPEÇÃO DE SAÚDE 2026 - CBA X</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
-        header { background: #8b0000; color: white; padding: 25px 20px; text-align: center; border-bottom: 5px solid #b8860b; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
-        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
-        .stats-row { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; flex: 1; min-width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid #8b0000; text-align: center; }
-        .stat-card span { display: block; font-size: 14px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-        .stat-card strong { font-size: 28px; color: #333; }
-        .controls { background: white; padding: 20px; border-radius: 12px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); flex-wrap: wrap; }
-        button { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .btn-refresh { background: #007bff; color: white; }
-        .btn-danger { background: #dc3545; color: white; display: none; }
-        .btn-export { background: #28a745; color: white; }
-        .table-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 11px; color: #666; border-bottom: 2px solid #eee; text-transform: uppercase; }
-        td { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #eee; }
-        .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; font-size: 10px; text-transform: uppercase; }
-        .btn-delete-row { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 18px; }
+        :root { --primary: #8b0000; --secondary: #ff0000; --bg: #f2f2f2; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin:0; padding:0; }
+        .header-top { background: linear-gradient(180deg, #9b0000 0%, #720000 100%); color: white; padding: 25px; text-align: center; border-bottom: 5px solid #ff0000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .container { max-width: 450px; margin: -20px auto 50px; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 12px; color: #444; text-transform: uppercase; }
+        input, select { width:100%; padding:14px; margin-bottom:20px; border-radius:8px; border: 1px solid #ccc; box-sizing: border-box; background: #fafafa; font-size: 15px; }
+        .btn-main { background: var(--primary); color: #fff; border:none; padding:18px; width:100%; border-radius:8px; font-weight:bold; cursor:pointer; text-transform: uppercase; font-size: 16px; transition: 0.3s; }
+        .btn-main:hover:not(:disabled) { background: #660000; }
+        .btn-main:disabled { background: #ccc; cursor: not-allowed; }
+        #vagasInfo { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; display: none; font-size: 14px; }
+        .vagas-disponiveis { background: #eaffea; color: #28a745; border: 1px solid #28a745; }
+        .vagas-esgotadas { background: #ffeaea; color: #8b0000; border: 1px solid #8b0000; }
+        #comprovanteBox { display:none; text-align: center; border: 2px solid #eee; padding: 20px; border-radius: 10px; }
+        .info-resumo { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 5px solid var(--primary); }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>Painel de Controle - Inspeção Médica 2026</h1>
-    <p>CBA X - Comando de Bombeiros de Área</p>
-</header>
+<div class="header-top">
+    <h2>INSPEÇÃO DE SAÚDE 2026</h2>
+    <p>COMANDO DE BOMBEIROS DE ÁREA - CBA X</p>
+</div>
 
 <div class="container">
-    <div class="stats-row">
-        <div class="stat-card">
-            <span>Militares Agendados</span>
-            <strong id="contador">0</strong>
-        </div>
-        <div class="stat-card">
-            <span>Banco de Dados</span>
-            <strong id="db-status" style="color: green; font-size: 18px;">CONECTADO</strong>
-        </div>
-    </div>
+    <form id="formAgendamento">
+        <label>Nome Completo</label>
+        <input type="text" id="nome" required placeholder="NOME DO MILITAR">
+        
+        <label>RG Militar</label>
+        <input type="text" id="rg" required placeholder="APENAS NÚMEROS">
 
-    <div class="controls">
-        <button class="btn-refresh" onclick="carregarDados()">🔄 Sincronizar Agora</button>
-        <button id="btnExcluirMassa" class="btn-danger" onclick="cancelarSelecionados()">
-            🗑️ Excluir Selecionados (<span id="numSel">0</span>)
-        </button>
-        <div style="flex-grow: 1;"></div>
-        <button class="btn-export" onclick="exportarExcel()">📊 Exportar Relatório Excel</button>
-    </div>
+        <label>Local da Inspeção</label>
+        <select id="unidade" required>
+            <option value="">SELECIONE O LOCAL...</option>
+            <option value="CER + 2º GMAR">CER + 2º GMAR - Barra</option>
+            <option value="3º GMAR">3º GMAR - Copacabana</option>
+            <option value="DBM 5/M">DBM 5/M - Sepetiba</option>
+            <option value="CBA X">CBA X - Salvamento Marítimo</option>
+            <option value="1º GMAR">1º GMAR + DBM 1/M + DBM 2/M</option>
+            <option value="4º GMAR">4º GMAR + DBM 6/M - Itaipu</option>
+            <option value="DBM 4/M">DBM 4/M + DBM 3/M - Recreio</option>
+        </select>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
-                    <th>Local Inspeção</th>
-                    <th>Unidade Origem</th>
-                    <th>Data</th>
-                    <th>Turno</th>
-                    <th>Posto/Grad</th>
-                    <th>Nome do Militar</th>
-                    <th>RG</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="tabela">
-                <tr><td colspan="9" style="padding: 40px; text-align: center;">Carregando dados unificados...</td></tr>
-            </tbody>
-        </table>
+        <label>Data Disponível</label>
+        <select id="dataSelect" required><option value="">Selecione o local primeiro</option></select>
+
+        <div id="campoTurno" style="display:none;">
+            <label>Turno</label>
+            <select id="turno">
+                <option value="">Escolha o Período</option>
+                <option value="Manhã">Manhã (07:30 - 12:00)</option>
+                <option value="Tarde">Tarde (13:00 - 17:30)</option>
+            </select>
+        </div>
+
+        <div id="vagasInfo"></div>
+
+        <button type="submit" id="btnAgendar" class="btn-main">Finalizar Agendamento</button>
+    </form>
+
+    <div id="comprovanteBox">
+        <h3 style="color: #28a745;">AGENDAMENTO CONFIRMADO!</h3>
+        <div class="info-resumo" id="resumo"></div>
+        <button onclick="window.print()" class="btn-main">Imprimir Comprovante</button>
+        <button onclick="location.reload()" style="margin-top:10px; background: #666;" class="btn-main">Novo Agendamento</button>
     </div>
 </div>
 
-<script>
-    // CONFIGURAÇÃO DO FIREBASE (MANTIDA)
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
         authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -90,116 +86,123 @@
         appId: "1:1011281662526:web:1028e8a8d140684e98376f"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    async function carregarDados() {
-        const tabela = document.getElementById("tabela");
-        const contador = document.getElementById("contador");
-        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Atualizando registros...</td></tr>";
+    const REGRAS = {
+        "CER + 2º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
+        "3º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
+        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-05", dias: [2,5], vagas: 10, turno: true },
+        "CBA X": { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
+        "1º GMAR": { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7, turno: true },
+        "4º GMAR": { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7, turno: true },
+        "DBM 4/M": { inicio: "2026-06-30", fim: "2026-07-31", dias: [2,5], vagas: 7, turno: true }
+    };
+
+    const unidadeEl = document.getElementById("unidade");
+    const dataSelect = document.getElementById("dataSelect");
+    const campoTurno = document.getElementById("campoTurno");
+    const turnoSelect = document.getElementById("turno");
+    const vagasInfo = document.getElementById("vagasInfo");
+    const btnAgendar = document.getElementById("btnAgendar");
+
+    unidadeEl.addEventListener("change", () => {
+        dataSelect.innerHTML = '<option value="">Selecione a Data</option>';
+        vagasInfo.style.display = "none";
+        const regra = REGRAS[unidadeEl.value];
+        if(!regra) return;
+
+        campoTurno.style.display = regra.turno ? "block" : "none";
+        turnoSelect.required = regra.turno;
+        turnoSelect.value = "";
+
+        let cursor = new Date(regra.inicio + "T12:00:00");
+        const fim = new Date(regra.fim + "T12:00:00");
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+        while(cursor <= fim) {
+            if(cursor >= hoje && regra.dias.includes(cursor.getDay())) {
+                const ymd = cursor.toISOString().split('T')[0];
+                dataSelect.add(new Option(ymd.split('-').reverse().join('/'), ymd));
+            }
+            cursor.setDate(cursor.getDate() + 1);
+        }
+    });
+
+    async function atualizarVagasReais() {
+        const local = unidadeEl.value;
+        const data = dataSelect.value;
+        const regra = REGRAS[local];
+        if(!local || !data || (regra.turno && !turnoSelect.value)) return;
+
+        vagasInfo.style.display = "block";
+        vagasInfo.innerHTML = "Consultando banco de dados...";
+        btnAgendar.disabled = true;
 
         try {
-            // Busca nas duas coleções (Antiga e Nova)
-            const [snapAntigos, snapNovos] = await Promise.all([
-                db.collection("agendamentos").get(),
-                db.collection("agendamentos_inspecao").get()
-            ]);
+            const dataBR = data.split('-').reverse().join('/');
+            const tFinal = regra.turno ? turnoSelect.value : "Geral";
 
-            let todosAgendamentos = [];
+            // CONTAGEM REAL DOS 565 NO BANCO
+            const q = query(collection(db, "agendamentos_inspecao"), 
+                where("localInspecao", "==", local),
+                where("data_br", "==", dataBR),
+                where("turno", "==", tFinal)
+            );
 
-            // Processar coleção 1
-            snapAntigos.forEach(doc => {
-                const d = doc.data();
-                todosAgendamentos.push({
-                    id: doc.id, colecao: "agendamentos",
-                    local: d.unidade || d.localNome || "Não inf.",
-                    origem: d.unidadeServe || d.unidadeOrigem || "Não inf.",
-                    data: d.data || "", turno: d.turno || "Manhã",
-                    posto: d.posto || "", nome: d.nome || "", rg: d.rg || ""
-                });
-            });
+            const snap = await getDocs(q);
+            const ocupadas = snap.size;
+            const disponiveis = regra.vagas - ocupadas;
 
-            // Processar coleção 2
-            snapNovos.forEach(doc => {
-                const d = doc.data();
-                todosAgendamentos.push({
-                    id: doc.id, colecao: "agendamentos_inspecao",
-                    local: d.localNome || d.unidade || "Não inf.",
-                    origem: d.unidadeOrigem || d.unidadeServe || "Não inf.",
-                    data: d.data || "", turno: d.turno || "Manhã",
-                    posto: d.posto || "", nome: d.nome || "", rg: d.rg || ""
-                });
-            });
-
-            // Ordenação por Data (Mais recente primeiro)
-            todosAgendamentos.sort((a, b) => b.data.localeCompare(a.data));
-
-            tabela.innerHTML = "";
-            todosAgendamentos.forEach(item => {
-                // Formatação da data brasileira
-                const dataBR = item.data.includes('-') ? item.data.split('-').reverse().join('/') : item.data;
-
-                tabela.innerHTML += `
-                    <tr>
-                        <td><input type="checkbox" class="checkItem" data-col="${item.colecao}" value="${item.id}" onchange="atualizarBotaoMassa()"></td>
-                        <td><span class="badge-local">${item.local}</span></td>
-                        <td>${item.origem}</td>
-                        <td>${dataBR}</td>
-                        <td><strong>${item.turno}</strong></td>
-                        <td>${item.posto}</td>
-                        <td><strong>${item.nome.toUpperCase()}</strong></td>
-                        <td>${item.rg}</td>
-                        <td><button class="btn-delete-row" onclick="excluirIndividual('${item.colecao}', '${item.id}', '${item.nome}')">🗑️</button></td>
-                    </tr>`;
-            });
-
-            contador.innerText = todosAgendamentos.length;
-            if (todosAgendamentos.length === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center;'>Nenhum registro encontrado.</td></tr>";
-            atualizarBotaoMassa();
-        } catch (e) {
-            console.error(e);
-            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center;'>Erro de conexão com o banco de dados.</td></tr>";
-        }
-    }
-
-    function toggleTodos() {
-        const master = document.getElementById("selecionarTodos");
-        document.querySelectorAll(".checkItem").forEach(cb => cb.checked = master.checked);
-        atualizarBotaoMassa();
-    }
-
-    function atualizarBotaoMassa() {
-        const selecionados = document.querySelectorAll(".checkItem:checked").length;
-        const btn = document.getElementById("btnExcluirMassa");
-        document.getElementById("numSel").innerText = selecionados;
-        btn.style.display = selecionados > 0 ? "flex" : "none";
-    }
-
-    async function excluirIndividual(colecao, id, nome) {
-        if (confirm(`Excluir o agendamento de ${nome}?`)) {
-            await db.collection(colecao).doc(id).delete();
-            carregarDados();
-        }
-    }
-
-    async function cancelarSelecionados() {
-        const checks = document.querySelectorAll(".checkItem:checked");
-        if (confirm(`Confirmar a exclusão permanente de ${checks.length} registros?`)) {
-            for (let cb of checks) {
-                const col = cb.getAttribute("data-col");
-                await db.collection(col).doc(cb.value).delete();
+            if(disponiveis <= 0) {
+                vagasInfo.innerHTML = `❌ ESGOTADO (${regra.vagas} MILITARES JÁ AGENDADOS)`;
+                vagasInfo.className = "vagas-esgotadas";
+                btnAgendar.disabled = true;
+            } else {
+                vagasInfo.innerHTML = `✅ DISPONÍVEL: ${disponiveis} VAGAS RESTANTES`;
+                vagasInfo.className = "vagas-disponiveis";
+                btnAgendar.disabled = false;
             }
-            carregarDados();
-        }
+        } catch(e) { console.error(e); }
     }
 
-    function exportarExcel() {
-        const tabelaDOM = document.querySelector("table");
-        const wb = XLSX.utils.table_to_book(tabelaDOM);
-        XLSX.writeFile(wb, "Relatorio_Geral_Inspecao_Medica_CBAX.xlsx");
-    }
+    dataSelect.addEventListener("change", atualizarVagasReais);
+    turnoSelect.addEventListener("change", atualizarVagasReais);
 
-    window.onload = carregarDados;
+    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        btnAgendar.disabled = true;
+        const rg = document.getElementById("rg").value.trim();
+        
+        try {
+            const lockRef = doc(db, "rg_locks_inspecao", rg);
+            const lockSnap = await getDoc(lockRef);
+            if(lockSnap.exists()) throw new Error("Atenção: Já consta agendamento para este RG!");
+
+            const localVal = unidadeEl.value;
+            const dados = {
+                nome: document.getElementById("nome").value.toUpperCase(),
+                rg: rg,
+                localInspecao: localVal,
+                data_br: dataSelect.value.split('-').reverse().join('/'),
+                turno: REGRAS[localVal].turno ? turnoSelect.value : "Geral",
+                criadoEm: serverTimestamp()
+            };
+
+            await setDoc(doc(collection(db, "agendamentos_inspecao")), dados);
+            await setDoc(lockRef, { rg: rg });
+
+            document.getElementById("formAgendamento").style.display = "none";
+            document.getElementById("comprovanteBox").style.display = "block";
+            document.getElementById("resumo").innerHTML = `
+                <strong>Militar:</strong> ${dados.nome}<br>
+                <strong>RG:</strong> ${dados.rg}<br>
+                <strong>Local:</strong> ${dados.localInspecao}<br>
+                <strong>Data:</strong> ${dados.data_br}<br>
+                <strong>Turno:</strong> ${dados.turno}
+            `;
+        } catch(err) { alert(err.message); btnAgendar.disabled = false; }
+    });
 </script>
 </body>
 </html>
