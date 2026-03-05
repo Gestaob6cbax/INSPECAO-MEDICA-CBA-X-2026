@@ -7,37 +7,41 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
+        * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
         header { background: #8b0000; color: white; text-align: center; padding: 20px; border-bottom: 4px solid #5a0000; }
+        header img { width: 80px; margin-bottom: 10px; }
         .container { max-width: 600px; margin: 20px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .step { display: none; }
         .step.active { display: block; }
-        h2 { color: #8b0000; font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        label { font-weight: bold; display: block; margin-top: 15px; font-size: 0.9rem; }
+        h2 { color: #8b0000; font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 10px; text-transform: uppercase; }
+        label { font-weight: bold; display: block; margin-top: 15px; font-size: 0.9rem; color: #333; }
         input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-        .aviso-unidade { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-top: 5px; border-left: 4px solid #ffc107; }
-        .btn-next { background: #8b0000; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-next:disabled { background: #ccc; }
-        .vagas-box { background: #e6fffa; color: #234e52; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; border: 1px solid #b2f5ea; }
+        .aviso-unidade { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 0.9rem; margin-top: 15px; border-left: 5px solid #ffc107; font-weight: bold; }
+        .btn-next { background: #8b0000; color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; text-transform: uppercase; }
+        .btn-next:disabled { background: #ccc; cursor: not-allowed; }
+        .vagas-box { background: #e6fffa; color: #234e52; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 15px; border: 1px solid #b2f5ea; font-size: 1.1rem; }
         .lotado { background: #fff5f5 !important; color: #c53030 !important; border-color: #feb2b2 !important; }
-        @media print { header, .btn-next, .no-print { display: none !important; } .container { box-shadow: none; width: 100%; } }
+        .resumo-final { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        @media print { header, .btn-next, .no-print { display: none !important; } .container { box-shadow: none; width: 100%; margin: 0; padding: 0; } }
     </style>
 </head>
 <body>
 
 <header>
+    <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-MEDICA-CBA-X-2026/main/logo_cba_x.png" alt="Logo CBA X">
     <h1>INSPEÇÃO MÉDICA 2026</h1>
     <p>CBA X - SISTEMA DE AGENDAMENTO</p>
 </header>
 
 <div class="container">
     <div class="step active" id="step1">
-        <h2>Passo 1: Identificação do Militar</h2>
+        <h2>1. Identificação do Militar</h2>
         <label>Nome Completo:</label>
-        <input type="text" id="nome" placeholder="NOME COMPLETO">
+        <input type="text" id="nome" placeholder="Digite seu nome completo">
         <label>RG Militar:</label>
         <input type="number" id="rg" placeholder="Apenas números">
-        <label>Posto / Graduação:</label>
+        <label>Posto / Graduação / Patente:</label>
         <select id="posto">
             <option value="">Selecione...</option>
             <option>CORONEL</option><option>TENENTE CORONEL</option><option>MAJOR</option><option>CAPITÃO</option>
@@ -59,50 +63,52 @@
     </div>
 
     <div class="step" id="step2">
-        <h2>Passo 2: Local da Inspeção</h2>
-        <label>Onde deseja realizar a inspeção?</label>
+        <h2>2. Local da Inspeção</h2>
+        <label>Selecione a Unidade que realizará a Inspeção:</label>
         <select id="localDestino" onchange="mostrarAvisoUnidade()">
             <option value="">Selecione...</option>
+            <option value="GRUPO1" data-vagas="7">1º GMAR / DBM 1/M / DBM 2/M</option>
             <option value="BARRA" data-vagas="5">2º GMAR (Barra da Tijuca)</option>
             <option value="COPA" data-vagas="5">3º GMAR (Copacabana)</option>
-            <option value="GRUPO1" data-vagas="7">1º GMAR / DBM 1/M / DBM 2/M</option>
+            <option value="ITAIPU" data-vagas="7">4º GMAR / DBM 6/M</option>
             <option value="SEPETIBA" data-vagas="7">DBM 5/M (Sepetiba)</option>
             <option value="CBAX" data-vagas="7">CBA X (Sede)</option>
-            <option value="ITAIPU" data-vagas="7">4º GMAR / DBM 6/M (Itaipu)</option>
-            <option value="RECREIO" data-vagas="7">DBM 3/M / DBM 4/M (Recreio)</option>
+            <option value="RECREIO" data-vagas="7">DBM 3/M / DBM 4/M</option>
         </select>
         <div id="avisoUnidade" class="aviso-unidade" style="display:none;"></div>
         <button class="btn-next" id="btnGoStep3" onclick="nextStep(3)" disabled>Próximo: Escolher Data</button>
     </div>
 
     <div class="step" id="step3">
-        <h2>Passo 3: Escolha a Data</h2>
-        <label>Datas disponíveis para este local:</label>
+        <h2>3. Escolha a Data</h2>
+        <label>Selecione uma das datas disponíveis:</label>
         <select id="dataSeletor" onchange="document.getElementById('btnGoStep4').disabled = false;"></select>
         <button class="btn-next" id="btnGoStep4" onclick="nextStep(4)" disabled>Próximo: Escolher Turno</button>
     </div>
 
     <div class="step" id="step4">
-        <h2>Passo 4: Turno e Vagas</h2>
-        <label>Selecione o Turno:</label>
+        <h2>4. Turno e Vagas</h2>
+        <label>Escolha o Turno:</label>
         <select id="turno" onchange="consultarVagas()">
-            <option value="">Escolha...</option>
-            <option value="MANHA">MANHÃ (08:00)</option>
-            <option value="TARDE">TARDE (13:00)</option>
+            <option value="">Selecione...</option>
+            <option value="MANHA">MANHÃ (7 vagas disponíveis)</option>
+            <option value="TARDE">TARDE (7 vagas disponíveis)</option>
         </select>
         <div id="vagasStatus" class="vagas-box" style="display:none;"></div>
         <button class="btn-next" id="btnFinalizar" onclick="salvarTudo()" disabled>Confirmar Agendamento</button>
     </div>
 
     <div id="comprovante" style="display:none;">
-        <h2 style="color:green; text-align:center;">✅ AGENDAMENTO REALIZADO!</h2>
-        <div id="dadosResumo"></div>
-        <button class="btn-next" onclick="window.print()">Imprimir PDF / Comprovante</button>
-        <button class="btn-next" style="background:#666" onclick="location.reload()">Novo Agendamento</button>
+        <h2 style="color:green; text-align:center;">✅ AGENDAMENTO REALIZADO COM SUCESSO!</h2>
+        <div id="dadosResumo" class="resumo-final"></div>
+        <p class="no-print" style="text-align:center; font-size: 0.8rem; color: #666;">Você pode tirar um print desta tela ou clicar no botão abaixo.</p>
+        <button class="btn-next" onclick="window.print()">Imprimir em PDF / Comprovante</button>
+        <button class="btn-next" style="background:#666" onclick="location.reload()">Realizar Novo Agendamento</button>
     </div>
 </div>
 
 <script>
+    // CONFIGURAÇÃO FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
         authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -114,16 +120,22 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // REGRAS DE NEGÓCIO (DATAS E UNIDADES)
     const REGRAS = {
-        "BARRA": { ini: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], msg: "Atende militares do 2º GMAR." },
-        "COPA": { ini: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], msg: "Atende militares do 3º GMAR." },
-        "GRUPO1": { ini: "2026-03-17", fim: "2026-05-15", dias: [2,5], msg: "Atende 1º GMAR, DBM 1/M e DBM 2/M. (7 vagas Manhã / 7 Tarde)" },
-        "SEPETIBA": { ini: "2026-02-23", fim: "2026-03-05", dias: [2,5], msg: "Atende militares do DBM 5/M." }
-        // Adicione as outras conforme a lógica...
+        "GRUPO1": { ini: "2026-03-17", fim: "2026-05-15", dias: [2,5], msg: "Esta unidade realiza as inspeções do 1º GMAR, DBM 1/M e DBM 2/M. Atendimento: 7 vagas Manhã / 7 Tarde." },
+        "BARRA": { ini: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], msg: "Atende militares do 2º GMAR. (5 vagas por turno)" },
+        "COPA": { ini: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], msg: "Atende militares do 3º GMAR. (5 vagas por turno)" },
+        "ITAIPU": { ini: "2026-05-19", fim: "2026-06-26", dias: [2,5], msg: "Esta unidade atende militares do 4º GMAR e DBM 6/M." },
+        "SEPETIBA": { ini: "2026-02-23", fim: "2026-03-05", dias: [2,5], msg: "Atende militares do DBM 5/M." },
+        "CBAX": { ini: "2026-03-10", fim: "2026-03-13", dias: [2,5], msg: "Atendimento na Sede do CBA X." },
+        "RECREIO": { ini: "2026-06-30", fim: "2026-07-31", dias: [2,5], msg: "Atende militares do DBM 3/M e DBM 4/M." }
     };
 
     function nextStep(n) {
-        if(n === 2 && !document.getElementById("rg").value) { alert("Preencha os dados!"); return; }
+        if(n === 2 && (!document.getElementById("nome").value || !document.getElementById("rg").value)) {
+            alert("Por favor, preencha o Nome e o RG antes de prosseguir.");
+            return;
+        }
         document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + n).classList.add('active');
         if(n === 3) carregarDatas();
@@ -136,21 +148,26 @@
             aviso.style.display = "block";
             aviso.innerText = "Aviso: " + REGRAS[local].msg;
             document.getElementById("btnGoStep3").disabled = false;
+        } else {
+            aviso.style.display = "none";
+            document.getElementById("btnGoStep3").disabled = true;
         }
     }
 
     function carregarDatas() {
         const local = document.getElementById("localDestino").value;
         const sel = document.getElementById("dataSeletor");
-        sel.innerHTML = "<option value=''>Selecione a data...</option>";
+        sel.innerHTML = "<option value=''>Selecione uma data disponível...</option>";
         let config = REGRAS[local];
         let d = new Date(config.ini + "T12:00:00");
         let dFim = new Date(config.fim + "T12:00:00");
+
         while(d <= dFim) {
             if(config.dias.includes(d.getDay())) {
                 let ymd = d.toISOString().split('T')[0];
+                let dataBR = ymd.split('-').reverse().join('/');
                 let opt = document.createElement("option");
-                opt.value = ymd; opt.text = ymd.split('-').reverse().join('/');
+                opt.value = ymd; opt.text = dataBR;
                 sel.appendChild(opt);
             }
             d.setDate(d.getDate() + 1);
@@ -164,32 +181,42 @@
         const status = document.getElementById("vagasStatus");
         const btn = document.getElementById("btnFinalizar");
 
-        if(!turno) return;
+        if(!turno) { status.style.display = "none"; return; }
+        
         status.style.display = "block";
-        status.innerText = "Consultando...";
+        status.innerText = "Consultando vagas no sistema...";
 
         const limite = parseInt(document.getElementById("localDestino").options[document.getElementById("localDestino").selectedIndex].dataset.vagas);
         
-        const snap = await db.collection("agendamentos_inspecao")
-                            .where("localId", "==", local)
-                            .where("data", "==", data)
-                            .where("turno", "==", turno).get();
-        
-        const ocupadas = snap.size;
-        const livres = limite - ocupadas;
+        try {
+            const snap = await db.collection("agendamentos_inspecao")
+                                .where("localId", "==", local)
+                                .where("data", "==", data)
+                                .where("turno", "==", turno).get();
+            
+            const ocupadas = snap.size;
+            const livres = limite - ocupadas;
 
-        if(ocupadas >= limite) {
-            status.innerHTML = `❌ TURNO LOTADO (${ocupadas}/${limite})`;
-            status.classList.add("lotado");
-            btn.disabled = true;
-        } else {
-            status.innerHTML = `✅ Vagas: ${ocupadas} completa(s) e ${livres} livre(s).`;
-            status.classList.remove("lotado");
-            btn.disabled = false;
+            if(ocupadas >= limite) {
+                status.innerHTML = `❌ TURNO LOTADO (${ocupadas} de ${limite} vagas preenchidas)`;
+                status.classList.add("lotado");
+                btn.disabled = true;
+            } else {
+                status.innerHTML = `✅ ${ocupadas} vaga(s) ocupada(s) e ${livres} vaga(s) livre(s).`;
+                status.classList.remove("lotado");
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            status.innerText = "Erro ao carregar vagas. Tente novamente.";
         }
     }
 
     async function salvarTudo() {
+        const btn = document.getElementById("btnFinalizar");
+        btn.disabled = true;
+        btn.innerText = "SALVANDO...";
+
         const dados = {
             nome: document.getElementById("nome").value.toUpperCase(),
             rg: document.getElementById("rg").value,
@@ -202,22 +229,30 @@
             criadoEm: new Date()
         };
 
-        await db.collection("agendamentos_inspecao").add(dados);
-        
-        // Envio para Planilha
-        fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
-            method: "POST", mode: "no-cors", body: JSON.stringify(dados)
-        });
+        try {
+            await db.collection("agendamentos_inspecao").add(dados);
+            
+            // Webhook para Google Sheets (Substitua se necessário)
+            fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
+                method: "POST", mode: "no-cors", body: JSON.stringify(dados)
+            });
 
-        document.getElementById("step4").classList.remove("active");
-        document.getElementById("comprovante").style.display = "block";
-        document.getElementById("dadosResumo").innerHTML = `
-            <p><b>Militar:</b> ${dados.posto} ${dados.nome}</p>
-            <p><b>RG:</b> ${dados.rg}</p>
-            <p><b>Local:</b> ${dados.localNome}</p>
-            <p><b>Data:</b> ${dados.data.split('-').reverse().join('/')}</p>
-            <p><b>Turno:</b> ${dados.turno}</p>
-        `;
+            document.getElementById("step4").classList.remove("active");
+            document.getElementById("comprovante").style.display = "block";
+            document.getElementById("dadosResumo").innerHTML = `
+                <p><b>MILITAR:</b> ${dados.posto} ${dados.nome}</p>
+                <p><b>RG:</b> ${dados.rg}</p>
+                <p><b>UNIDADE DE ORIGEM:</b> ${dados.unidadeOrigem}</p>
+                <hr>
+                <p><b>LOCAL DA INSPEÇÃO:</b> ${dados.localNome}</p>
+                <p><b>DATA:</b> ${dados.data.split('-').reverse().join('/')}</p>
+                <p><b>TURNO:</b> ${dados.turno}</p>
+            `;
+        } catch (e) {
+            alert("Erro ao salvar agendamento. Verifique sua conexão.");
+            btn.disabled = false;
+            btn.innerText = "Confirmar Agendamento";
+        }
     }
 </script>
 </body>
