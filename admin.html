@@ -1,205 +1,397 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADM - Inspeção Médica 2026</title>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
-        header { background: #8b0000; color: white; padding: 25px 20px; text-align: center; border-bottom: 5px solid #b8860b; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
-        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
-        .stats-row { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; flex: 1; min-width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid #8b0000; text-align: center; }
-        .stat-card span { display: block; font-size: 14px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-        .stat-card strong { font-size: 28px; color: #333; }
-        .controls { background: white; padding: 20px; border-radius: 12px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); flex-wrap: wrap; }
-        button { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .btn-refresh { background: #007bff; color: white; }
-        .btn-danger { background: #dc3545; color: white; display: none; }
-        .btn-export { background: #28a745; color: white; }
-        .table-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 11px; color: #666; border-bottom: 2px solid #eee; text-transform: uppercase; }
-        td { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #eee; }
-        .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; font-size: 10px; text-transform: uppercase; }
-        .btn-delete-row { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 18px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADM - Inspeção Médica 2026</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+
+body{
+font-family:'Segoe UI',Tahoma,sans-serif;
+background:#f0f2f5;
+margin:0;
+padding:0;
+}
+
+header{
+background:#8b0000;
+color:white;
+padding:25px 20px;
+text-align:center;
+border-bottom:5px solid #b8860b;
+box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+
+header h1{
+margin:0;
+font-size:24px;
+text-transform:uppercase;
+letter-spacing:1px;
+}
+
+.container{
+max-width:1400px;
+margin:30px auto;
+padding:0 20px;
+}
+
+.stats-row{
+display:flex;
+gap:20px;
+margin-bottom:25px;
+flex-wrap:wrap;
+}
+
+.stat-card{
+background:white;
+padding:20px;
+border-radius:12px;
+flex:1;
+min-width:200px;
+box-shadow:0 4px 6px rgba(0,0,0,0.05);
+border-left:8px solid #8b0000;
+text-align:center;
+}
+
+.stat-card span{
+display:block;
+font-size:14px;
+color:#666;
+font-weight:bold;
+text-transform:uppercase;
+margin-bottom:5px;
+}
+
+.stat-card strong{
+font-size:28px;
+color:#333;
+}
+
+.controls{
+background:white;
+padding:20px;
+border-radius:12px;
+display:flex;
+gap:15px;
+align-items:center;
+margin-bottom:25px;
+box-shadow:0 4px 6px rgba(0,0,0,0.05);
+flex-wrap:wrap;
+}
+
+button{
+padding:12px 20px;
+border:none;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+font-size:14px;
+display:flex;
+align-items:center;
+gap:8px;
+}
+
+.btn-refresh{
+background:#007bff;
+color:white;
+}
+
+.btn-danger{
+background:#dc3545;
+color:white;
+display:none;
+}
+
+.btn-export{
+background:#28a745;
+color:white;
+}
+
+.table-container{
+background:white;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0 4px 6px rgba(0,0,0,0.05);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+background:#f8f9fa;
+padding:15px;
+text-align:left;
+font-size:11px;
+color:#666;
+border-bottom:2px solid #eee;
+text-transform:uppercase;
+}
+
+td{
+padding:12px 15px;
+font-size:13px;
+border-bottom:1px solid #eee;
+}
+
+.badge-local{
+background:#f8d7da;
+color:#721c24;
+padding:4px 8px;
+border-radius:4px;
+font-weight:bold;
+border:1px solid #f5c6cb;
+font-size:10px;
+text-transform:uppercase;
+}
+
+.btn-delete-row{
+color:#dc3545;
+background:none;
+border:none;
+cursor:pointer;
+font-size:18px;
+}
+
+</style>
+
 </head>
+
 <body>
 
 <header>
-    <h1>Painel de Controle - Inspeção Médica 2026</h1>
-    <p>CBA X - Comando de Bombeiros de Área</p>
+<h1>Painel de Controle - Inspeção Médica 2026</h1>
+<p>CBA X - Comando de Bombeiros de Área</p>
 </header>
 
 <div class="container">
-    <div class="stats-row">
-        <div class="stat-card">
-            <span>Militares Agendados</span>
-            <strong id="contador">0</strong>
-        </div>
-        <div class="stat-card">
-            <span>Banco de Dados</span>
-            <strong id="db-status" style="color: green; font-size: 18px;">CONECTADO</strong>
-        </div>
-    </div>
 
-    <div class="controls">
-        <button class="btn-refresh" onclick="carregarDados()">🔄 Sincronizar Agora</button>
-        <button id="btnExcluirMassa" class="btn-danger" onclick="cancelarSelecionados()">
-            🗑️ Excluir Selecionados (<span id="numSel">0</span>)
-        </button>
-        <div style="flex-grow: 1;"></div>
-        <button class="btn-export" onclick="exportarExcel()">📊 Exportar Relatório Excel</button>
-    </div>
+<div class="stats-row">
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
-                    <th>Local Inspeção</th>
-                    <th>Unidade Origem</th>
-                    <th>Data</th>
-                    <th>Turno</th>
-                    <th>Posto/Grad</th>
-                    <th>Nome do Militar</th>
-                    <th>RG</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="tabela">
-                <tr><td colspan="9" style="padding: 40px; text-align: center;">Carregando dados unificados...</td></tr>
-            </tbody>
-        </table>
-    </div>
+<div class="stat-card">
+<span>Militares Agendados</span>
+<strong id="contador">0</strong>
+</div>
+
+<div class="stat-card">
+<span>Banco de Dados</span>
+<strong id="db-status" style="color:green;font-size:18px;">CONECTADO</strong>
+</div>
+
+</div>
+
+<div class="controls">
+
+<button class="btn-refresh" onclick="carregarDados()">
+🔄 Sincronizar Agora
+</button>
+
+<button id="btnExcluirMassa" class="btn-danger" onclick="cancelarSelecionados()">
+🗑️ Excluir Selecionados (<span id="numSel">0</span>)
+</button>
+
+<div style="flex-grow:1;"></div>
+
+<button class="btn-export" onclick="exportarExcel()">
+📊 Exportar Relatório Excel
+</button>
+
+</div>
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+<th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
+<th>Local Inspeção</th>
+<th>Data</th>
+<th>Turno</th>
+<th>Nome</th>
+<th>RG</th>
+<th>Ações</th>
+</tr>
+
+</thead>
+
+<tbody id="tabela">
+
+<tr>
+<td colspan="7" style="padding:40px;text-align:center;">
+Carregando registros...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
 </div>
 
 <script>
-    // CONFIGURAÇÃO DO FIREBASE (MANTIDA)
-    const firebaseConfig = {
-        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-        authDomain: "inspecao-saude-cbax.firebaseapp.com",
-        projectId: "inspecao-saude-cbax",
-        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-        messagingSenderId: "1011281662526",
-        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-    };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+const firebaseConfig={
+apiKey:"AIzaSy...",
+authDomain:"inspecao-saude-cbax.firebaseapp.com",
+projectId:"inspecao-saude-cbax"
+};
 
-    async function carregarDados() {
-        const tabela = document.getElementById("tabela");
-        const contador = document.getElementById("contador");
-        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Atualizando registros...</td></tr>";
+firebase.initializeApp(firebaseConfig);
 
-        try {
-            // Busca nas duas coleções (Antiga e Nova)
-            const [snapAntigos, snapNovos] = await Promise.all([
-                db.collection("agendamentos").get(),
-                db.collection("agendamentos_inspecao").get()
-            ]);
+const db=firebase.firestore();
 
-            let todosAgendamentos = [];
+async function carregarDados(){
 
-            // Processar coleção 1
-            snapAntigos.forEach(doc => {
-                const d = doc.data();
-                todosAgendamentos.push({
-                    id: doc.id, colecao: "agendamentos",
-                    local: d.unidade || d.localNome || "Não inf.",
-                    origem: d.unidadeServe || d.unidadeOrigem || "Não inf.",
-                    data: d.data || "", turno: d.turno || "Manhã",
-                    posto: d.posto || "", nome: d.nome || "", rg: d.rg || ""
-                });
-            });
+const tabela=document.getElementById("tabela");
+const contador=document.getElementById("contador");
 
-            // Processar coleção 2
-            snapNovos.forEach(doc => {
-                const d = doc.data();
-                todosAgendamentos.push({
-                    id: doc.id, colecao: "agendamentos_inspecao",
-                    local: d.localNome || d.unidade || "Não inf.",
-                    origem: d.unidadeOrigem || d.unidadeServe || "Não inf.",
-                    data: d.data || "", turno: d.turno || "Manhã",
-                    posto: d.posto || "", nome: d.nome || "", rg: d.rg || ""
-                });
-            });
+tabela.innerHTML="<tr><td colspan='7' style='text-align:center;'>Atualizando...</td></tr>";
 
-            // Ordenação por Data (Mais recente primeiro)
-            todosAgendamentos.sort((a, b) => b.data.localeCompare(a.data));
+try{
 
-            tabela.innerHTML = "";
-            todosAgendamentos.forEach(item => {
-                // Formatação da data brasileira
-                const dataBR = item.data.includes('-') ? item.data.split('-').reverse().join('/') : item.data;
+const snap=await db.collection("agendamentos_inspecao").get();
 
-                tabela.innerHTML += `
-                    <tr>
-                        <td><input type="checkbox" class="checkItem" data-col="${item.colecao}" value="${item.id}" onchange="atualizarBotaoMassa()"></td>
-                        <td><span class="badge-local">${item.local}</span></td>
-                        <td>${item.origem}</td>
-                        <td>${dataBR}</td>
-                        <td><strong>${item.turno}</strong></td>
-                        <td>${item.posto}</td>
-                        <td><strong>${item.nome.toUpperCase()}</strong></td>
-                        <td>${item.rg}</td>
-                        <td><button class="btn-delete-row" onclick="excluirIndividual('${item.colecao}', '${item.id}', '${item.nome}')">🗑️</button></td>
-                    </tr>`;
-            });
+let total=0;
 
-            contador.innerText = todosAgendamentos.length;
-            if (todosAgendamentos.length === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center;'>Nenhum registro encontrado.</td></tr>";
-            atualizarBotaoMassa();
-        } catch (e) {
-            console.error(e);
-            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center;'>Erro de conexão com o banco de dados.</td></tr>";
-        }
-    }
+tabela.innerHTML="";
 
-    function toggleTodos() {
-        const master = document.getElementById("selecionarTodos");
-        document.querySelectorAll(".checkItem").forEach(cb => cb.checked = master.checked);
-        atualizarBotaoMassa();
-    }
+snap.forEach(doc=>{
 
-    function atualizarBotaoMassa() {
-        const selecionados = document.querySelectorAll(".checkItem:checked").length;
-        const btn = document.getElementById("btnExcluirMassa");
-        document.getElementById("numSel").innerText = selecionados;
-        btn.style.display = selecionados > 0 ? "flex" : "none";
-    }
+const d=doc.data();
 
-    async function excluirIndividual(colecao, id, nome) {
-        if (confirm(`Excluir o agendamento de ${nome}?`)) {
-            await db.collection(colecao).doc(id).delete();
-            carregarDados();
-        }
-    }
+total++;
 
-    async function cancelarSelecionados() {
-        const checks = document.querySelectorAll(".checkItem:checked");
-        if (confirm(`Confirmar a exclusão permanente de ${checks.length} registros?`)) {
-            for (let cb of checks) {
-                const col = cb.getAttribute("data-col");
-                await db.collection(col).doc(cb.value).delete();
-            }
-            carregarDados();
-        }
-    }
+tabela.innerHTML+=`
 
-    function exportarExcel() {
-        const tabelaDOM = document.querySelector("table");
-        const wb = XLSX.utils.table_to_book(tabelaDOM);
-        XLSX.writeFile(wb, "Relatorio_Geral_Inspecao_Medica_CBAX.xlsx");
-    }
+<tr>
 
-    window.onload = carregarDados;
+<td>
+<input type="checkbox" class="checkItem" value="${doc.id}" onchange="atualizarBotaoMassa()">
+</td>
+
+<td>
+<span class="badge-local">${d.localInspecao||""}</span>
+</td>
+
+<td>${d.data_br||""}</td>
+
+<td>${d.turno||""}</td>
+
+<td><strong>${(d.nome||"").toUpperCase()}</strong></td>
+
+<td>${d.rg||""}</td>
+
+<td>
+
+<button class="btn-delete-row"
+onclick="excluirIndividual('${doc.id}','${d.nome}')">
+
+🗑️
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+contador.innerText=total;
+
+if(total===0){
+
+tabela.innerHTML="<tr><td colspan='7' style='text-align:center;'>Nenhum registro encontrado</td></tr>";
+
+}
+
+}catch(e){
+
+console.error(e);
+
+tabela.innerHTML="<tr><td colspan='7' style='color:red;text-align:center;'>Erro ao conectar banco</td></tr>";
+
+}
+
+}
+
+function toggleTodos(){
+
+const master=document.getElementById("selecionarTodos");
+
+document.querySelectorAll(".checkItem").forEach(cb=>cb.checked=master.checked);
+
+atualizarBotaoMassa();
+
+}
+
+function atualizarBotaoMassa(){
+
+const selecionados=document.querySelectorAll(".checkItem:checked").length;
+
+const btn=document.getElementById("btnExcluirMassa");
+
+document.getElementById("numSel").innerText=selecionados;
+
+btn.style.display=selecionados>0?"flex":"none";
+
+}
+
+async function excluirIndividual(id,nome){
+
+if(confirm("Excluir agendamento de "+nome+" ?")){
+
+await db.collection("agendamentos_inspecao").doc(id).delete();
+
+carregarDados();
+
+}
+
+}
+
+async function cancelarSelecionados(){
+
+const checks=document.querySelectorAll(".checkItem:checked");
+
+if(confirm("Excluir "+checks.length+" registros?")){
+
+for(let cb of checks){
+
+await db.collection("agendamentos_inspecao").doc(cb.value).delete();
+
+}
+
+carregarDados();
+
+}
+
+}
+
+function exportarExcel(){
+
+const tabelaDOM=document.querySelector("table");
+
+const wb=XLSX.utils.table_to_book(tabelaDOM);
+
+XLSX.writeFile(wb,"Relatorio_Inspecao_CBAX.xlsx");
+
+}
+
+window.onload=carregarDados;
+
 </script>
+
 </body>
 </html>
