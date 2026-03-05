@@ -9,20 +9,24 @@
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
-        header { background: #8b0000; color: white; text-align: center; padding: 20px; border-bottom: 4px solid #5a0000; }
-        header img { width: 80px; margin-bottom: 10px; }
-        .container { max-width: 600px; margin: 20px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        header { background: #8b0000; color: white; text-align: center; padding: 25px; border-bottom: 5px solid #5a0000; }
+        
+        /* ESTILO DO LOGO */
+        header img { width: 90px; height: auto; margin-bottom: 10px; }
+        
+        header h1 { font-size: 1.2rem; margin: 5px 0; text-transform: uppercase; }
+        .container { max-width: 600px; margin: 20px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .step { display: none; }
         .step.active { display: block; }
-        h2 { color: #8b0000; font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 10px; text-transform: uppercase; }
-        label { font-weight: bold; display: block; margin-top: 15px; font-size: 0.9rem; color: #333; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-        .aviso-unidade { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 0.9rem; margin-top: 15px; border-left: 5px solid #ffc107; font-weight: bold; }
-        .btn-next { background: #8b0000; color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; text-transform: uppercase; }
+        h2 { color: #8b0000; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 10px; text-transform: uppercase; }
+        label { font-weight: bold; display: block; margin-top: 18px; font-size: 0.9rem; color: #333; }
+        input, select { width: 100%; padding: 14px; margin-top: 6px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .aviso-unidade { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; font-size: 0.95rem; margin-top: 15px; border-left: 6px solid #ffc107; font-weight: bold; }
+        .btn-next { background: #8b0000; color: white; border: none; padding: 20px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 25px; font-size: 1.1rem; text-transform: uppercase; }
         .btn-next:disabled { background: #ccc; cursor: not-allowed; }
-        .vagas-box { background: #e6fffa; color: #234e52; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 15px; border: 1px solid #b2f5ea; font-size: 1.1rem; }
+        .vagas-box { background: #e6fffa; color: #234e52; padding: 18px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 15px; border: 1px solid #b2f5ea; font-size: 1.1rem; }
         .lotado { background: #fff5f5 !important; color: #c53030 !important; border-color: #feb2b2 !important; }
-        .resumo-final { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        .resumo-final { background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; line-height: 1.6; }
         @media print { header, .btn-next, .no-print { display: none !important; } .container { box-shadow: none; width: 100%; margin: 0; padding: 0; } }
     </style>
 </head>
@@ -36,19 +40,19 @@
 
 <div class="container">
     <div class="step active" id="step1">
-        <h2>1. Identificação do Militar</h2>
+        <h2>1. Identificação</h2>
         <label>Nome Completo:</label>
-        <input type="text" id="nome" placeholder="Digite seu nome completo">
+        <input type="text" id="nome" placeholder="NOME COMPLETO">
         <label>RG Militar:</label>
         <input type="number" id="rg" placeholder="Apenas números">
-        <label>Posto / Graduação / Patente:</label>
+        <label>Posto / Graduação:</label>
         <select id="posto">
             <option value="">Selecione...</option>
             <option>CORONEL</option><option>TENENTE CORONEL</option><option>MAJOR</option><option>CAPITÃO</option>
             <option>1º TENENTE</option><option>2º TENENTE</option><option>SUBTENENTE</option><option>1º SARGENTO</option>
             <option>2º SARGENTO</option><option>3º SARGENTO</option><option>CABO</option><option>SOLDADO</option>
         </select>
-        <label>Unidade que o militar serve:</label>
+        <label>Unidade de Origem:</label>
         <select id="unidadeOrigem">
             <option value="">Selecione...</option>
             <option>CBA X</option><option>1º GMAR</option><option>DBM 1/M</option><option>DBM 2/M</option>
@@ -59,12 +63,12 @@
         <input type="text" id="telefone" placeholder="(XX) XXXXX-XXXX">
         <label>E-mail:</label>
         <input type="email" id="email" placeholder="email@exemplo.com">
-        <button class="btn-next" onclick="nextStep(2)">Próximo: Escolher Local</button>
+        <button class="btn-next" onclick="nextStep(2)">Próximo: Local</button>
     </div>
 
     <div class="step" id="step2">
         <h2>2. Local da Inspeção</h2>
-        <label>Selecione a Unidade que realizará a Inspeção:</label>
+        <label>Onde será realizada a inspeção?</label>
         <select id="localDestino" onchange="mostrarAvisoUnidade()">
             <option value="">Selecione...</option>
             <option value="GRUPO1" data-vagas="7">1º GMAR / DBM 1/M / DBM 2/M</option>
@@ -76,39 +80,37 @@
             <option value="RECREIO" data-vagas="7">DBM 3/M / DBM 4/M</option>
         </select>
         <div id="avisoUnidade" class="aviso-unidade" style="display:none;"></div>
-        <button class="btn-next" id="btnGoStep3" onclick="nextStep(3)" disabled>Próximo: Escolher Data</button>
+        <button class="btn-next" id="btnGoStep3" onclick="nextStep(3)" disabled>Próximo: Data</button>
     </div>
 
     <div class="step" id="step3">
-        <h2>3. Escolha a Data</h2>
-        <label>Selecione uma das datas disponíveis:</label>
+        <h2>3. Data</h2>
+        <label>Selecione a data:</label>
         <select id="dataSeletor" onchange="document.getElementById('btnGoStep4').disabled = false;"></select>
-        <button class="btn-next" id="btnGoStep4" onclick="nextStep(4)" disabled>Próximo: Escolher Turno</button>
+        <button class="btn-next" id="btnGoStep4" onclick="nextStep(4)" disabled>Próximo: Turno</button>
     </div>
 
     <div class="step" id="step4">
-        <h2>4. Turno e Vagas</h2>
-        <label>Escolha o Turno:</label>
+        <h2>4. Turno</h2>
+        <label>Turno desejado:</label>
         <select id="turno" onchange="consultarVagas()">
             <option value="">Selecione...</option>
-            <option value="MANHA">MANHÃ (7 vagas disponíveis)</option>
-            <option value="TARDE">TARDE (7 vagas disponíveis)</option>
+            <option value="MANHA">MANHÃ (08:00)</option>
+            <option value="TARDE">TARDE (13:00)</option>
         </select>
         <div id="vagasStatus" class="vagas-box" style="display:none;"></div>
-        <button class="btn-next" id="btnFinalizar" onclick="salvarTudo()" disabled>Confirmar Agendamento</button>
+        <button class="btn-next" id="btnFinalizar" onclick="salvarTudo()" disabled>Confirmar</button>
     </div>
 
     <div id="comprovante" style="display:none;">
-        <h2 style="color:green; text-align:center;">✅ AGENDAMENTO REALIZADO COM SUCESSO!</h2>
+        <h2 style="color:green; text-align:center;">✅ AGENDAMENTO CONCLUÍDO</h2>
         <div id="dadosResumo" class="resumo-final"></div>
-        <p class="no-print" style="text-align:center; font-size: 0.8rem; color: #666;">Você pode tirar um print desta tela ou clicar no botão abaixo.</p>
-        <button class="btn-next" onclick="window.print()">Imprimir em PDF / Comprovante</button>
-        <button class="btn-next" style="background:#666" onclick="location.reload()">Realizar Novo Agendamento</button>
+        <button class="btn-next no-print" onclick="window.print()">Imprimir Comprovante</button>
+        <button class="btn-next no-print" style="background:#666" onclick="location.reload()">Novo Agendamento</button>
     </div>
 </div>
 
 <script>
-    // CONFIGURAÇÃO FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
         authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -120,22 +122,24 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // REGRAS DE NEGÓCIO (DATAS E UNIDADES)
+    // Máscara Telefone
+    document.getElementById('telefone').addEventListener('input', e => {
+        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+        e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+    });
+
     const REGRAS = {
-        "GRUPO1": { ini: "2026-03-17", fim: "2026-05-15", dias: [2,5], msg: "Esta unidade realiza as inspeções do 1º GMAR, DBM 1/M e DBM 2/M. Atendimento: 7 vagas Manhã / 7 Tarde." },
-        "BARRA": { ini: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], msg: "Atende militares do 2º GMAR. (5 vagas por turno)" },
-        "COPA": { ini: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], msg: "Atende militares do 3º GMAR. (5 vagas por turno)" },
-        "ITAIPU": { ini: "2026-05-19", fim: "2026-06-26", dias: [2,5], msg: "Esta unidade atende militares do 4º GMAR e DBM 6/M." },
-        "SEPETIBA": { ini: "2026-02-23", fim: "2026-03-05", dias: [2,5], msg: "Atende militares do DBM 5/M." },
-        "CBAX": { ini: "2026-03-10", fim: "2026-03-13", dias: [2,5], msg: "Atendimento na Sede do CBA X." },
-        "RECREIO": { ini: "2026-06-30", fim: "2026-07-31", dias: [2,5], msg: "Atende militares do DBM 3/M e DBM 4/M." }
+        "GRUPO1": { ini: "2026-03-17", fim: "2026-05-15", dias: [2,5], msg: "Atende 1º GMAR, DBM 1/M e DBM 2/M." },
+        "BARRA": { ini: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], msg: "Atende militares do 2º GMAR." },
+        "COPA": { ini: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], msg: "Atende militares do 3º GMAR." },
+        "ITAIPU": { ini: "2026-05-19", fim: "2026-06-26", dias: [2,5], msg: "Atende 4º GMAR e DBM 6/M." },
+        "SEPETIBA": { ini: "2026-02-23", fim: "2026-03-05", dias: [2,5], msg: "Atende DBM 5/M." },
+        "CBAX": { ini: "2026-03-10", fim: "2026-03-13", dias: [2,5], msg: "Atendimento na Sede CBA X." },
+        "RECREIO": { ini: "2026-06-30", fim: "2026-07-31", dias: [2,5], msg: "Atende DBM 3/M e DBM 4/M." }
     };
 
     function nextStep(n) {
-        if(n === 2 && (!document.getElementById("nome").value || !document.getElementById("rg").value)) {
-            alert("Por favor, preencha o Nome e o RG antes de prosseguir.");
-            return;
-        }
+        if(n === 2 && !document.getElementById("rg").value) return alert("RG obrigatório!");
         document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + n).classList.add('active');
         if(n === 3) carregarDatas();
@@ -144,9 +148,9 @@
     function mostrarAvisoUnidade() {
         const local = document.getElementById("localDestino").value;
         const aviso = document.getElementById("avisoUnidade");
-        if(local && REGRAS[local]) {
+        if(local) {
             aviso.style.display = "block";
-            aviso.innerText = "Aviso: " + REGRAS[local].msg;
+            aviso.innerText = "⚠️ Aviso: " + REGRAS[local].msg;
             document.getElementById("btnGoStep3").disabled = false;
         } else {
             aviso.style.display = "none";
@@ -157,11 +161,10 @@
     function carregarDatas() {
         const local = document.getElementById("localDestino").value;
         const sel = document.getElementById("dataSeletor");
-        sel.innerHTML = "<option value=''>Selecione uma data disponível...</option>";
+        sel.innerHTML = "<option value=''>Selecione...</option>";
         let config = REGRAS[local];
         let d = new Date(config.ini + "T12:00:00");
         let dFim = new Date(config.fim + "T12:00:00");
-
         while(d <= dFim) {
             if(config.dias.includes(d.getDay())) {
                 let ymd = d.toISOString().split('T')[0];
@@ -179,79 +182,70 @@
         const data = document.getElementById("dataSeletor").value;
         const turno = document.getElementById("turno").value;
         const status = document.getElementById("vagasStatus");
-        const btn = document.getElementById("btnFinalizar");
-
         if(!turno) { status.style.display = "none"; return; }
         
         status.style.display = "block";
-        status.innerText = "Consultando vagas no sistema...";
-
+        status.innerText = "Consultando vagas...";
+        
         const limite = parseInt(document.getElementById("localDestino").options[document.getElementById("localDestino").selectedIndex].dataset.vagas);
         
         try {
-            const snap = await db.collection("agendamentos_inspecao")
-                                .where("localId", "==", local)
-                                .where("data", "==", data)
-                                .where("turno", "==", turno).get();
-            
+            const snap = await db.collection("agendamentos_inspecao").where("localId","==",local).where("data","==",data).where("turno","==",turno).get();
             const ocupadas = snap.size;
             const livres = limite - ocupadas;
-
             if(ocupadas >= limite) {
-                status.innerHTML = `❌ TURNO LOTADO (${ocupadas} de ${limite} vagas preenchidas)`;
+                status.innerHTML = `❌ TURNO LOTADO (${ocupadas}/${limite})`;
                 status.classList.add("lotado");
-                btn.disabled = true;
+                document.getElementById("btnFinalizar").disabled = true;
             } else {
-                status.innerHTML = `✅ ${ocupadas} vaga(s) ocupada(s) e ${livres} vaga(s) livre(s).`;
+                status.innerHTML = `✅ Vagas: ${ocupadas} completa(s) e ${livres} livre(s).`;
                 status.classList.remove("lotado");
-                btn.disabled = false;
+                document.getElementById("btnFinalizar").disabled = false;
             }
         } catch (error) {
             console.error(error);
-            status.innerText = "Erro ao carregar vagas. Tente novamente.";
+            status.innerText = "Erro ao carregar vagas.";
         }
     }
 
     async function salvarTudo() {
+        const rg = document.getElementById("rg").value;
         const btn = document.getElementById("btnFinalizar");
-        btn.disabled = true;
-        btn.innerText = "SALVANDO...";
-
-        const dados = {
-            nome: document.getElementById("nome").value.toUpperCase(),
-            rg: document.getElementById("rg").value,
-            posto: document.getElementById("posto").value,
-            unidadeOrigem: document.getElementById("unidadeOrigem").value,
-            localId: document.getElementById("localDestino").value,
-            localNome: document.getElementById("localDestino").options[document.getElementById("localDestino").selectedIndex].text,
-            data: document.getElementById("dataSeletor").value,
-            turno: document.getElementById("turno").value,
-            criadoEm: new Date()
-        };
+        btn.disabled = true; btn.innerText = "SALVANDO...";
 
         try {
+            const snapRG = await db.collection("agendamentos_inspecao").where("rg","==",rg).get();
+            if(!snapRG.empty) {
+                alert("Este RG já possui um agendamento!");
+                btn.disabled = false; btn.innerText = "Confirmar";
+                return;
+            }
+
+            const dados = {
+                nome: document.getElementById("nome").value.toUpperCase(),
+                rg: rg, puesto: document.getElementById("posto").value,
+                unidadeOrigem: document.getElementById("unidadeOrigem").value,
+                localNome: document.getElementById("localDestino").options[document.getElementById("localDestino").selectedIndex].text,
+                localId: document.getElementById("localDestino").value,
+                data: document.getElementById("dataSeletor").value,
+                turno: document.getElementById("turno").value,
+                criadoEm: new Date()
+            };
+
             await db.collection("agendamentos_inspecao").add(dados);
             
-            // Webhook para Google Sheets (Substitua se necessário)
+            // Webhook para Google Planilha
             fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
                 method: "POST", mode: "no-cors", body: JSON.stringify(dados)
             });
 
             document.getElementById("step4").classList.remove("active");
             document.getElementById("comprovante").style.display = "block";
-            document.getElementById("dadosResumo").innerHTML = `
-                <p><b>MILITAR:</b> ${dados.posto} ${dados.nome}</p>
-                <p><b>RG:</b> ${dados.rg}</p>
-                <p><b>UNIDADE DE ORIGEM:</b> ${dados.unidadeOrigem}</p>
-                <hr>
-                <p><b>LOCAL DA INSPEÇÃO:</b> ${dados.localNome}</p>
-                <p><b>DATA:</b> ${dados.data.split('-').reverse().join('/')}</p>
-                <p><b>TURNO:</b> ${dados.turno}</p>
-            `;
+            document.getElementById("dadosResumo").innerHTML = `<b>MILITAR:</b> ${dados.puesto} ${dados.nome}<br><b>RG:</b> ${dados.rg}<br><b>LOCAL DA INSPEÇÃO:</b> ${dados.localNome}<br><b>DATA:</b> ${dados.data.split('-').reverse().join('/')}<br><b>TURNO:</b> ${dados.turno}`;
         } catch (e) {
-            alert("Erro ao salvar agendamento. Verifique sua conexão.");
-            btn.disabled = false;
-            btn.innerText = "Confirmar Agendamento";
+            console.error(e);
+            alert("Erro ao salvar. Tente novamente.");
+            btn.disabled = false; btn.innerText = "Confirmar";
         }
     }
 </script>
