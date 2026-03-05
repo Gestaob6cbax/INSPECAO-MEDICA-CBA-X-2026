@@ -1,198 +1,366 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INSPEÇÃO DE SAÚDE 2026 - CBA X</title>
-    <style>
-        :root { --primary: #8b0000; --secondary: #ff0000; --bg: #f2f2f2; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin:0; padding:0; }
-        .header-top { background: linear-gradient(180deg, #9b0000 0%, #720000 100%); color: white; padding: 30px 15px; text-align: center; border-bottom: 5px solid #ff0000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .header-top img { max-width: 100px; height: auto; margin-bottom: 15px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); }
-        .header-top h2 { margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .container { max-width: 450px; margin: -20px auto 50px; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 11px; color: #444; text-transform: uppercase; }
-        input, select { width:100%; padding:14px; margin-bottom:20px; border-radius:8px; border: 1px solid #ccc; box-sizing: border-box; background: #fafafa; font-size: 15px; }
-        .btn-main { background: var(--primary); color: #fff; border:none; padding:18px; width:100%; border-radius:8px; font-weight:bold; cursor:pointer; text-transform: uppercase; font-size: 16px; transition: 0.3s; }
-        .btn-main:disabled { background: #ccc; cursor: not-allowed; }
-        #vagasInfo { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; display: none; font-size: 14px; }
-        .vagas-disponiveis { background: #eaffea; color: #28a745; border: 1px solid #28a745; }
-        .vagas-esgotadas { background: #ffeaea; color: #8b0000; border: 1px solid #8b0000; }
-        #comprovanteBox { display:none; text-align: center; border: 2px solid #eee; padding: 20px; border-radius: 10px; }
-        .info-resumo { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 5px solid var(--primary); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INSPEÇÃO DE SAÚDE 2026 - CBA X</title>
+
+<style>
+:root { --primary:#8b0000; --secondary:#ff0000; --bg:#f2f2f2; }
+
+body{
+font-family:'Segoe UI',sans-serif;
+background:var(--bg);
+margin:0;
+padding:0;
+}
+
+.header-top{
+background:linear-gradient(180deg,#9b0000 0%,#720000 100%);
+color:white;
+padding:30px 15px;
+text-align:center;
+border-bottom:5px solid #ff0000;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+.header-top img{
+max-width:100px;
+height:auto;
+margin-bottom:15px;
+filter:drop-shadow(0px 4px 8px rgba(0,0,0,0.4));
+}
+
+.header-top h2{
+margin:0;
+font-size:20px;
+text-transform:uppercase;
+letter-spacing:1px;
+}
+
+.container{
+max-width:450px;
+margin:-20px auto 50px;
+background:#fff;
+padding:30px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+label{
+display:block;
+margin-bottom:5px;
+font-weight:bold;
+font-size:11px;
+color:#444;
+text-transform:uppercase;
+}
+
+input,select{
+width:100%;
+padding:14px;
+margin-bottom:20px;
+border-radius:8px;
+border:1px solid #ccc;
+box-sizing:border-box;
+background:#fafafa;
+font-size:15px;
+}
+
+.btn-main{
+background:var(--primary);
+color:#fff;
+border:none;
+padding:18px;
+width:100%;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+text-transform:uppercase;
+font-size:16px;
+}
+
+.btn-main:disabled{
+background:#ccc;
+cursor:not-allowed;
+}
+
+#vagasInfo{
+padding:12px;
+border-radius:8px;
+text-align:center;
+font-weight:bold;
+margin-bottom:20px;
+display:none;
+font-size:14px;
+}
+
+.vagas-disponiveis{
+background:#eaffea;
+color:#28a745;
+border:1px solid #28a745;
+}
+
+.vagas-esgotadas{
+background:#ffeaea;
+color:#8b0000;
+border:1px solid #8b0000;
+}
+
+#comprovanteBox{
+display:none;
+text-align:center;
+border:2px solid #eee;
+padding:20px;
+border-radius:10px;
+}
+
+.info-resumo{
+text-align:left;
+background:#f9f9f9;
+padding:15px;
+border-radius:8px;
+margin:15px 0;
+border-left:5px solid var(--primary);
+}
+</style>
 </head>
+
 <body>
 
 <div class="header-top">
-    <img src="logo_cba_x.png" alt="Logo CBA X" onerror="this.src='https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-ODONTOLOGICA-CBA-X-2026/main/logo_cba_x.png'">
-    <h2>INSPEÇÃO DE SAÚDE 2026</h2>
-    <p>COMANDO DE BOMBEIROS DE ÁREA - CBA X</p>
+<img src="logo_cba_x.png" alt="Logo CBA X">
+<h2>INSPEÇÃO DE SAÚDE 2026</h2>
+<p>COMANDO DE BOMBEIROS DE ÁREA - CBA X</p>
 </div>
 
 <div class="container">
-    <form id="formAgendamento">
-        <label>Nome Completo</label>
-        <input type="text" id="nome" required placeholder="NOME DO MILITAR">
-        <label>RG Militar</label>
-        <input type="text" id="rg" required placeholder="APENAS NÚMEROS">
-        <label>Celular (WhatsApp)</label>
-        <input type="tel" id="telefone" required placeholder="(XX) 9XXXX-XXXX">
-        <label>E-mail</label>
-        <input type="email" id="email" required placeholder="militar@cbmerj.rj.gov.br">
 
-        <label>Local da Inspeção</label>
-        <select id="unidade" required>
-            <option value="">SELECIONE O LOCAL...</option>
-            <option value="CER + 2º GMAR">CER + 2º GMAR - Barra</option>
-            <option value="3º GMAR">3º GMAR - Copacabana</option>
-            <option value="DBM 5/M">DBM 5/M - Sepetiba</option>
-            <option value="CBA X">CBA X - Salvamento Marítimo</option>
-            <option value="1º GMAR">1º GMAR + DBM 1/M + DBM 2/M</option>
-            <option value="4º GMAR">4º GMAR + DBM 6/M - Itaipu</option>
-            <option value="DBM 4/M">DBM 4/M + DBM 3/M - Recreio</option>
-        </select>
+<form id="formAgendamento">
 
-        <label>Data Disponível</label>
-        <select id="dataSelect" required><option value="">Selecione o local primeiro</option></select>
+<label>Nome Completo</label>
+<input type="text" id="nome" required>
 
-        <div id="campoTurno" style="display:none;">
-            <label>Turno</label>
-            <select id="turno">
-                <option value="">Escolha o Período</option>
-                <option value="Manhã">Manhã (07:30 - 12:00)</option>
-                <option value="Tarde">Tarde (13:00 - 17:30)</option>
-            </select>
-        </div>
+<label>RG Militar</label>
+<input type="text" id="rg" required>
 
-        <div id="vagasInfo"></div>
-        <button type="submit" id="btnAgendar" class="btn-main">Finalizar Agendamento</button>
-    </form>
+<label>Celular</label>
+<input type="tel" id="telefone" required>
 
-    <div id="comprovanteBox">
-        <h3 style="color: #28a745;">AGENDAMENTO CONFIRMADO!</h3>
-        <div class="info-resumo" id="resumo"></div>
-        <button onclick="window.print()" class="btn-main">Imprimir Comprovante</button>
-        <button onclick="location.reload()" style="margin-top:10px; background: #666;" class="btn-main">Novo Agendamento</button>
-    </div>
+<label>Email</label>
+<input type="email" id="email" required>
+
+<label>Local da Inspeção</label>
+<select id="unidade" required>
+
+<option value="">SELECIONE</option>
+
+<option value="CER + 2º GMAR">CER + 2º GMAR - Barra</option>
+<option value="3º GMAR">3º GMAR - Copacabana</option>
+<option value="DBM 5/M">DBM 5/M - Sepetiba</option>
+<option value="CBA X">CBA X</option>
+<option value="1º GMAR">1º GMAR</option>
+<option value="4º GMAR">4º GMAR</option>
+<option value="DBM 4/M">DBM 4/M</option>
+
+</select>
+
+<label>Data</label>
+<select id="dataSelect" required></select>
+
+<div id="campoTurno" style="display:none">
+
+<label>Turno</label>
+
+<select id="turno">
+
+<option value="">Escolha</option>
+<option value="Manhã">Manhã</option>
+<option value="Tarde">Tarde</option>
+
+</select>
+
+</div>
+
+<div id="vagasInfo"></div>
+
+<button class="btn-main" id="btnAgendar">Finalizar Agendamento</button>
+
+</form>
+
+
+<div id="comprovanteBox">
+
+<h3 style="color:#28a745">AGENDAMENTO CONFIRMADO</h3>
+
+<div id="resumo" class="info-resumo"></div>
+
+<button onclick="window.print()" class="btn-main">Imprimir</button>
+
+</div>
+
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-        authDomain: "inspecao-saude-cbax.firebaseapp.com",
-        projectId: "inspecao-saude-cbax",
-        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-        messagingSenderId: "1011281662526",
-        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-    };
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {getFirestore,collection,query,where,getDocs,doc,setDoc,getDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+const firebaseConfig={
+apiKey:"AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+authDomain:"inspecao-saude-cbax.firebaseapp.com",
+projectId:"inspecao-saude-cbax"
+};
 
-    const REGRAS = {
-        "CER + 2º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
-        "3º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
-        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 10, turno: true },
-        "CBA X": { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
-        "1º GMAR": { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7, turno: true },
-        "4º GMAR": { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7, turno: true },
-        "DBM 4/M": { inicio: "2026-06-30", fim: "2026-07-31", dias: [2,5], vagas: 7, turno: true }
-    };
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 
-    const unidadeEl = document.getElementById("unidade");
-    const dataSelect = document.getElementById("dataSelect");
-    const campoTurno = document.getElementById("campoTurno");
-    const turnoSelect = document.getElementById("turno");
-    const vagasInfo = document.getElementById("vagasInfo");
-    const btnAgendar = document.getElementById("btnAgendar");
+const REGRAS={
+"CER + 2º GMAR":{inicio:"2026-02-23",fim:"2026-07-31",dias:[1,2,3,4,5],vagas:5,turno:false},
+"3º GMAR":{inicio:"2026-02-23",fim:"2026-07-31",dias:[1,2,3,4,5],vagas:5,turno:false},
+"DBM 5/M":{inicio:"2026-02-23",fim:"2026-03-06",dias:[2,5],vagas:10,turno:true},
+"CBA X":{inicio:"2026-03-10",fim:"2026-03-13",dias:[2,5],vagas:10,turno:true},
+"1º GMAR":{inicio:"2026-03-17",fim:"2026-05-15",dias:[2,5],vagas:7,turno:true},
+"4º GMAR":{inicio:"2026-05-19",fim:"2026-06-26",dias:[2,5],vagas:7,turno:true},
+"DBM 4/M":{inicio:"2026-06-30",fim:"2026-07-31",dias:[2,5],vagas:7,turno:true}
+};
 
-    unidadeEl.onchange = () => {
-        dataSelect.innerHTML = '<option value="">Selecione a Data</option>';
-        vagasInfo.style.display = "none";
-        const r = REGRAS[unidadeEl.value];
-        if(!r) return;
-        campoTurno.style.display = r.turno ? "block" : "none";
-        turnoSelect.required = r.turno;
-        let cursor = new Date(r.inicio + "T12:00:00");
-        const fim = new Date(r.fim + "T12:00:00");
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-        while(cursor <= fim) {
-            if(cursor >= hoje && r.dias.includes(cursor.getDay())) {
-                const ymd = cursor.toISOString().split('T')[0];
-                dataSelect.add(new Option(ymd.split('-').reverse().join('/'), ymd));
-            }
-            cursor.setDate(cursor.getDate() + 1);
-        }
-    };
+const unidade=document.getElementById("unidade");
+const dataSelect=document.getElementById("dataSelect");
+const turno=document.getElementById("turno");
+const campoTurno=document.getElementById("campoTurno");
+const vagasInfo=document.getElementById("vagasInfo");
+const btn=document.getElementById("btnAgendar");
 
-    async function conferirVagas() {
-        const local = unidadeEl.value;
-        const data = dataSelect.value;
-        const r = REGRAS[local];
-        if(!local || !data || (r.turno && !turnoSelect.value)) return;
+unidade.onchange=()=>{
 
-        vagasInfo.style.display = "block";
-        vagasInfo.innerHTML = "Verificando disponibilidade...";
-        btnAgendar.disabled = true;
+dataSelect.innerHTML="";
+const r=REGRAS[unidade.value];
+if(!r)return;
 
-        const dataBR = data.split('-').reverse().join('/');
-        const tFinal = r.turno ? turnoSelect.value : "Geral";
-        const q = query(collection(db, "agendamentos_inspecao"), 
-            where("localInspecao", "==", local),
-            where("data_br", "==", dataBR),
-            where("turno", "==", tFinal));
+campoTurno.style.display=r.turno?"block":"none";
 
-        const snap = await getDocs(q);
-        const ocupadas = snap.size;
-        const disponiveis = r.vagas - ocupadas;
+let cursor=new Date(r.inicio);
+const fim=new Date(r.fim);
 
-        if(disponiveis <= 0) {
-            vagasInfo.innerHTML = `❌ ESGOTADO (${r.vagas} MILITARES JÁ AGENDADOS)`;
-            vagasInfo.className = "vagas-esgotadas";
-            btnAgendar.disabled = true;
-        } else {
-            vagasInfo.innerHTML = `✅ DISPONÍVEL: ${disponiveis} VAGAS RESTANTES`;
-            vagasInfo.className = "vagas-disponiveis";
-            btnAgendar.disabled = false;
-        }
-    }
+while(cursor<=fim){
 
-    dataSelect.onchange = conferirVagas;
-    turnoSelect.onchange = conferirVagas;
+if(r.dias.includes(cursor.getDay())){
 
-    document.getElementById("formAgendamento").onsubmit = async (e) => {
-        e.preventDefault();
-        btnAgendar.disabled = true;
-        const rg = document.getElementById("rg").value.trim();
-        try {
-            const lock = await getDoc(doc(db, "rg_locks_inspecao", rg));
-            if(lock.exists()) throw new Error("Atenção: Militar já possui agendamento!");
-            const dados = {
-                nome: document.getElementById("nome").value.toUpperCase(),
-                rg: rg,
-                telefone: document.getElementById("telefone").value,
-                email: document.getElementById("email").value,
-                localInspecao: unidadeEl.value,
-                data_br: dataSelect.value.split('-').reverse().join('/'),
-                turno: REGRAS[unidadeEl.value].turno ? turnoSelect.value : "Geral",
-                criadoEm: serverTimestamp()
-            };
-            await setDoc(doc(collection(db, "agendamentos_inspecao")), dados);
-            await setDoc(doc(db, "rg_locks_inspecao", rg), { rg });
-            document.getElementById("formAgendamento").style.display = "none";
-            document.getElementById("comprovanteBox").style.display = "block";
-            document.getElementById("resumo").innerHTML = `
-                <strong>Militar:</strong> ${dados.nome}<br>
-                <strong>RG:</strong> ${dados.rg}<br>
-                <strong>Local:</strong> ${dados.localInspecao}<br>
-                <strong>Data:</strong> ${dados.data_br} - ${dados.turno}
-            `;
-        } catch(err) { alert(err.message); btnAgendar.disabled = false; }
-    };
+const ymd=cursor.toISOString().split("T")[0];
+dataSelect.add(new Option(ymd.split("-").reverse().join("/"),ymd));
+
+}
+
+cursor.setDate(cursor.getDate()+1);
+
+}
+
+};
+
+dataSelect.onchange=verificarVagas;
+turno.onchange=verificarVagas;
+
+async function verificarVagas(){
+
+const local=unidade.value;
+const data=dataSelect.value;
+
+if(!local||!data)return;
+
+const r=REGRAS[local];
+
+const dataBR=data.split("-").reverse().join("/");
+
+const q=query(collection(db,"agendamentos_inspecao"),
+where("localInspecao","==",local),
+where("data_br","==",dataBR));
+
+const snap=await getDocs(q);
+
+let ocupadas=0;
+
+snap.forEach(docSnap=>{
+
+const d=docSnap.data();
+
+if(r.turno){
+
+if(d.turno===turno.value){
+
+ocupadas++;
+
+}
+
+}else{
+
+ocupadas++;
+
+}
+
+});
+
+const disponiveis=r.vagas-ocupadas;
+
+vagasInfo.style.display="block";
+
+if(disponiveis<=0){
+
+vagasInfo.innerHTML="❌ ESGOTADO";
+vagasInfo.className="vagas-esgotadas";
+btn.disabled=true;
+
+}else{
+
+vagasInfo.innerHTML="✅ "+disponiveis+" VAGAS DISPONÍVEIS";
+vagasInfo.className="vagas-disponiveis";
+btn.disabled=false;
+
+}
+
+}
+
+document.getElementById("formAgendamento").onsubmit=async(e)=>{
+
+e.preventDefault();
+
+const rg=document.getElementById("rg").value;
+
+const lock=await getDoc(doc(db,"rg_locks_inspecao",rg));
+
+if(lock.exists()){
+
+alert("Militar já possui agendamento");
+return;
+
+}
+
+const dados={
+nome:document.getElementById("nome").value,
+rg:rg,
+telefone:document.getElementById("telefone").value,
+email:document.getElementById("email").value,
+localInspecao:unidade.value,
+data_br:dataSelect.value.split("-").reverse().join("/"),
+turno:REGRAS[unidade.value].turno?turno.value:"Geral",
+criadoEm:serverTimestamp()
+};
+
+await setDoc(doc(collection(db,"agendamentos_inspecao")),dados);
+await setDoc(doc(db,"rg_locks_inspecao",rg),{rg});
+
+document.getElementById("formAgendamento").style.display="none";
+document.getElementById("comprovanteBox").style.display="block";
+
+document.getElementById("resumo").innerHTML=`
+Militar: ${dados.nome}<br>
+RG: ${dados.rg}<br>
+Local: ${dados.localInspecao}<br>
+Data: ${dados.data_br} - ${dados.turno}
+`;
+
+};
+
 </script>
 </body>
 </html>
