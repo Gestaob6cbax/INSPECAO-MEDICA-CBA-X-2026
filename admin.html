@@ -2,13 +2,14 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADM - Inspeção Médica 2026</title>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
-        header { background: #8b0000; color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        header { background: #8b0000; color: white; padding: 25px 20px; text-align: center; border-bottom: 5px solid #b8860b; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
         .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
         .stats-row { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
@@ -24,7 +25,7 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 11px; color: #666; border-bottom: 2px solid #eee; text-transform: uppercase; }
         td { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #eee; }
-        .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; font-size: 10px; }
+        .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; font-size: 10px; text-transform: uppercase; }
         .btn-delete-row { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 18px; }
     </style>
 </head>
@@ -38,22 +39,22 @@
 <div class="container">
     <div class="stats-row">
         <div class="stat-card">
-            <span>Total de Agendados</span>
+            <span>Militares Agendados</span>
             <strong id="contador">0</strong>
         </div>
         <div class="stat-card">
             <span>Banco de Dados</span>
-            <strong style="color: green; font-size: 18px;">SINCRONIZADO (ANTIGOS + NOVOS)</strong>
+            <strong id="db-status" style="color: green; font-size: 18px;">CONECTADO</strong>
         </div>
     </div>
 
     <div class="controls">
-        <button class="btn-refresh" onclick="carregarDados()">🔄 Atualizar Tudo</button>
+        <button class="btn-refresh" onclick="carregarDados()">🔄 Sincronizar Agora</button>
         <button id="btnExcluirMassa" class="btn-danger" onclick="cancelarSelecionados()">
             🗑️ Excluir Selecionados (<span id="numSel">0</span>)
         </button>
         <div style="flex-grow: 1;"></div>
-        <button class="btn-export" onclick="exportarExcel()">📊 Exportar para Excel</button>
+        <button class="btn-export" onclick="exportarExcel()">📊 Exportar Relatório Excel</button>
     </div>
 
     <div class="table-container">
@@ -61,8 +62,8 @@
             <thead>
                 <tr>
                     <th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
-                    <th>Local</th>
-                    <th>Origem</th>
+                    <th>Local Inspeção</th>
+                    <th>Unidade Origem</th>
                     <th>Data</th>
                     <th>Turno</th>
                     <th>Posto/Grad</th>
@@ -72,13 +73,14 @@
                 </tr>
             </thead>
             <tbody id="tabela">
-                <tr><td colspan="9" style="padding: 40px; text-align: center;">A carregar agendamentos antigos e novos...</td></tr>
+                <tr><td colspan="9" style="padding: 40px; text-align: center;">Carregando dados unificados...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
+    // CONFIGURAÇÃO DO FIREBASE (MANTIDA)
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
         authDomain: "inspecao-saude-cbax.firebaseapp.com",
@@ -94,10 +96,10 @@
     async function carregarDados() {
         const tabela = document.getElementById("tabela");
         const contador = document.getElementById("contador");
-        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Unificando bases de dados...</td></tr>";
+        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>🔄 Atualizando registros...</td></tr>";
 
         try {
-            // BUSCA NAS DUAS COLEÇÕES AO MESMO TEMPO
+            // Busca nas duas coleções (Antiga e Nova)
             const [snapAntigos, snapNovos] = await Promise.all([
                 db.collection("agendamentos").get(),
                 db.collection("agendamentos_inspecao").get()
@@ -105,53 +107,45 @@
 
             let todosAgendamentos = [];
 
-            // Processa Antigos
+            // Processar coleção 1
             snapAntigos.forEach(doc => {
                 const d = doc.data();
                 todosAgendamentos.push({
-                    id: doc.id,
-                    colecao: "agendamentos",
-                    local: d.unidade || "Não inf.",
-                    origem: d.unidadeServe || "Não inf.",
-                    data: d.data || "",
-                    turno: d.turno || "Livre",
-                    posto: d.posto || "",
-                    nome: d.nome || "",
-                    rg: d.rg || ""
+                    id: doc.id, colecao: "agendamentos",
+                    local: d.unidade || d.localNome || "Não inf.",
+                    origem: d.unidadeServe || d.unidadeOrigem || "Não inf.",
+                    data: d.data || "", turno: d.turno || "Manhã",
+                    posto: d.posto || "", nome: d.nome || "", rg: d.rg || ""
                 });
             });
 
-            // Processa Novos
+            // Processar coleção 2
             snapNovos.forEach(doc => {
                 const d = doc.data();
                 todosAgendamentos.push({
-                    id: doc.id,
-                    colecao: "agendamentos_inspecao",
-                    local: d.localNome || "Não inf.",
-                    origem: d.unidadeOrigem || "Não inf.",
-                    data: d.data || "",
-                    turno: d.turno || "Livre",
-                    posto: d.posto || d.puesto || "",
-                    nome: d.nome || "",
-                    rg: d.rg || ""
+                    id: doc.id, colecao: "agendamentos_inspecao",
+                    local: d.localNome || d.unidade || "Não inf.",
+                    origem: d.unidadeOrigem || d.unidadeServe || "Não inf.",
+                    data: d.data || "", turno: d.turno || "Manhã",
+                    posto: d.posto || "", nome: d.nome || "", rg: d.rg || ""
                 });
             });
 
-            // Ordena por data
-            todosAgendamentos.sort((a, b) => a.data.localeCompare(b.data));
+            // Ordenação por Data (Mais recente primeiro)
+            todosAgendamentos.sort((a, b) => b.data.localeCompare(a.data));
 
             tabela.innerHTML = "";
             todosAgendamentos.forEach(item => {
-                const dataFormatada = item.data ? item.data.split('-').reverse().join('/') : "---";
-                const turnoLabel = item.turno === "MANHA" ? "Manhã" : (item.turno === "TARDE" ? "Tarde" : item.turno);
+                // Formatação da data brasileira
+                const dataBR = item.data.includes('-') ? item.data.split('-').reverse().join('/') : item.data;
 
                 tabela.innerHTML += `
                     <tr>
                         <td><input type="checkbox" class="checkItem" data-col="${item.colecao}" value="${item.id}" onchange="atualizarBotaoMassa()"></td>
                         <td><span class="badge-local">${item.local}</span></td>
                         <td>${item.origem}</td>
-                        <td>${dataFormatada}</td>
-                        <td>${turnoLabel}</td>
+                        <td>${dataBR}</td>
+                        <td><strong>${item.turno}</strong></td>
                         <td>${item.posto}</td>
                         <td><strong>${item.nome.toUpperCase()}</strong></td>
                         <td>${item.rg}</td>
@@ -160,11 +154,11 @@
             });
 
             contador.innerText = todosAgendamentos.length;
-            if (todosAgendamentos.length === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center; padding:20px;'>Nenhum dado encontrado.</td></tr>";
+            if (todosAgendamentos.length === 0) tabela.innerHTML = "<tr><td colspan='9' style='text-align:center;'>Nenhum registro encontrado.</td></tr>";
             atualizarBotaoMassa();
         } catch (e) {
             console.error(e);
-            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center; padding:20px;'>Erro ao unificar dados.</td></tr>";
+            tabela.innerHTML = "<tr><td colspan='9' style='color:red; text-align:center;'>Erro de conexão com o banco de dados.</td></tr>";
         }
     }
 
@@ -182,7 +176,7 @@
     }
 
     async function excluirIndividual(colecao, id, nome) {
-        if (confirm(`Excluir agendamento de ${nome}?`)) {
+        if (confirm(`Excluir o agendamento de ${nome}?`)) {
             await db.collection(colecao).doc(id).delete();
             carregarDados();
         }
@@ -190,7 +184,7 @@
 
     async function cancelarSelecionados() {
         const checks = document.querySelectorAll(".checkItem:checked");
-        if (confirm(`Excluir ${checks.length} itens?`)) {
+        if (confirm(`Confirmar a exclusão permanente de ${checks.length} registros?`)) {
             for (let cb of checks) {
                 const col = cb.getAttribute("data-col");
                 await db.collection(col).doc(cb.value).delete();
@@ -200,29 +194,12 @@
     }
 
     function exportarExcel() {
-        const rows = Array.from(document.querySelectorAll("#tabela tr"));
-        if (rows.length === 0 || rows[0].innerText.includes("Nenhum")) return alert("Sem dados.");
-
-        const dados = rows.map(tr => {
-            const tds = tr.cells;
-            return {
-                "Local": tds[1].innerText,
-                "Origem": tds[2].innerText,
-                "Data": tds[3].innerText,
-                "Turno": tds[4].innerText,
-                "Posto": tds[5].innerText,
-                "Nome": tds[6].innerText,
-                "RG": tds[7].innerText
-            };
-        });
-
-        const ws = XLSX.utils.json_to_sheet(dados);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
-        XLSX.writeFile(wb, "Relatorio_Geral_Inspecao_2026.xlsx");
+        const tabelaDOM = document.querySelector("table");
+        const wb = XLSX.utils.table_to_book(tabelaDOM);
+        XLSX.writeFile(wb, "Relatorio_Geral_Inspecao_Medica_CBAX.xlsx");
     }
 
-    carregarDados();
+    window.onload = carregarDados;
 </script>
 </body>
 </html>
