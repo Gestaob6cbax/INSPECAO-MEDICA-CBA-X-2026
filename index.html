@@ -24,61 +24,60 @@
 <body>
 
 <div class="header-top">
-    <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
+    <h2>INSPEÇÃO DE PERIÓDICA DE SAÚDE – CBA X</h2>
     <p>Sistema Centralizado de Agendamento</p>
 </div>
 
 <div class="container">
     <form id="formAgendamento">
-        <label>Nome Completo</label>
-        <input type="text" id="nome" placeholder="NOME COMPLETO" required />
-        
-        <label>RG Militar</label>
-        <input type="text" id="rg" placeholder="APENAS NÚMEROS" required />
-        
-        <label>Unidade de Origem (Onde você serve)</label>
+         <label>Unidade de Origem (Onde você serve)</label>
         <select id="unidadeServe" required>
             <option value="">SELECIONE SUA UNIDADE</option>
             <option>CBA X (Sede)</option>
+            <option>CER</option>
             <option>1º GMar - Botafogo</option>
             <option>2º GMar - Barra da Tijuca</option>
             <option>3º GMar - Copacabana</option>
             <option>4º GMar - Itaipu</option>
             <option>DBM 1/M - Paquetá</option>
-            <option>DBM 2/M - Ramos</option>
+            <option>DBM 2/M - Piscinão de Ramos</option>
             <option>DBM 3/M - Recreio</option>
-            <option>DBM 4/M - Guaratiba</option>
+            <option>DBM 4/M - Barra de Guaratiba</option>
             <option>DBM 5/M - Sepetiba</option>
-            <option>CER</option>
         </select>
-
+        <label>Nome Completo</label>
+        <input type="text" id="nome" required placeholder="NOME COMPLETO">
+        <label>RG Militar</label>
+        <input type="text" id="rg" required placeholder="APENAS NÚMEROS">
+        <label>Celular (WhatsApp)</label>
+        <input type="tel" id="telefone" required placeholder="(XX) 9XXXX-XXXX">
+        <label>E-mail</label>
+        <label>Email</label> <input type="email" id="email" required>
         <label>Local da Inspeção</label>
         <select id="unidade" required>
-            <option value="">LOCAL ONDE DESEJA REALIZAR</option>
-            <option>1º GMar - Botafogo</option>
-            <option>CER</option>
-            <option>2º GMar - Barra da Tijuca</option>
-            <option>3º GMar - Copacabana</option>
-            <option>4º GMar - Itaipu</option>
-            <option>CBA X</option>
-            <option>DBM 3/M - Recreio</option>
-            <option>DBM 5/M - Sepetiba</option>
+            <option value="">SELECIONE O LOCAL...</option>
+            <option value="CER + 2º GMAR">CER + 2º GMAR - Barra</option>
+            <option value="3º GMAR">3º GMAR - Copacabana</option>
+            <option value="DBM 5/M">DBM 5/M - Sepetiba</option>
+            <option value="CBA X">CBA X - Salvamento Marítimo</option>
+            <option value="1º GMAR">1º GMAR + DBM 1/M + DBM 2/M</option>
+            <option value="4º GMAR">4º GMAR + DBM 6/M - Itaipu</option>
+            <option value="DBM 4/M">DBM 4/M + DBM 3/M - Recreio</option>
         </select>
-
-        <label>Data Disponível</label>
+            <label>Data Disponível</label>
         <select id="dataSelect" required><option value="">SELECIONE O LOCAL PRIMEIRO</option></select>
-
         <div id="campoTurno" style="display:none;">
-            <label>Turno</label>
-            <select id="turno">
-                <option value="Manhã">Manhã (07:30 - 12:00)</option>
-                <option value="Tarde">Tarde (13:00 - 17:30)</option>
-            </select>
-        </div>
+            <label>Data</label>
 
+            <label>Turno</label>
+        <select id="turno">
+        <option value="">Selecione</option>
+        <option value="Manhã">Manhã</option>
+        <option value="Tarde">Tarde</option>
+        </select>
+        </div>
         <button type="submit" class="btn-main" id="btnAgendar">Finalizar Agendamento</button>
     </form>
-    
     <div id="comprovanteBox">
         <h3 style="text-align:center; color: var(--success);">AGENDAMENTO CONFIRMADO</h3>
         <div class="info-row"><span>Militar:</span> <b id="cNome"></b></div>
