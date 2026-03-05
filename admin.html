@@ -1,1 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADM - Inspeção Médica 2026</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+        header { background: #8b0000; color: white; padding: 25px 20px; text-align: center; border-bottom: 5px solid #b8860b; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        .stats-row { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; flex: 1; min-width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid #8b0000; text-align: center; }
+        .stat-card span { display: block; font-size: 14px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-card strong { font-size: 28px; color: #333; }
+        .controls { background: white; padding: 20px; border-radius: 12px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); flex-wrap: wrap; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .btn-refresh { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; display: none; }
+        .btn-export { background: #28a745; color: white; }
+        .table-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 11px; color: #666; border-bottom: 2px solid #eee; text-transform: uppercase; }
+        td { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #eee; }
+        .badge-local { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #f5c6cb; font-size: 10px; text-transform: uppercase; }
+        .btn-delete-row { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 18px; }
+    </style>
+</head>
+<body>
 
+<header>
+    <h1>Painel de Controle - Inspeção Médica 2026</h1>
+    <p>CBA X - Comando de Bombeiros de Área</p>
+</header>
+
+<div class="container">
+    <div class="stats-row">
+        <div class="stat-card">
+            <span>Militares Agendados</span>
+            <strong id="contador">0</strong>
+        </div>
+        <div class="stat-card">
+            <span>Status da Conexão</span>
+            <strong id="db-status" style="color: orange; font-size: 18px;">SINCRONIZANDO...</strong>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-refresh" onclick="carregarDados()">🔄 Sincronizar Agora</button>
+        <button id="btnExcluirMassa" class="btn-danger" onclick="cancelarSelecionados()">
+            🗑️ Excluir Selecionados (<span id="numSel">0</span>)
+        </button>
+        <div style="flex-grow: 1;"></div>
+        <button class="btn-export" onclick="exportarExcel()">📊 Exportar Relatório Excel</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
+                    <th>Local</th>
+                    <th>Unidade</th>
+                    <th>Data</th>
+                    <th>Turno</th>
+                    <th>Nome do Militar</th>
+                    <th>RG</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabela">
+                <tr><td colspan="8" style="padding: 40px; text-align: center;">Buscando registros no banco de dados...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+        authDomain: "inspecao-saude-cbax.firebaseapp.com",
+        projectId: "inspecao-saude-cbax",
+        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+        messagingSenderId: "1011281662526",
+        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    async function carregarDados() {
+        const tabela = document.getElementById("tabela");
+        const contador = document.getElementById("contador");
+        const status = document.getElementById("db-status");
+        
+        tabela.innerHTML = "<tr><td colspan='8' style='text-align:center; padding:20px;'>🔄 Lendo Firebase...</td></tr>";
+
+        try {
+            // BUSCA NAS COLEÇÕES CORRETAS QUE VOCÊ POSSUI
+            const [snap1, snap2] = await Promise.all([
+                db.collection("agendamentos").get(),
+                db.collection("agendamentos_medica").get()
+            ]);
+
+            let todos = [];
+
+            const processar = (snap, colNome) => {
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    todos.push({
+                        id: doc.id,
+                        colecao: colNome,
+                        local: d.localInspecao || d.localNome || d.unidade || "Não inf.",
+                        origem: d.unidadeMilitar || d.unidadeOrigem || d.unidadeServe || "Não inf.",
+                        data: d.data_br || d.data || "---",
+                        turno: d.turno || "Geral",
+                        nome: (d.nome || "SEM NOME").toUpperCase(),
+                        rg: d.rg || "---"
+                    });
+                });
+            };
+
+            processar(snap1, "agendamentos");
+            processar(snap2, "agendamentos_medica");
+
+            // Ordenar por data (se disponível)
+            tabela.innerHTML = "";
+            todos.forEach(item => {
+                tabela.innerHTML += `
+                    <tr>
+                        <td><input type="checkbox" class="checkItem" data-col="${item.colecao}" value="${item.id}" data-rg="${item.rg}" onchange="atualizarBotaoMassa()"></td>
+                        <td><span class="badge-local">${item.local}</span></td>
+                        <td>${item.origem}</td>
+                        <td>${item.data}</td>
+                        <td>${item.turno}</td>
+                        <td><strong>${item.nome}</strong></td>
+                        <td>${item.rg}</td>
+                        <td><button class="btn-delete-row" onclick="excluirIndividual('${item.colecao}', '${item.id}', '${item.nome}', '${item.rg}')">🗑️</button></td>
+                    </tr>`;
+            });
+
+            contador.innerText = todos.length;
+            status.innerText = "CONECTADO";
+            status.style.color = "green";
+            if (todos.length === 0) tabela.innerHTML = "<tr><td colspan='8' style='text-align:center;'>Nenhum registro encontrado nas pastas.</td></tr>";
+            
+        } catch (e) {
+            console.error(e);
+            status.innerText = "ERRO DE CONEXÃO";
+            status.style.color = "red";
+            tabela.innerHTML = "<tr><td colspan='8' style='text-align:center; color:red;'>Falha ao carregar. Verifique as Regras do Firebase.</td></tr>";
+        }
+    }
+
+    function toggleTodos() {
+        const master = document.getElementById("selecionarTodos");
+        document.querySelectorAll(".checkItem").forEach(cb => cb.checked = master.checked);
+        atualizarBotaoMassa();
+    }
+
+    function atualizarBotaoMassa() {
+        const selecionados = document.querySelectorAll(".checkItem:checked").length;
+        const btn = document.getElementById("btnExcluirMassa");
+        document.getElementById("numSel").innerText = selecionados;
+        btn.style.display = selecionados > 0 ? "flex" : "none";
+    }
+
+    async function excluirIndividual(colecao, id, nome, rg) {
+        if (confirm(`Excluir agendamento de ${nome}?`)) {
+            try {
+                await db.collection(colecao).doc(id).delete();
+                if(rg) await db.collection("rg_locks").doc(rg).delete();
+                carregarDados();
+            } catch (e) { alert("Erro ao excluir."); }
+        }
+    }
+
+    async function cancelarSelecionados() {
+        const checks = document.querySelectorAll(".checkItem:checked");
+        if (confirm(`Excluir permanentemente ${checks.length} registros?`)) {
+            for (let cb of checks) {
+                const col = cb.getAttribute("data-col");
+                const id = cb.value;
+                const rg = cb.getAttribute("data-rg");
+                await db.collection(col).doc(id).delete();
+                if(rg) await db.collection("rg_locks").doc(rg).delete();
+            }
+            carregarDados();
+        }
+    }
+
+    function exportarExcel() {
+        const wb = XLSX.utils.table_to_book(document.querySelector("table"));
+        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_CBAX.xlsx");
+    }
+
+    window.onload = carregarDados;
+</script>
+</body>
+</html>
