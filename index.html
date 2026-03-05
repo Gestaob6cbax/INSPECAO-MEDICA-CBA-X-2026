@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -61,10 +60,20 @@
             text-transform: uppercase; padding: 18px; border-radius: 10px;
             width: 100%; transition: 0.3s;
         }
-        .btn-main:hover { background: #660000; box-shadow: 0 5px 15px rgba(139,0,0,0.3); }
+        .btn-main:hover:not(:disabled) { background: #660000; box-shadow: 0 5px 15px rgba(139,0,0,0.3); }
+        .btn-main:disabled { background: #ccc; cursor: not-allowed; }
 
-        .btn-success { background: var(--success); }
-        .btn-secondary { background: #5a6268; margin-top: 10px; }
+        #vagasInfo {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+        }
+        .vagas-disponiveis { color: #28a745; background: #eaffea; border: 1px solid #28a745; }
+        .vagas-esgotadas { color: #8b0000; background: #ffeaea; border: 1px solid #8b0000; }
 
         #comprovanteBox { display:none; border: 1px solid #eee; padding: 25px; border-radius: 15px; background: #fff; }
         .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
@@ -137,6 +146,8 @@
             </select>
         </div>
 
+        <div id="vagasInfo"></div>
+
         <button type="submit" class="btn-main" id="btnAgendar">Finalizar Agendamento</button>
     </form>
     
@@ -158,7 +169,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
@@ -185,9 +196,71 @@
     const unidadeEl = document.getElementById("unidade");
     const dataSelect = document.getElementById("dataSelect");
     const campoTurno = document.getElementById("campoTurno");
+    const turnoSelect = document.getElementById("turno");
+    const btnAgendar = document.getElementById("btnAgendar");
+    const vagasInfo = document.getElementById("vagasInfo");
+
+    async function atualizarVagas() {
+        const dataVal = dataSelect.value;
+        const localVal = unidadeEl.value;
+        const turnoVal = turnoSelect.value;
+
+        if (!dataVal || !localVal) return;
+
+        const agenda = AGENDAS.find(a => a.unidades.includes(localVal));
+        if (agenda.tipo === "TS" && !turnoVal) {
+            vagasInfo.style.display = "block";
+            vagasInfo.className = "";
+            vagasInfo.innerHTML = "Atenção: Selecione o Turno.";
+            btnAgendar.disabled = true;
+            return;
+        }
+
+        vagasInfo.style.display = "block";
+        vagasInfo.className = "";
+        vagasInfo.innerHTML = "Verificando vagas reais...";
+        btnAgendar.disabled = true;
+
+        try {
+            const dataBR = dataVal.split('-').reverse().join('/');
+            const turnoFinal = agenda.tipo === "TS" ? turnoVal : "Geral";
+
+            // REGRAS DE LIMITE
+            let limite = 10;
+            if (localVal === "DBM 5/M - Sepetiba") {
+                limite = 10; // 10 por turno em Sepetiba
+            } else if (agenda.tipo === "TS") {
+                limite = 7; // 7 por turno nas demais unidades TS
+            }
+
+            const q = query(
+                collection(db, "agendamentos_inspecao"),
+                where("localInspecao", "==", localVal),
+                where("data_br", "==", dataBR),
+                where("turno", "==", turnoFinal)
+            );
+
+            const snapshot = await getDocs(q);
+            const agendados = snapshot.size;
+            const disponiveis = limite - agendados;
+
+            if (disponiveis <= 0) {
+                vagasInfo.innerHTML = `❌ ESGOTADO (${limite} vagas preenchidas no turno ${turnoFinal})`;
+                vagasInfo.className = "vagas-esgotadas";
+                btnAgendar.disabled = true;
+            } else {
+                vagasInfo.innerHTML = `✅ VAGAS REAIS DISPONÍVEIS: ${disponiveis}`;
+                vagasInfo.className = "vagas-disponiveis";
+                btnAgendar.disabled = false;
+            }
+        } catch (e) {
+            vagasInfo.innerHTML = "Erro ao ler banco de dados.";
+        }
+    }
 
     unidadeEl.addEventListener("change", () => {
         dataSelect.innerHTML = '<option value="">SELECIONE A DATA</option>';
+        vagasInfo.style.display = "none";
         const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
         if (!agenda) return;
         
@@ -205,40 +278,39 @@
                     dataSelect.add(new Option(ymd.split('-').reverse().join('/'), ymd));
                 }
             }
-            cursor.setDate(cursor.getDate() + 1); // CORREÇÃO: getDate()
+            cursor.setDate(cursor.getDate() + 1);
         }
     });
 
     dataSelect.addEventListener("change", () => {
         const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
         campoTurno.style.display = (agenda && agenda.tipo === "TS") ? "block" : "none";
+        atualizarVagas();
     });
+
+    turnoSelect.addEventListener("change", atualizarVagas);
 
     document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const dataEscolhida = dataSelect.value;
+        const dataVal = dataSelect.value;
         const rg = document.getElementById("rg").value.trim();
-        const btn = document.getElementById("btnAgendar");
+        const localVal = unidadeEl.value;
+        const agenda = AGENDAS.find(a => a.unidades.includes(localVal));
 
-        if (!dataEscolhida) {
-            alert("Por favor, selecione uma data!");
-            return;
-        }
-
-        btn.disabled = true;
+        btnAgendar.disabled = true;
 
         try {
             const lockRef = doc(db, "rg_locks_inspecao", rg);
             const lockSnap = await getDoc(lockRef);
-            if (lockSnap.exists()) throw new Error("Já existe um agendamento para este RG.");
+            if (lockSnap.exists()) throw new Error("Atenção: Já consta um agendamento para este RG.");
 
             const dados = {
                 nome: document.getElementById("nome").value.toUpperCase(),
                 rg: rg,
                 unidadeOrigem: document.getElementById("unidadeServe").value,
-                localInspecao: unidadeEl.value,
-                data_br: dataEscolhida.split('-').reverse().join('/'),
-                turno: campoTurno.style.display === "block" ? document.getElementById("turno").value : "Geral",
+                localInspecao: localVal,
+                data_br: dataVal.split('-').reverse().join('/'),
+                turno: campoTurno.style.display === "block" ? turnoSelect.value : "Geral",
                 criadoEm: serverTimestamp()
             };
 
@@ -255,7 +327,7 @@
             document.getElementById("comprovanteBox").style.display = "block";
         } catch (err) {
             alert(err.message);
-            btn.disabled = false;
+            btnAgendar.disabled = false;
         }
     });
 </script>
