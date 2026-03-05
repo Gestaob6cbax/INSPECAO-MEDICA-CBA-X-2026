@@ -178,4 +178,91 @@
             if (dataAtual >= hoje) {
                 const diaSemana = dataAtual.getDay();
                 let pode = (agenda.tipo === "TS" && (diaSemana === 2 || diaSemana === 5)) || 
-                           (agenda.tipo === "MF" && (diaSem
+                           (agenda.tipo === "MF" && (diaSemana >= 1 && diaSemana <= 5));
+                
+                if (pode) {
+                    const ymd = dataAtual.toISOString().split('T')[0];
+                    const opt = document.createElement("option");
+                    opt.value = ymd;
+                    opt.textContent = formatBR(ymd);
+                    dataSelect.appendChild(opt);
+                    encontrouData = true;
+                }
+            }
+            dataAtual.setDate(dataAtual.getDate() + 1);
+        }
+
+        if (!encontrouData) {
+            dataSelect.add(new Option("Sem datas disponíveis no momento", ""));
+        }
+    });
+    
+    dataSelect.addEventListener("change", () => {
+        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
+        // Se for tipo TS (Terça e Sexta), habilita a escolha do Turno
+        campoTurno.style.display = (agenda && agenda.tipo === "TS") ? "block" : "none";
+    });
+    
+    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnAgendar");
+        const rgRaw = document.getElementById("rg").value.trim();
+        const rgNorm = rgRaw.replace(/\D/g, "");
+        
+        btn.disabled = true;
+        btn.innerText = "REGISTRANDO AGENDAMENTO...";
+    
+        try {
+            const agRef = doc(collection(db, "agendamentos"));
+            const lockRef = doc(db, "rg_locks", rgNorm);
+    
+            await runTransaction(db, async (tx) => {
+                const lockSnap = await tx.get(lockRef);
+                if (lockSnap.exists()) throw new Error("RG_JA_AGENDADO");
+    
+                const dados = {
+                    nome: document.getElementById("nome").value.trim().toUpperCase(),
+                    rg: rgRaw,
+                    telefone: document.getElementById("telefone").value.trim(),
+                    unidadeServe: document.getElementById("unidadeServe").value,
+                    email: document.getElementById("email").value.trim(),
+                    posto: document.getElementById("posto").value,
+                    unidade: unidadeEl.value,
+                    data: dataSelect.value,
+                    data_br: formatBR(dataSelect.value),
+                    turno: (campoTurno.style.display === "block") ? (turnoEl.value || "Não informado") : "Livre Demanda (08:00 às 16:00)",
+                    criadoEm: serverTimestamp()
+                };
+    
+                tx.set(agRef, dados);
+                tx.set(lockRef, { rg: rgNorm, criadoEm: serverTimestamp() });
+                
+                // Envio opcional para Google Sheets via AppScript
+                fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados)
+                });
+    
+                // Preenche o comprovante
+                document.getElementById("cNome").textContent = dados.nome;
+                document.getElementById("cRg").textContent = dados.rg;
+                document.getElementById("cUnidade").textContent = dados.unidade;
+                document.getElementById("cData").textContent = dados.data_br;
+                document.getElementById("cTurno").textContent = dados.turno;
+                document.getElementById("cProto").textContent = `IM26-${rgNorm}-${dados.data.replace(/-/g,"")}`;
+            });
+    
+            document.getElementById("formAgendamento").style.display = "none";
+            document.getElementById("comprovanteBox").style.display = "block";
+    
+        } catch (err) {
+            alert(err.message === "RG_JA_AGENDADO" ? "⚠️ Este RG já possui um agendamento registrado para 2026." : "❌ Erro ao salvar. Verifique sua conexão.");
+            btn.disabled = false;
+            btn.innerText = "Finalizar Agendamento";
+        }
+    });
+</script>
+</body>
+</html>
