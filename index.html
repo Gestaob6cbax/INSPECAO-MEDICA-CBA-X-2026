@@ -17,7 +17,16 @@
 
         button { background:#8b0000; color:#fff; border:none; cursor:pointer; font-weight:bold; font-size: 16px; text-transform: uppercase; }
         button:hover { background:#a00000; transform: translateY(-2px); }
-        button:disabled { opacity:0.6; cursor:not-allowed; }
+        button:disabled { background:#ccc !important; cursor:not-allowed; transform: none; }
+
+        /* Estilo do Cronômetro de Vagas */
+        #vagasBox { 
+            display:none; padding:15px; border-radius:8px; margin-bottom:15px; 
+            text-align:center; font-weight:bold; border: 1px solid #ddd; font-size: 15px;
+        }
+        .vagas-ok { background: #e6fffa; color: #2c7a7b; border-color: #b2f5ea !important; }
+        .vagas-alerta { background: #fffaf0; color: #9c4221; border-color: #feebc8 !important; }
+        .vagas-esgotado { background: #fff5f5; color: #c53030; border-color: #feb2b2 !important; }
 
         #avisoAgenda { display:none; background:#fff5f5; border:1px solid #feb2b2; padding:12px; border-radius:8px; margin:10px 0; font-size:13px; color:#c53030; font-weight: bold; }
         #comprovanteBox { display:none; text-align:left; background:#fffafa; border:2px solid #f8d7da; border-radius:12px; padding:25px; margin-top:14px; }
@@ -32,7 +41,7 @@
         @media print {
             body { background:#fff; }
             .container { max-width:100%; margin:0; box-shadow: none; border: none; }
-            form, .header-top, #avisoAgenda { display:none !important; }
+            form, .header-top, #avisoAgenda, #vagasBox { display:none !important; }
             #comprovanteBox { display:block !important; border:none; width: 100%; padding: 0; }
         }
     </style>
@@ -91,12 +100,14 @@
         <div id="avisoAgenda">🚨 ATENÇÃO: Inspeções nesta unidade apenas às TERÇAS e SEXTAS.</div>
         
         <select id="dataSelect" required><option value="">Selecione a Data</option></select>
+
+        <div id="vagasBox"></div>
         
         <div id="campoTurno" style="display:none;">
             <select id="turno">
                 <option value="">Selecione o Turno</option>
-                <option value="Manhã">Manhã</option>
-                <option value="Tarde">Tarde</option>
+                <option value="Manhã">Manhã (08h às 12h)</option>
+                <option value="Tarde">Tarde (13h às 16h)</option>
             </select>
         </div>
         
@@ -121,7 +132,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, doc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, doc, runTransaction, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     
     const firebaseConfig = {
         apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
@@ -134,8 +145,7 @@
     
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    
-    // Lista de Agendas Unificadas conforme solicitado
+
     const AGENDAS = [
         { id:"A1", tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15", unidades:["1º GMar + DBM 1/M + DBM 2/M"] },
         { id:"A2", tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar + DBM 6/M"] },
@@ -145,122 +155,156 @@
         { id:"A6", tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 4/M + DBM 3/M"] },
         { id:"A7", tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M"] },
     ];
-    
+
+    function obterRegraVagas(dataISO) {
+        if (dataISO < "2026-03-13") {
+            return { total: 20, porTurno: 20 }; // Antes do dia 13, sem trava de turno
+        } else {
+            return { total: 14, porTurno: 7 }; // A partir do dia 13, 7 por turno
+        }
+    }
+
     const unidadeEl = document.getElementById("unidade");
     const dataSelect = document.getElementById("dataSelect");
     const turnoEl = document.getElementById("turno");
     const campoTurno = document.getElementById("campoTurno");
-    const avisoAgenda = document.getElementById("avisoAgenda");
-    
+    const vagasBox = document.getElementById("vagasBox");
+    const btnAgendar = document.getElementById("btnAgendar");
+
     function formatBR(ymd) { return ymd.split('-').reverse().join('/'); }
-    
+
+    async function atualizarContadorVagas() {
+        const dataVal = dataSelect.value;
+        const localVal = unidadeEl.value;
+        const turnoVal = (campoTurno.style.display === "block") ? turnoEl.value : "Livre Demanda";
+
+        if (!dataVal || !localVal) { vagasBox.style.display = "none"; return; }
+
+        vagasBox.style.display = "block";
+        vagasBox.className = "";
+        vagasBox.textContent = "⌛ Consultando ocupação real...";
+        btnAgendar.disabled = true;
+
+        const regra = obterRegraVagas(dataVal);
+
+        try {
+            const q = query(collection(db, "agendamentos"), where("data", "==", dataVal), where("unidade", "==", localVal));
+            const snap = await getDocs(q);
+            const totalOcupado = snap.size;
+            const agendadosNoTurno = snap.docs.filter(d => d.data().turno === turnoVal).length;
+
+            let esgotado = false;
+            let texto = "";
+
+            if (totalOcupado >= regra.total) {
+                texto = `❌ DIA ESGOTADO (${totalOcupado}/${regra.total} militares)`;
+                esgotado = true;
+            } else if (regra.porTurno < regra.total && turnoVal !== "" && agendadosNoTurno >= regra.porTurno) {
+                texto = `❌ TURNO ${turnoVal.toUpperCase()} ESGOTADO (${agendadosNoTurno}/${regra.porTurno} vagas)`;
+                esgotado = true;
+            } else {
+                const restam = regra.total - totalOcupado;
+                texto = `VAGAS NO DIA: ${totalOcupado}/${regra.total}`;
+                if (regra.porTurno < regra.total && turnoVal !== "") {
+                    texto += ` | TURNO: ${agendadosNoTurno}/${regra.porTurno}`;
+                }
+                esgotado = false;
+            }
+
+            vagasBox.className = esgotado ? "vagas-esgotado" : (totalOcupado >= regra.total - 2 ? "vagas-alerta" : "vagas-ok");
+            vagasBox.innerHTML = texto;
+            btnAgendar.disabled = esgotado || (campoTurno.style.display === "block" && turnoEl.value === "");
+
+        } catch (e) { vagasBox.textContent = "Erro na consulta."; }
+    }
+
     unidadeEl.addEventListener("change", () => {
         dataSelect.innerHTML = '<option value="">Selecione a Data</option>';
-        campoTurno.style.display = "none";
-        avisoAgenda.style.display = "none";
-        
-        const unidadeSelecionada = unidadeEl.value;
-        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeSelecionada));
-        
+        campoTurno.style.display = "none"; avisoAgenda.style.display = "none"; vagasBox.style.display = "none";
+        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
         if (!agenda) return;
-
         if (agenda.tipo === "TS") avisoAgenda.style.display = "block";
         
-        let dataAtual = new Date(agenda.inicio + "T00:00:00");
-        const dataFim = new Date(agenda.fim + "T23:59:59");
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
+        let d = new Date(agenda.inicio + "T00:00:00");
+        const df = new Date(agenda.fim + "T23:59:59");
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
         
-        let encontrouData = false;
-
-        while (dataAtual <= dataFim) {
-            // Regra: Não mostrar datas que já passaram de HOJE
-            if (dataAtual >= hoje) {
-                const diaSemana = dataAtual.getDay();
-                let pode = (agenda.tipo === "TS" && (diaSemana === 2 || diaSemana === 5)) || 
-                           (agenda.tipo === "MF" && (diaSemana >= 1 && diaSemana <= 5));
-                
-                if (pode) {
-                    const ymd = dataAtual.toISOString().split('T')[0];
-                    const opt = document.createElement("option");
-                    opt.value = ymd;
-                    opt.textContent = formatBR(ymd);
-                    dataSelect.appendChild(opt);
-                    encontrouData = true;
+        while (d <= df) {
+            if (d >= hoje) {
+                const dia = d.getDay();
+                if ((agenda.tipo === "TS" && (dia===2 || dia===5)) || (agenda.tipo === "MF" && (dia>=1 && dia<=5))) {
+                    const ymd = d.toISOString().split('T')[0];
+                    dataSelect.add(new Option(formatBR(ymd), ymd));
                 }
             }
-            dataAtual.setDate(dataAtual.getDate() + 1);
-        }
-
-        if (!encontrouData) {
-            dataSelect.add(new Option("Sem datas disponíveis no momento", ""));
+            d.setDate(d.getDate() + 1);
         }
     });
-    
+
     dataSelect.addEventListener("change", () => {
         const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
-        // Se for tipo TS (Terça e Sexta), habilita a escolha do Turno
         campoTurno.style.display = (agenda && agenda.tipo === "TS") ? "block" : "none";
+        atualizarContadorVagas();
     });
-    
+
+    turnoEl.addEventListener("change", atualizarContadorVagas);
+
     document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const btn = document.getElementById("btnAgendar");
-        const rgRaw = document.getElementById("rg").value.trim();
-        const rgNorm = rgRaw.replace(/\D/g, "");
+        const rg = document.getElementById("rg").value.trim().replace(/\D/g, "");
+        const dataVal = dataSelect.value;
+        const localVal = unidadeEl.value;
+        const turnoVal = (campoTurno.style.display === "block") ? turnoEl.value : "Livre Demanda";
+        const regra = obterRegraVagas(dataVal);
         
-        btn.disabled = true;
-        btn.innerText = "REGISTRANDO AGENDAMENTO...";
-    
+        btnAgendar.disabled = true; btnAgendar.innerText = "REGISTRANDO...";
+
         try {
-            const agRef = doc(collection(db, "agendamentos"));
-            const lockRef = doc(db, "rg_locks", rgNorm);
-    
+            const lockRef = doc(db, "rg_locks", rg);
             await runTransaction(db, async (tx) => {
-                const lockSnap = await tx.get(lockRef);
-                if (lockSnap.exists()) throw new Error("RG_JA_AGENDADO");
-    
+                const lSnap = await tx.get(lockRef);
+                if (lSnap.exists()) throw new Error("RG_JA_AGENDADO");
+
+                const q = query(collection(db, "agendamentos"), where("data", "==", dataVal), where("unidade", "==", localVal));
+                const snap = await getDocs(q);
+                if (snap.size >= regra.total) throw new Error("DIA_ESGOTADO");
+                
+                const ocupTurno = snap.docs.filter(d => d.data().turno === turnoVal).length;
+                if (regra.porTurno < regra.total && ocupTurno >= regra.porTurno) throw new Error("TURNO_ESGOTADO");
+
+                const agRef = doc(collection(db, "agendamentos"));
                 const dados = {
                     nome: document.getElementById("nome").value.trim().toUpperCase(),
-                    rg: rgRaw,
+                    rg: document.getElementById("rg").value.trim(),
                     telefone: document.getElementById("telefone").value.trim(),
                     unidadeServe: document.getElementById("unidadeServe").value,
                     email: document.getElementById("email").value.trim(),
                     posto: document.getElementById("posto").value,
-                    unidade: unidadeEl.value,
-                    data: dataSelect.value,
-                    data_br: formatBR(dataSelect.value),
-                    turno: (campoTurno.style.display === "block") ? (turnoEl.value || "Não informado") : "Livre Demanda (08:00 às 16:00)",
+                    unidade: localVal,
+                    data: dataVal,
+                    data_br: formatBR(dataVal),
+                    turno: turnoVal,
                     criadoEm: serverTimestamp()
                 };
-    
                 tx.set(agRef, dados);
-                tx.set(lockRef, { rg: rgNorm, criadoEm: serverTimestamp() });
-                
-                // Envio opcional para Google Sheets via AppScript
-                fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(dados)
-                });
-    
-                // Preenche o comprovante
+                tx.set(lockRef, { rg, criadoEm: serverTimestamp() });
+
                 document.getElementById("cNome").textContent = dados.nome;
                 document.getElementById("cRg").textContent = dados.rg;
                 document.getElementById("cUnidade").textContent = dados.unidade;
                 document.getElementById("cData").textContent = dados.data_br;
                 document.getElementById("cTurno").textContent = dados.turno;
-                document.getElementById("cProto").textContent = `IM26-${rgNorm}-${dados.data.replace(/-/g,"")}`;
+                document.getElementById("cProto").textContent = `IM26-${rg}-${dataVal.replace(/-/g,"")}`;
             });
-    
+
             document.getElementById("formAgendamento").style.display = "none";
             document.getElementById("comprovanteBox").style.display = "block";
-    
         } catch (err) {
-            alert(err.message === "RG_JA_AGENDADO" ? "⚠️ Este RG já possui um agendamento registrado para 2026." : "❌ Erro ao salvar. Verifique sua conexão.");
-            btn.disabled = false;
-            btn.innerText = "Finalizar Agendamento";
+            let m = "Erro ao agendar.";
+            if (err.message === "RG_JA_AGENDADO") m = "⚠️ RG já possui agendamento.";
+            if (err.message === "DIA_ESGOTADO" || err.message === "TURNO_ESGOTADO") m = "❌ Vagas esgotadas no momento.";
+            alert(m);
+            btnAgendar.disabled = false; btnAgendar.innerText = "Finalizar Agendamento";
         }
     });
 </script>
