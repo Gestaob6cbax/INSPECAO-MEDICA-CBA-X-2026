@@ -1,315 +1,411 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INSPEÇÃO DE SAÚDE 2026 - CBA X</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INSPEÇÃO DE SAÚDE 2026 - CBA X</title>
+    <style>
+        :root { 
+            --primary: #8b0000; /* Vermelho CBMERJ */
+            --primary-dark: #660000;
+            --secondary: #b8860b; /* Dourado */
+            --bg: #f4f7f6; /* Fundo cinza azulado muito claro */
+            --text: #333;
+            --border: #ddd;
+        }
 
-<style>
-:root { --primary:#8b0000; --secondary:#ff0000; --bg:#f2f2f2; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text);
+            margin: 0; 
+            padding: 0; 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-body{
-font-family:'Segoe UI',sans-serif;
-background:var(--bg);
-margin:0;
-padding:0;
-}
+        /* CABEÇALHO CENTRALIZADO */
+        .header-top { 
+            background: linear-gradient(135deg, #9b0000 0%, #720000 100%); 
+            color: white; 
+            padding: 40px 20px; 
+            text-align: center; 
+            border-bottom: 5px solid var(--secondary); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+        }
 
-.header-top{
-background:linear-gradient(180deg,#9b0000 0%,#720000 100%);
-color:white;
-padding:30px 15px;
-text-align:center;
-border-bottom:5px solid #ff0000;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-}
+        .header-top img { 
+            max-width: 120px; 
+            height: auto;
+            margin-bottom: 20px; 
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.3));
+        }
 
-.header-top img{
-max-width:100px;
-margin-bottom:15px;
-}
+        .header-top h2 { 
+            margin: 0; 
+            font-size: 24px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
 
-.header-top h2{
-margin:0;
-font-size:20px;
-text-transform:uppercase;
-}
+        .header-top p {
+            margin: 10px 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
 
-.container{
-max-width:450px;
-margin:-20px auto 50px;
-background:#fff;
-padding:30px;
-border-radius:12px;
-box-shadow:0 10px 25px rgba(0,0,0,0.1);
-}
+        /* CONTAINER CENTRALIZADO (A MOLDURA DO FORMULÁRIO) */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alinha ao topo para não sumir o topo em telas menores */
+            padding: 50px 20px;
+        }
 
-label{
-display:block;
-margin-bottom:5px;
-font-weight:bold;
-font-size:11px;
-text-transform:uppercase;
-}
+        .form-container { 
+            width: 100%;
+            max-width: 500px; /* Limita a largura para não esparramar */
+            background: #fff; 
+            padding: 40px; 
+            border-radius: 16px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            border: 1px solid rgba(0,0,0,0.05);
+        }
 
-input,select{
-width:100%;
-padding:14px;
-margin-bottom:20px;
-border-radius:8px;
-border:1px solid #ccc;
-background:#fafafa;
-}
+        /* ESTILIZAÇÃO DOS CAMPOS E LABELS */
+        .form-group {
+            margin-bottom: 25px;
+        }
 
-.btn-main{
-background:var(--primary);
-color:#fff;
-border:none;
-padding:18px;
-width:100%;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
-}
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 700; 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
 
-#vagasInfo{
-padding:12px;
-border-radius:8px;
-text-align:center;
-font-weight:bold;
-margin-bottom:20px;
-display:none;
-}
+        input, select { 
+            width: 100%; 
+            padding: 16px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            background-color: #fbfbfb; 
+            box-sizing: border-box; 
+            font-size: 15px;
+            color: var(--text);
+            transition: all 0.3s;
+        }
 
-.vagas-ok{
-background:#eaffea;
-color:#28a745;
-border:1px solid #28a745;
-}
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+            background-color: #fff;
+        }
 
-.vagas-full{
-background:#ffeaea;
-color:#8b0000;
-border:1px solid #8b0000;
-}
+        /* BOTÃO PRINCIPAL */
+        .btn-main { 
+            background-color: var(--primary); 
+            color: #fff; 
+            border: none; 
+            padding: 20px; 
+            width: 100%; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-size: 16px;
+            letter-spacing: 1px;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(139, 0, 0, 0.2);
+        }
 
-</style>
+        .btn-main:hover {
+            background-color: var(--primary-dark);
+            box-shadow: 0 6px 12px rgba(139, 0, 0, 0.3);
+        }
+
+        .btn-main:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(139, 0, 0, 0.2);
+        }
+
+        .btn-main:disabled { 
+            background-color: #ccc; 
+            color: #888;
+            cursor: not-allowed; 
+            box-shadow: none;
+        }
+
+        /* INFORMAÇÕES DE VAGAS */
+        #vagasInfo { 
+            padding: 15px; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-weight: 700; 
+            margin-bottom: 25px; 
+            display: none; 
+            font-size: 14px; 
+            border: 1px solid transparent;
+        }
+
+        .vagas-ok { 
+            background-color: #eaffea; 
+            color: #28a745; 
+            border-color: #c3e6cb;
+        }
+
+        .vagas-full { 
+            background-color: #ffeaea; 
+            color: #8b0000; 
+            border-color: #f5c6cb;
+        }
+
+        /* RODAPÉ SIMPLES */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #888;
+            background-color: #fff;
+            border-top: 1px solid var(--border);
+        }
+
+    </style>
 </head>
-
 <body>
 
 <div class="header-top">
-<img src="logo_cba_x.png">
-<h2>INSPEÇÃO DE SAÚDE 2026</h2>
-<p>COMANDO DE BOMBEIROS DE ÁREA - CBA X</p>
+    <img src="logo_cba_x.png" onerror="this.src='https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-ODONTOLOGICA-CBA-X-2026/main/logo_cba_x.png'">
+    <h2>INSPEÇÃO DE SAÚDE 2026</h2>
+    <p>COMANDO DE BOMBEIROS DE ÁREA - CBA X</p>
 </div>
 
-<div class="container">
+<div class="main-content">
+    <div class="form-container">
+        <form id="formAgendamento">
+            
+            <div class="form-group">
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" required placeholder="Ex: JOÃO DA SILVA">
+            </div>
 
-<form id="formAgendamento">
+            <div class="form-group">
+                <label for="rg">RG Militar</label>
+                <input type="text" id="rg" required placeholder="SOMENTE NÚMEROS (Ex: 12345)">
+            </div>
 
-<label>Nome Completo</label>
-<input type="text" id="nome" required>
+            <div class="form-group">
+                <label for="telefone">Celular (WhatsApp)</label>
+                <input type="tel" id="telefone" required placeholder="Ex: (21) 99999-9999">
+            </div>
 
-<label>RG Militar</label>
-<input type="text" id="rg" required>
+            <div class="form-group">
+                <label for="email">Email Corporativo/Pessoal</label>
+                <input type="email" id="email" required placeholder="Ex: militar@cbmerj.rj.gov.br">
+            </div>
 
-<label>Celular</label>
-<input type="tel" id="telefone" required>
+            <div class="form-group">
+                <label for="unidade">Local da Inspeção</label>
+                <select id="unidade" required>
+                    <option value="">Selecione o Local...</option>
+                    <option value="CER + 2º GMAR">CER + 2º GMAR - Barra</option>
+                    <option value="3º GMAR">3º GMAR - Copacabana</option>
+                    <option value="DBM 5/M">DBM 5/M - Sepetiba</option>
+                    <option value="CBA X">CBA X - Salvamento Marítimo</option>
+                    <option value="1º GMAR + DBM1/M + DBM2/M">1º GMAR + DBM1/M + DBM2/M</option>
+                    <option value="4º GMAR + DBM6/M">4º GMAR + DBM6/M</option>
+                    <option value="DBM4/M + DBM3/M">DBM4/M + DBM3/M</option>
+                </select>
+            </div>
 
-<label>Email</label>
-<input type="email" id="email" required>
+            <div class="form-group">
+                <label for="dataSelect">Data</label>
+                <select id="dataSelect" required><option value="">Selecione o local primeiro</option></select>
+            </div>
 
-<label>Local da Inspeção</label>
+            <div id="campoTurno" class="form-group" style="display:none;">
+                <label for="turno">Turno</label>
+                <select id="turno">
+                    <option value="">Selecione o Turno</option>
+                    <option value="Manhã">Manhã (07:30 - 12:00)</option>
+                    <option value="Tarde">Tarde (13:00 - 17:30)</option>
+                </select>
+            </div>
 
-<select id="unidade" required>
+            <div id="vagasInfo"></div>
 
-<option value="">Selecione</option>
-
-<option value="CER + 2º GMAR">CER + 2º GMAR - Barra</option>
-<option value="3º GMAR">3º GMAR - Copacabana</option>
-<option value="DBM 5/M">DBM5/M - Sepetiba</option>
-<option value="CBA X">CBA X - Salvamento Marítimo</option>
-<option value="1º GMAR + DBM1/M + DBM2/M">1º GMAR + DBM1/M + DBM2/M</option>
-<option value="4º GMAR + DBM6/M">4º GMAR + DBM6/M</option>
-<option value="DBM4/M + DBM3/M">DBM4/M + DBM3/M</option>
-
-</select>
-
-<label>Data</label>
-
-<select id="dataSelect"></select>
-
-<div id="campoTurno" style="display:none;">
-
-<label>Turno</label>
-
-<select id="turno">
-
-<option value="">Selecione</option>
-<option value="Manhã">Manhã</option>
-<option value="Tarde">Tarde</option>
-
-</select>
-
+            <button type="submit" class="btn-main" id="btnAgendar">Finalizar Agendamento</button>
+        </form>
+    </div>
 </div>
 
-<div id="vagasInfo"></div>
-
-<button class="btn-main" id="btnAgendar">
-Finalizar Agendamento
-</button>
-
-</form>
-
-</div>
+<footer>
+    &copy; 2026 CBA X - CBMERJ. Todos os direitos reservados.
+</footer>
 
 <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    // MANTENHA SUA CONFIGURAÇÃO ORIGINAL AQUI
+    const firebaseConfig = {
+        apiKey: "AIzaSy...", // Sua API Key real aqui
+        authDomain: "inspecao-saude-cbax.firebaseapp.com",
+        projectId: "inspecao-saude-cbax",
+        storageBucket: "inspecao-saude-cbax.appspot.com",
+        messagingSenderId: "1011281662526",
+        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+    };
 
-import {
-getFirestore,
-collection,
-query,
-where,
-getDocs,
-addDoc
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-const firebaseConfig={
-apiKey:"AIzaSy...",
-authDomain:"inspecao-saude-cbax.firebaseapp.com",
-projectId:"inspecao-saude-cbax"
-};
+    const REGRAS = {
+        "CER + 2º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
+        "3º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
+        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 10, turno: true },
+        "CBA X": { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
+        "1º GMAR + DBM1/M + DBM2/M": { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7, turno: true },
+        "4º GMAR + DBM6/M": { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7, turno: true },
+        "DBM4/M + DBM3/M": { inicio: "2026-06-30", fim: "2026-07-31", dias: [2,5], vagas: 7, turno: true }
+    };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
+    const unidade = document.getElementById("unidade");
+    const dataSelect = document.getElementById("dataSelect");
+    const turno = document.getElementById("turno");
+    const campoTurno = document.getElementById("campoTurno");
+    const vagasInfo = document.getElementById("vagasInfo");
+    const btnAgendar = document.getElementById("btnAgendar");
 
-const unidade=document.getElementById("unidade");
-const dataSelect=document.getElementById("dataSelect");
-const turno=document.getElementById("turno");
-const campoTurno=document.getElementById("campoTurno");
-const vagasInfo=document.getElementById("vagasInfo");
+    unidade.onchange = () => {
+        dataSelect.innerHTML = '<option value="">Selecione a data...</option>';
+        vagasInfo.style.display = "none";
+        campoTurno.style.display = "none";
+        turno.required = false;
+        turno.value = "";
+        
+        const r = REGRAS[unidade.value];
+        if(!r) return;
 
-const REGRAS={
+        campoTurno.style.display = r.turno ? "block" : "none";
+        turno.required = r.turno;
+        
+        // CORREÇÃO FUSO HORÁRIO: Força meio-dia na criação da data
+        let d = new Date(r.inicio + "T12:00:00"); 
+        const fim = new Date(r.fim + "T12:00:00");
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-"CER + 2º GMAR":{inicio:"2026-02-23",fim:"2026-07-31",dias:[1,2,3,4,5],vagas:5,turno:false},
+        while(d <= fim) {
+            if(d >= hoje && r.dias.includes(d.getDay())) {
+                let iso = d.toISOString().split("T")[0];
+                let br = iso.split("-").reverse().join("/");
+                dataSelect.add(new Option(br, br));
+            }
+            d.setDate(d.getDate() + 1);
+        }
+    };
 
-"3º GMAR":{inicio:"2026-02-23",fim:"2026-07-31",dias:[1,2,3,4,5],vagas:5,turno:false},
+    async function conferirVagas() {
+        const local = unidade.value;
+        const data = dataSelect.value;
+        const r = REGRAS[local];
+        if(!local || !data) return;
+        if(r.turno && !turno.value) return;
 
-"DBM 5/M":{inicio:"2026-02-23",fim:"2026-03-06",dias:[2,5],vagas:10,turno:true},
+        const tFinal = r.turno ? turno.value : "Geral";
+        
+        btnAgendar.disabled = true;
+        vagasInfo.style.display = "block";
+        vagasInfo.className = "";
+        vagasInfo.innerHTML = "Sincronizando com o banco de dados...";
 
-"CBA X":{inicio:"2026-03-10",fim:"2026-03-13",dias:[2,5],vagas:10,turno:true},
+        const q = query(
+            collection(db, "agendamentos_inspecao"),
+            where("localInspecao", "==", local),
+            where("data_br", "==", data),
+            where("turno", "==", tFinal)
+        );
 
-"1º GMAR + DBM1/M + DBM2/M":{inicio:"2026-03-17",fim:"2026-05-15",dias:[2,5],vagas:7,turno:true},
+        try {
+            const snap = await getDocs(q);
+            const usadas = snap.size;
+            const limite = r.vagas;
 
-"4º GMAR + DBM6/M":{inicio:"2026-05-19",fim:"2026-06-26",dias:[2,5],vagas:7,turno:true},
+            if(usadas >= limite) {
+                vagasInfo.className = "vagas-full";
+                vagasInfo.innerHTML = `❌ ESGOTADO (${limite} militares já agendados)`;
+                btnAgendar.disabled = true;
+            } else {
+                const restantes = limite - usadas;
+                vagasInfo.className = "vagas-ok";
+                vagasInfo.innerHTML = `✅ ${restantes} vagas disponíveis para este turno`;
+                btnAgendar.disabled = false;
+            }
+        } catch (error) {
+            console.error("Erro ao conferir vagas:", error);
+            vagasInfo.className = "vagas-full";
+            vagasInfo.innerHTML = "Erro ao verificar vagas. Tente novamente.";
+        }
+    }
 
-"DBM4/M + DBM3/M":{inicio:"2026-06-30",fim:"2026-07-31",dias:[2,5],vagas:7,turno:true}
+    dataSelect.onchange = conferirVagas;
+    turno.onchange = conferirVagas;
 
-};
+    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const rgVal = document.getElementById("rg").value.trim();
+        
+        btnAgendar.disabled = true;
+        btnAgendar.innerHTML = "Processando... Por favor, aguarde.";
 
-unidade.onchange=()=>{
+        try {
+            // BLOQUEIO DE RG DUPLICADO NO BANCO DE LOCKS
+            const lockRef = doc(db, "rg_locks_inspecao", rgVal);
+            const lockDoc = await getDoc(lockRef);
+            
+            if(lockDoc.exists()) {
+                alert("ERRO: Este RG já possui um agendamento realizado!");
+                btnAgendar.disabled = false;
+                btnAgendar.innerHTML = "Finalizar Agendamento";
+                return;
+            }
 
-dataSelect.innerHTML="";
+            const local = unidade.value;
+            const t = REGRAS[local].turno ? turno.value : "Geral";
 
-const r=REGRAS[unidade.value];
+            // GRAVA O AGENDAMENTO PRINCIPAL
+            await addDoc(collection(db, "agendamentos_inspecao"), {
+                nome: document.getElementById("nome").value.toUpperCase(),
+                rg: rgVal,
+                telefone: document.getElementById("telefone").value,
+                email: document.getElementById("email").value,
+                localInspecao: local,
+                data_br: dataSelect.value,
+                turno: t,
+                dataRegistro: new Date()
+            });
 
-campoTurno.style.display=r.turno?"block":"none";
+            // GRAVA O LOCK DO RG PARA EVITAR DUPLICIDADE
+            await setDoc(lockRef, { rg: rgVal });
 
-let d=new Date(r.inicio);
-const fim=new Date(r.fim);
+            alert("✅ AGENDAMENTO CONFIRMADO COM SUCESSO!\n\nUm comprovante foi gerado no sistema.");
+            location.reload();
 
-while(d<=fim){
-
-if(r.dias.includes(d.getDay())){
-
-let iso=d.toISOString().split("T")[0];
-let br=iso.split("-").reverse().join("/");
-
-dataSelect.add(new Option(br,br));
-
-}
-
-d.setDate(d.getDate()+1);
-
-}
-
-};
-
-async function conferirVagas(){
-
-const local=unidade.value;
-const data=dataSelect.value;
-const t=REGRAS[local].turno?turno.value:"Geral";
-
-if(!local||!data)return;
-
-const q=query(
-collection(db,"agendamentos_inspecao"),
-where("localInspecao","==",local),
-where("data_br","==",data),
-where("turno","==",t)
-);
-
-const snap=await getDocs(q);
-
-const usadas=snap.size;
-const limite=REGRAS[local].vagas;
-
-vagasInfo.style.display="block";
-
-if(usadas>=limite){
-
-vagasInfo.className="vagas-full";
-vagasInfo.innerHTML=`❌ ESGOTADO (${limite} vagas já preenchidas)`;
-
-}else{
-
-const restantes=limite-usadas;
-
-vagasInfo.className="vagas-ok";
-vagasInfo.innerHTML=`✅ ${restantes} vagas restantes`;
-
-}
-
-}
-
-dataSelect.onchange=conferirVagas;
-turno.onchange=conferirVagas;
-
-document.getElementById("formAgendamento").addEventListener("submit",async(e)=>{
-
-e.preventDefault();
-
-const nome=document.getElementById("nome").value;
-const rg=document.getElementById("rg").value;
-const telefone=document.getElementById("telefone").value;
-const email=document.getElementById("email").value;
-const local=unidade.value;
-const data=dataSelect.value;
-const t=REGRAS[local].turno?turno.value:"Geral";
-
-await addDoc(collection(db,"agendamentos_inspecao"),{
-
-nome:nome,
-rg:rg,
-telefone:telefone,
-email:email,
-localInspecao:local,
-data_br:data,
-turno:t
-
-});
-
-alert("Agendamento realizado com sucesso!");
-
-location.reload();
-
-});
-
+        } catch (error) {
+            console.error("Erro ao gravar dados:", error);
+            alert("Erro crítico ao gravar dados. Tente novamente ou entre em contato com o CBA X.");
+            btnAgendar.disabled = false;
+            btnAgendar.innerHTML = "Finalizar Agendamento";
+        }
+    });
 </script>
-
 </body>
 </html>
