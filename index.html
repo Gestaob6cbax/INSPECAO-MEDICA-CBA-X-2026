@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>INSPEÇÃO DE SAÚDE – CBA X</title>
+    <title>INSPEÇÃO MÉDICA – CBA X</title>
     <style>
-        /* ✅ IDENTIDADE VISUAL VERMELHA */
         body { font-family: 'Segoe UI', Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
         
+        /* CABEÇALHO VERMELHO CBA X */
         .header-top { background: #8b0000; color: white; padding: 25px 10px; text-align: center; border-bottom: 5px solid #ff0000; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .header-top img { max-width: 90px; margin-bottom: 10px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3)); }
         .header-top h2 { margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .header-top p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
 
         .container { max-width: 600px; margin: -40px auto 50px; background:#fff; padding:30px; border-radius:12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-top: 4px solid #8b0000; }
         
         input, select, button { width:100%; padding:14px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd; font-size:15px; box-sizing:border-box; transition: 0.3s; }
         input:focus, select:focus { border-color: #8b0000; outline: none; box-shadow: 0 0 8px rgba(139,0,0,0.1); }
 
-        /* ✅ BOTÃO VERMELHO */
         button { background:#8b0000; color:#fff; border:none; cursor:pointer; font-weight:bold; font-size: 16px; text-transform: uppercase; }
         button:hover { background:#a00000; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         button:disabled { opacity:0.6; cursor:not-allowed; }
@@ -27,7 +27,7 @@
         #comprovanteBox { display:none; text-align:left; background:#fffafa; border:2px solid #f8d7da; border-radius:12px; padding:25px; margin-top:14px; }
         #comprovanteBox h3 { margin:0 0 15px 0; color: #8b0000; border-bottom: 2px solid #f8d7da; padding-bottom: 10px; text-align: center; }
         .linha { margin:10px 0; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: #333; }
-        .linha b { color: #8b0000; width: 120px; display: inline-block; }
+        .linha b { color: #8b0000; width: 130px; display: inline-block; }
         
         .btnRow { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
         .btnSecondary { background:#4b5563; }
@@ -45,8 +45,10 @@
 <body>
 
 <div class="header-top">
-    <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-ODONTOLOGICA-CBA-X-2026/main/logo_cba_x.png" alt="Logo CBA X" />
-    <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
+    <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-MEDICA-CBA-X-2026/main/logo_cba_x.png" 
+         alt="Logo CBA X" 
+         onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Logo_CBMERJ.png/120px-Logo_CBMERJ.png'" />
+    <h2>INSPEÇÃO MÉDICA – CBA X</h2>
     <p>Agendamento Digital 2026</p>
 </div>
 
@@ -70,7 +72,8 @@
             <option>DBM 5/M - Sepetiba</option>
             <option>DBM 6/M - Itaipu</option>
             <option>CER</option>
-            </select>
+            <option>Outra Unidade</option>
+        </select>
 
         <input type="email" id="email" placeholder="E-mail (funcional ou pessoal)" required />
 
@@ -117,7 +120,8 @@
         <h3>✅ AGENDAMENTO CONFIRMADO</h3>
         <div class="linha"><b>Militar:</b> <span id="cNome"></span></div>
         <div class="linha"><b>RG:</b> <span id="cRg"></span></div>
-        <div class="linha"><b>Destino:</b> <span id="cUnidade"></span></div>
+        <div class="linha"><b>Unidade:</b> <span id="cUnidadeServe"></span></div>
+        <div class="linha"><b>Local Inspeção:</b> <span id="cUnidade"></span></div>
         <div class="linha"><b>Data:</b> <span id="cData"></span></div>
         <div class="linha"><b>Turno:</b> <span id="cTurno"></span></div>
         <div class="linha"><b>Protocolo:</b> <span id="cProto" style="font-family: monospace; font-weight: bold;"></span></div>
@@ -130,7 +134,6 @@
 </div>
 
 <script type="module">
-    // ... (Seu script original continua aqui sem alterações, ele funciona perfeitamente com este HTML)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getFirestore, collection, doc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     
@@ -201,7 +204,7 @@
         const btn = document.getElementById("btnAgendar");
         const rgNorm = document.getElementById("rg").value.replace(/\D/g, "");
         btn.disabled = true;
-        btn.innerText = "AGUARDE...";
+        btn.innerText = "REGISTRANDO...";
     
         try {
             const agRef = doc(collection(db, "agendamentos"));
@@ -228,7 +231,6 @@
                 tx.set(agRef, dados);
                 tx.set(lockRef, { rg: rgNorm, criadoEm: serverTimestamp() });
                 
-                // Envio para Planilha (Ajuste o link se necessário)
                 fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
                     method: "POST", mode: "no-cors",
                     body: JSON.stringify({ rg: dados.rg, tipo: "saude", data: dados.data_br, local: dados.unidade })
@@ -236,17 +238,18 @@
     
                 document.getElementById("cNome").textContent = dados.nome;
                 document.getElementById("cRg").textContent = dados.rg;
+                document.getElementById("cUnidadeServe").textContent = dados.unidadeServe;
                 document.getElementById("cUnidade").textContent = dados.unidade;
                 document.getElementById("cData").textContent = dados.data_br;
                 document.getElementById("cTurno").textContent = dados.turno;
-                document.getElementById("cProto").textContent = `IS-${rgNorm}-${dados.data.replace(/-/g,"")}`;
+                document.getElementById("cProto").textContent = `IM-${rgNorm}-${dados.data.replace(/-/g,"")}`;
             });
     
             document.getElementById("formAgendamento").style.display = "none";
             document.getElementById("comprovanteBox").style.display = "block";
     
         } catch (err) {
-            alert(err.message === "RG_JA_AGENDADO" ? "Este RG já possui um agendamento." : "Erro ao salvar. Tente novamente.");
+            alert(err.message === "RG_JA_AGENDADO" ? "Este RG já possui agendamento." : "Erro ao salvar. Tente novamente.");
             btn.disabled = false;
             btn.innerText = "Confirmar Agendamento";
         }
