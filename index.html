@@ -5,18 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>INSPEÇÃO DE SAÚDE – CBA X</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
-        .header-top { background: #8b0000; color: white; padding: 25px 10px; text-align: center; border-bottom: 5px solid #ff0000; margin-bottom: 30px; }
-        .header-top img { max-width: 90px; margin-bottom: 10px; }
-        .container { max-width: 600px; margin: -40px auto 50px; background:#fff; padding:30px; border-radius:12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-top: 4px solid #8b0000; }
-        input, select, button { width:100%; padding:14px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd; font-size:15px; box-sizing:border-box; }
-        button { background:#8b0000; color:#fff; border:none; cursor:pointer; font-weight:bold; text-transform: uppercase; }
-        button:hover { background:#a00000; }
-        #avisoAgenda { display:none; background:#fff5f5; border:1px solid #feb2b2; padding:12px; border-radius:8px; margin:10px 0; font-size:13px; color:#c53030; font-weight: bold; }
-        #comprovanteBox { display:none; text-align:left; background:#fffafa; border:2px solid #f8d7da; border-radius:12px; padding:25px; }
-        .linha { margin:10px 0; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .linha b { color: #8b0000; width: 120px; display: inline-block; }
-        @media print { .header-top, form, #avisoAgenda { display:none !important; } #comprovanteBox { display:block !important; border:none; } }
+        :root {
+            --primary: #8b0000;
+            --secondary: #ff0000;
+            --bg: #f8f9fa;
+            --text: #2d3436;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: var(--bg); 
+            margin:0; padding:0; color: var(--text);
+        }
+
+        /* HEADER PREMIUM */
+        .header-top { 
+            background: linear-gradient(135deg, #8b0000 0%, #4a0000 100%);
+            color: white; 
+            padding: 40px 10px; 
+            text-align: center; 
+            border-bottom: 6px solid var(--secondary);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .header-top img { 
+            max-width: 100px; 
+            margin-bottom: 15px; 
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5)); 
+        }
+        .header-top h2 { 
+            margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;
+        }
+        .header-top p { margin: 5px 0 0; opacity: 0.9; font-weight: 300; }
+
+        /* CONTAINER COM EFEITO PREMIUM */
+        .container { 
+            max-width: 550px; 
+            margin: -50px auto 60px; 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: var(--primary); text-transform: uppercase; }
+
+        input, select { 
+            width:100%; padding:15px; margin-bottom:20px; 
+            border-radius:12px; border: 2px solid #eee; 
+            font-size:16px; box-sizing:border-box; transition: all 0.3s ease;
+            background: #fdfdfd;
+        }
+        input:focus, select:focus { 
+            border-color: var(--primary); outline: none; 
+            box-shadow: 0 0 15px rgba(139,0,0,0.1); 
+            background: #fff;
+        }
+
+        /* BOTÃO PREMIUM */
+        button { 
+            background: var(--primary); color:#fff; border:none; 
+            cursor:pointer; font-weight:bold; font-size: 17px; 
+            text-transform: uppercase; padding: 18px; border-radius: 12px;
+            transition: all 0.4s; letter-spacing: 1px;
+            box-shadow: 0 8px 15px rgba(139,0,0,0.3);
+        }
+        button:hover { 
+            background: #a00000; transform: translateY(-3px); 
+            box-shadow: 0 12px 20px rgba(139,0,0,0.4); 
+        }
+        button:active { transform: translateY(-1px); }
+        button:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+
+        #avisoAgenda { 
+            display:none; background:#fff5f5; border-left: 5px solid var(--secondary); 
+            padding:15px; border-radius:8px; margin-bottom:20px; 
+            font-size:14px; color:#c53030; font-weight: 600; 
+        }
+        
+        /* COMPROVANTE PREMIUM */
+        #comprovanteBox { 
+            display:none; text-align:left; background: #fff; 
+            border-radius:20px; padding:30px; border: 2px dashed #d1d1d1;
+            position: relative;
+        }
+        #comprovanteBox::before {
+            content: "✓"; position: absolute; top: 10px; right: 20px;
+            font-size: 80px; color: rgba(40, 167, 69, 0.1);
+        }
+        #comprovanteBox h3 { 
+            margin:0 0 20px 0; color: #28a745; text-align: center; 
+            font-size: 22px; border-bottom: 1px solid #eee; padding-bottom: 15px;
+        }
+        .linha { margin:15px 0; font-size: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #f9f9f9; padding-bottom: 8px; }
+        .linha b { color: var(--primary); }
+        
+        .protocolo { 
+            background: #f4f4f4; padding: 15px; border-radius: 10px; 
+            text-align: center; font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; font-size: 18px; color: #333; margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+
+        @media print {
+            body { background:#fff; }
+            .container { max-width:100%; margin:0; box-shadow: none; border: none; }
+            form, .header-top, #avisoAgenda, .no-print { display:none !important; }
+            #comprovanteBox { display:block !important; border: 2px solid #000; }
+        }
     </style>
 </head>
 <body>
@@ -24,29 +121,38 @@
 <div class="header-top">
     <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-ODONTOLOGICA-CBA-X-2026/main/logo_cba_x.png" alt="Logo CBA X" />
     <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
-    <p>Agendamento Militar 2026</p>
+    <p>Sistema Centralizado de Agendamento</p>
 </div>
 
 <div class="container">
-    <form id="formAgendamento">
-        <input type="text" id="nome" placeholder="Nome completo" required />
+    <form id="formAgendamento" autocomplete="off">
+        <label>Identificação</label>
+        <input type="text" id="nome" placeholder="Nome Completo" required />
         <input type="text" id="rg" placeholder="RG Militar (apenas números)" required />
-        <input type="tel" id="telefone" placeholder="Telefone" required />
         
+        <label>Contato</label>
+        <input type="tel" id="telefone" placeholder="WhatsApp (ex: 21999999999)" required />
+
+        <label>Unidade de Origem</label>
         <select id="unidadeServe" required>
-            <option value="">Unidade onde serve</option>
-            <option>CBA X (Sede)</option><option>1º GMar</option><option>2º GMar</option><option>3º GMar</option><option>4º GMar</option>
-            <option>DBM 1/M</option><option>DBM 2/M</option><option>DBM 3/M</option><option>DBM 4/M</option><option>DBM 5/M - Sepetiba</option><option>DBM 6/M</option><option>CER</option>
+            <option value="">Selecione sua unidade atual</option>
+            <option>CBA X (Sede)</option>
+            <option>1º GMar - Botafogo</option>
+            <option>2º GMar - Barra da Tijuca</option>
+            <option>3º GMar - Copacabana</option>
+            <option>4º GMar - Itaipu</option>
+            <option>DBM 1/M - Paquetá</option>
+            <option>DBM 2/M - Piscinão de Ramos</option>
+            <option>DBM 3/M - Recreio</option>
+            <option>DBM 4/M - Barra de Guaratiba</option>
+            <option>DBM 5/M - Sepetiba</option>
+            <option>DBM 6/M - Itaipu</option>
+            <option>CER</option>
         </select>
 
-        <select id="posto" required>
-            <option value="">Posto / Graduação</option>
-            <option>SD</option><option>CB</option><option>3º SGT</option><option>2º SGT</option><option>1º SGT</option><option>SUBTEN</option>
-            <option>2º TEN</option><option>1º TEN</option><option>CAP</option><option>MAJ</option><option>TC</option><option>CEL</option>
-        </select>
-
+        <label>Local da Inspeção</label>
         <select id="unidade" required>
-            <option value="">Selecione o LOCAL da Inspeção</option>
+            <option value="">Onde deseja realizar a inspeção?</option>
             <option>1º GMar - Botafogo</option>
             <option>CER</option>
             <option>2º GMar - Barra da Tijuca</option>
@@ -57,131 +163,7 @@
             <option>DBM 5/M - Sepetiba</option>
         </select>
 
-        <div id="avisoAgenda">🚨 ATENÇÃO: Inspeções apenas TERÇAS e SEXTAS.</div>
+        <div id="avisoAgenda">🚨 Unidade com atendimento exclusivo às TERÇAS e SEXTAS.</div>
 
-        <select id="dataSelect" required><option value="">Selecione a Data</option></select>
-
-        <div id="campoTurno" style="display:none;">
-            <select id="turno">
-                <option value="">Selecione o Turno</option>
-                <option value="Manhã">Manhã (07:30 - 12:00)</option>
-                <option value="Tarde">Tarde (13:00 - 17:30)</option>
-            </select>
-        </div>
-
-        <button type="submit" id="btnAgendar">Confirmar Agendamento</button>
-    </form>
-    
-    <div id="comprovanteBox">
-        <h3>✅ CONFIRMADO</h3>
-        <div class="linha"><b>Militar:</b> <span id="cNome"></span></div>
-        <div class="linha"><b>Data:</b> <span id="cData"></span></div>
-        <div class="linha"><b>Local:</b> <span id="cUnidade"></span></div>
-        <div class="linha"><b>Protocolo:</b> <span id="cProto"></span></div>
-        <button onclick="location.reload()">Novo Agendamento</button>
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    
-    const firebaseConfig = {
-        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-        authDomain: "inspecao-saude-cbax.firebaseapp.com",
-        projectId: "inspecao-saude-cbax",
-        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-        messagingSenderId: "1011281662526",
-        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-    };
-    
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    
-    // AGENDA REVISADA - PENTE FINO
-    const AGENDAS = [
-        { tipo:"TS", inicio:"2026-03-17", fim:"2026-05-15", unidades:["1º GMar - Botafogo"] },
-        { tipo:"TS", inicio:"2026-05-19", fim:"2026-06-26", unidades:["4º GMar - Itaipu"] },
-        { tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER","2º GMar - Barra da Tijuca"] },
-        { tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["3º GMar - Copacabana"] },
-        { tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13", unidades:["CBA X"] },
-        { tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 3/M - Recreio"] },
-        { tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
-    ];
-    
-    const unidadeEl = document.getElementById("unidade");
-    const dataSelect = document.getElementById("dataSelect");
-    const campoTurno = document.getElementById("campoTurno");
-    const avisoAgenda = document.getElementById("avisoAgenda");
-
-    unidadeEl.addEventListener("change", () => {
-        dataSelect.innerHTML = '<option value="">Selecione a Data</option>';
-        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
-        if (!agenda) return;
-
-        avisoAgenda.style.display = agenda.tipo === "TS" ? "block" : "none";
-        
-        // CORREÇÃO DATA: Forçamos a comparação com a data de HOJE (05/03)
-        let dataCursor = new Date(agenda.inicio + "T12:00:00");
-        const dataFim = new Date(agenda.fim + "T12:00:00");
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-
-        while (dataCursor <= dataFim) {
-            if (dataCursor >= hoje) { // Só mostra se for hoje ou futuro
-                const diaSemana = dataCursor.getDay();
-                let pode = (agenda.tipo === "TS" && (diaSemana === 2 || diaSemana === 5)) || 
-                           (agenda.tipo === "MF" && (diaSemana >= 1 && diaSemana <= 5));
-                
-                if (pode) {
-                    const ymd = dataCursor.toISOString().split('T')[0];
-                    const dBR = ymd.split('-').reverse().join('/');
-                    dataSelect.add(new Option(dBR, ymd));
-                }
-            }
-            dataCursor.setDate(dataCursor.getDate() + 1);
-        }
-    });
-
-    dataSelect.addEventListener("change", () => {
-        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
-        campoTurno.style.display = (agenda && agenda.tipo === "TS") ? "block" : "none";
-    });
-
-    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const rg = document.getElementById("rg").value.trim();
-        const btn = document.getElementById("btnAgendar");
-        btn.disabled = true;
-
-        try {
-            const lockRef = doc(db, "rg_locks_inspecao", rg);
-            const lockSnap = await getDoc(lockRef);
-            if (lockSnap.exists()) throw new Error("Militar já agendado!");
-
-            const dados = {
-                nome: document.getElementById("nome").value.toUpperCase(),
-                rg: rg,
-                localNome: unidadeEl.value,
-                data: dataSelect.value,
-                turno: campoTurno.style.display === "block" ? document.getElementById("turno").value : "Livre",
-                criadoEm: serverTimestamp()
-            };
-
-            await setDoc(doc(collection(db, "agendamentos_inspecao")), dados);
-            await setDoc(lockRef, { rg: rg });
-
-            document.getElementById("cNome").textContent = dados.nome;
-            document.getElementById("cData").textContent = dados.data.split('-').reverse().join('/');
-            document.getElementById("cUnidade").textContent = dados.localNome;
-            document.getElementById("cProto").textContent = `IS-${rg}`;
-            
-            document.getElementById("formAgendamento").style.display = "none";
-            document.getElementById("comprovanteBox").style.display = "block";
-        } catch (err) {
-            alert(err.message);
-            btn.disabled = false;
-        }
-    });
-</script>
-</body>
-</html>
+        <label>Data Disponível</label>
+        <select id="dataSelect" required><option value="">Selec
