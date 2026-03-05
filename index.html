@@ -153,4 +153,117 @@
 
     const REGRAS = {
         "CER + 2º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
-        "3º G
+        "3º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
+        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 10, turno: true },
+        "CBA X": { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
+        "1º GMAR + DBM1/M + DBM2/M": { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7, turno: true },
+        "4º GMAR + DBM6/M": { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7, turno: true },
+        "DBM4/M + DBM3/M": { inicio: "2026-06-30", fim: "2026-07-31", dias: [2,5], vagas: 7, turno: true }
+    };
+
+    const unidade = document.getElementById("unidade");
+    const dataSelect = document.getElementById("dataSelect");
+    const turno = document.getElementById("turno");
+    const campoTurno = document.getElementById("campoTurno");
+    const vagasInfo = document.getElementById("vagasInfo");
+    const btnAgendar = document.getElementById("btnAgendar");
+
+    unidade.onchange = () => {
+        dataSelect.innerHTML = '<option value="">Selecione a data</option>';
+        vagasInfo.style.display = "none";
+        const r = REGRAS[unidade.value];
+        if(!r) return;
+        campoTurno.style.display = r.turno ? "block" : "none";
+        let d = new Date(r.inicio + "T12:00:00");
+        const fim = new Date(r.fim + "T12:00:00");
+        while(d <= fim) {
+            if(r.dias.includes(d.getDay())) {
+                let br = d.toISOString().split("T")[0].split("-").reverse().join("/");
+                dataSelect.add(new Option(br, br));
+            }
+            d.setDate(d.getDate()+1);
+        }
+    };
+
+    async function conferirVagas() {
+        const local = unidade.value;
+        const data = dataSelect.value;
+        if(!local || !data) return;
+        const r = REGRAS[local];
+        if(r.turno && !turno.value) return;
+
+        btnAgendar.disabled = true;
+        vagasInfo.style.display = "block";
+        vagasInfo.innerHTML = "Sincronizando vagas...";
+
+        const turnoFinal = r.turno ? turno.value : "Geral";
+        const q = query(collection(db, "agendamentos_inspecao"), 
+            where("localInspecao", "==", local), 
+            where("data_br", "==", data), 
+            where("turno", "==", turnoFinal)
+        );
+
+        const snap = await getDocs(q);
+        const restantes = r.vagas - snap.size;
+
+        if(restantes <= 0) {
+            vagasInfo.className = "vagas-full";
+            vagasInfo.innerHTML = "❌ ESGOTADO";
+            btnAgendar.disabled = true;
+        } else {
+            vagasInfo.className = "vagas-ok";
+            vagasInfo.innerHTML = `✅ ${restantes} vagas restantes`;
+            btnAgendar.disabled = false;
+        }
+    }
+
+    dataSelect.onchange = conferirVagas;
+    turno.onchange = conferirVagas;
+
+    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const rg = document.getElementById("rg").value.trim();
+        btnAgendar.disabled = true;
+        btnAgendar.innerHTML = "PROCESSANDO...";
+
+        try {
+            const lockRef = doc(db, "rg_locks_inspecao", rg);
+            const lock = await getDoc(lockRef);
+            if(lock.exists()){
+                alert("Este RG já possui agendamento!");
+                btnAgendar.disabled = false;
+                btnAgendar.innerHTML = "Finalizar Agendamento";
+                return;
+            }
+
+            const nome = document.getElementById("nome").value.toUpperCase();
+            const tel = document.getElementById("telefone").value;
+            const email = document.getElementById("email").value;
+            const unidadeMiltar = document.getElementById("unidadeMilitar").value;
+            const local = unidade.value;
+            const data = dataSelect.value;
+            const turnoFinal = REGRAS[local].turno ? turno.value : "Geral";
+
+            await addDoc(collection(db, "agendamentos_inspecao"), {
+                nome, rg, telefone: tel, email, unidadeMilitar: unidadeMiltar, localInspecao: local, data_br: data, turno: turnoFinal, dataRegistro: new Date()
+            });
+            await setDoc(lockRef, { rg });
+
+            document.getElementById("formAgendamento").style.display = "none";
+            document.getElementById("comprovante").style.display = "block";
+            document.getElementById("dadosComprovante").innerHTML = `
+                <p><b>Militar:</b> ${nome}</p>
+                <p><b>RG:</b> ${rg}</p>
+                <p><b>Lotação:</b> ${unidadeMiltar}</p>
+                <p><b>Local Inspeção:</b> ${local}</p>
+                <p><b>Data:</b> ${data}</p>
+                <p><b>Turno:</b> ${turnoFinal}</p>
+            `;
+        } catch (err) {
+            alert("Erro ao salvar. Tente novamente.");
+            btnAgendar.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
