@@ -165,7 +165,7 @@ async function conferirVagas(){
         return;
     }
     const r=REGRAS[local];
-    const t = r.turno ? turno.value : "Geral";
+    const t = REGRAS[local].turno ? turno.value : "Geral";
 
     if(r.turno && !turno.value) {
         vagasInfo.style.display="none";
@@ -224,7 +224,7 @@ document.getElementById("formAgendamento").onsubmit=async(e)=>{
 
         const local = unidade.value;
         const data = dataSelect.value;
-        const t = REGRAS[local].turno ? (turno.value || "Manhã") : "Geral";
+        const t = REGRAS[local].turno ? turno.value : "Geral";
 
         const dados={
             nome: document.getElementById("nome").value.toUpperCase(),
