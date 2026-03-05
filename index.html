@@ -8,134 +8,96 @@
         :root {
             --primary: #8b0000;
             --secondary: #ff0000;
-            --bg: #f8f9fa;
-            --text: #2d3436;
+            --success: #28a745;
+            --bg: #f2f2f2;
         }
 
         body { 
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             background: var(--bg); 
-            margin:0; padding:0; color: var(--text);
+            margin:0; padding:0;
         }
 
-        /* HEADER PREMIUM */
         .header-top { 
-            background: linear-gradient(135deg, #8b0000 0%, #4a0000 100%);
+            background: linear-gradient(180deg, #9b0000 0%, #720000 100%);
             color: white; 
-            padding: 40px 10px; 
+            padding: 35px 15px; 
             text-align: center; 
-            border-bottom: 6px solid var(--secondary);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border-bottom: 5px solid var(--secondary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        .header-top img { 
-            max-width: 100px; 
-            margin-bottom: 15px; 
-            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5)); 
+        
+        /* AJUSTE DO LOGO */
+        .header-top img {
+            max-width: 100px;
+            height: auto;
+            margin-bottom: 15px;
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4));
         }
-        .header-top h2 { 
-            margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;
-        }
-        .header-top p { margin: 5px 0 0; opacity: 0.9; font-weight: 300; }
 
-        /* CONTAINER COM EFEITO PREMIUM */
+        .header-top h2 { margin: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+        .header-top p { margin: 8px 0 0; font-size: 14px; opacity: 0.8; text-transform: uppercase; }
+
         .container { 
-            max-width: 550px; 
-            margin: -50px auto 60px; 
-            background: rgba(255, 255, 255, 0.95); 
-            padding: 40px; 
-            border-radius: 20px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
+            max-width: 500px; 
+            margin: -30px auto 50px; 
+            background: #ffffff; 
+            padding: 35px; 
+            border-radius: 15px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
         }
-        
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: var(--primary); text-transform: uppercase; }
 
+        label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; }
         input, select { 
-            width:100%; padding:15px; margin-bottom:20px; 
-            border-radius:12px; border: 2px solid #eee; 
-            font-size:16px; box-sizing:border-box; transition: all 0.3s ease;
-            background: #fdfdfd;
+            width:100%; padding:14px; margin-bottom:20px; 
+            border-radius:10px; border: 1px solid #ddd; 
+            font-size:15px; box-sizing:border-box; background: #fafafa;
         }
-        input:focus, select:focus { 
-            border-color: var(--primary); outline: none; 
-            box-shadow: 0 0 15px rgba(139,0,0,0.1); 
-            background: #fff;
-        }
+        input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        /* BOTÃO PREMIUM */
-        button { 
+        .btn-main { 
             background: var(--primary); color:#fff; border:none; 
-            cursor:pointer; font-weight:bold; font-size: 17px; 
-            text-transform: uppercase; padding: 18px; border-radius: 12px;
-            transition: all 0.4s; letter-spacing: 1px;
-            box-shadow: 0 8px 15px rgba(139,0,0,0.3);
+            cursor:pointer; font-weight:bold; font-size: 16px; 
+            text-transform: uppercase; padding: 18px; border-radius: 10px;
+            width: 100%; transition: 0.3s;
         }
-        button:hover { 
-            background: #a00000; transform: translateY(-3px); 
-            box-shadow: 0 12px 20px rgba(139,0,0,0.4); 
-        }
-        button:active { transform: translateY(-1px); }
-        button:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+        .btn-main:hover { background: #660000; box-shadow: 0 5px 15px rgba(139,0,0,0.3); }
 
-        #avisoAgenda { 
-            display:none; background:#fff5f5; border-left: 5px solid var(--secondary); 
-            padding:15px; border-radius:8px; margin-bottom:20px; 
-            font-size:14px; color:#c53030; font-weight: 600; 
-        }
+        .btn-success { background: var(--success); }
+        .btn-secondary { background: #5a6268; margin-top: 10px; }
+
+        #comprovanteBox { display:none; border: 1px solid #eee; padding: 25px; border-radius: 15px; background: #fff; }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+        .info-row b { color: var(--primary); }
         
-        /* COMPROVANTE PREMIUM */
-        #comprovanteBox { 
-            display:none; text-align:left; background: #fff; 
-            border-radius:20px; padding:30px; border: 2px dashed #d1d1d1;
-            position: relative;
-        }
-        #comprovanteBox::before {
-            content: "✓"; position: absolute; top: 10px; right: 20px;
-            font-size: 80px; color: rgba(40, 167, 69, 0.1);
-        }
-        #comprovanteBox h3 { 
-            margin:0 0 20px 0; color: #28a745; text-align: center; 
-            font-size: 22px; border-bottom: 1px solid #eee; padding-bottom: 15px;
-        }
-        .linha { margin:15px 0; font-size: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #f9f9f9; padding-bottom: 8px; }
-        .linha b { color: var(--primary); }
-        
-        .protocolo { 
-            background: #f4f4f4; padding: 15px; border-radius: 10px; 
-            text-align: center; font-family: 'Courier New', Courier, monospace;
-            font-weight: bold; font-size: 18px; color: #333; margin: 20px 0;
-            border: 1px solid #ddd;
+        .badge-protocolo { 
+            background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; 
+            text-align: center; border-radius: 8px; font-family: monospace; 
+            font-size: 18px; font-weight: bold; margin: 20px 0; 
         }
 
-        @media print {
-            body { background:#fff; }
-            .container { max-width:100%; margin:0; box-shadow: none; border: none; }
-            form, .header-top, #avisoAgenda, .no-print { display:none !important; }
-            #comprovanteBox { display:block !important; border: 2px solid #000; }
-        }
+        @media print { .no-print { display: none; } .container { box-shadow: none; margin-top: 20px; } }
     </style>
 </head>
 <body>
 
 <div class="header-top">
-    <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-ODONTOLOGICA-CBA-X-2026/main/logo_cba_x.png" alt="Logo CBA X" />
+    <img src="https://gestaob6cbax.github.io/INSPECAO-ODONTOLOGICA-CBA-X-2026/logo_cba_x.png" alt="CBA X">
     <h2>INSPEÇÃO DE SAÚDE – CBA X</h2>
     <p>Sistema Centralizado de Agendamento</p>
 </div>
 
 <div class="container">
-    <form id="formAgendamento" autocomplete="off">
-        <label>Identificação</label>
-        <input type="text" id="nome" placeholder="Nome Completo" required />
-        <input type="text" id="rg" placeholder="RG Militar (apenas números)" required />
+    <form id="formAgendamento">
+        <label>Nome Completo</label>
+        <input type="text" id="nome" placeholder="NOME COMPLETO" required />
         
-        <label>Contato</label>
-        <input type="tel" id="telefone" placeholder="WhatsApp (ex: 21999999999)" required />
-
+        <label>RG Militar</label>
+        <input type="text" id="rg" placeholder="APENAS NÚMEROS" required />
+        
         <label>Unidade de Origem</label>
         <select id="unidadeServe" required>
-            <option value="">Selecione sua unidade atual</option>
+            <option value="">ONDE VOCÊ SERVE?</option>
             <option>CBA X (Sede)</option>
             <option>1º GMar - Botafogo</option>
             <option>2º GMar - Barra da Tijuca</option>
@@ -152,7 +114,7 @@
 
         <label>Local da Inspeção</label>
         <select id="unidade" required>
-            <option value="">Onde deseja realizar a inspeção?</option>
+            <option value="">LOCAL DA INSPEÇÃO</option>
             <option>1º GMar - Botafogo</option>
             <option>CER</option>
             <option>2º GMar - Barra da Tijuca</option>
@@ -163,35 +125,33 @@
             <option>DBM 5/M - Sepetiba</option>
         </select>
 
-        <div id="avisoAgenda">🚨 Unidade com atendimento exclusivo às TERÇAS e SEXTAS.</div>
-
         <label>Data Disponível</label>
-        <select id="dataSelect" required><option value="">Selecione primeiro o local...</option></select>
+        <select id="dataSelect" required><option value="">SELECIONE O LOCAL PRIMEIRO</option></select>
 
         <div id="campoTurno" style="display:none;">
-            <label>Período</label>
+            <label>Turno</label>
             <select id="turno">
-                <option value="">Selecione o Turno</option>
+                <option value="">SELECIONE O PERÍODO</option>
                 <option value="Manhã">Manhã (07:30 - 12:00)</option>
                 <option value="Tarde">Tarde (13:00 - 17:30)</option>
             </select>
         </div>
 
-        <button type="submit" id="btnAgendar">Finalizar Agendamento</button>
+        <button type="submit" class="btn-main" id="btnAgendar">Finalizar Agendamento</button>
     </form>
     
     <div id="comprovanteBox">
-        <h3>AGENDAMENTO CONFIRMADO</h3>
-        <div class="linha"><span>Militar:</span> <b id="cNome"></b></div>
-        <div class="linha"><span>Local:</span> <b id="cUnidade"></b></div>
-        <div class="linha"><span>Data:</span> <b id="cData"></b></div>
-        <div class="linha"><span>Turno:</span> <b id="cTurno"></b></div>
+        <h3 style="text-align:center; color: var(--success);">AGENDAMENTO CONFIRMADO</h3>
+        <div class="info-row"><span>Militar:</span> <b id="cNome"></b></div>
+        <div class="info-row"><span>Local:</span> <b id="cUnidade"></b></div>
+        <div class="info-row"><span>Data:</span> <b id="cData"></b></div>
+        <div class="info-row"><span>Turno:</span> <b id="cTurno"></b></div>
         
-        <div class="protocolo" id="cProto"></div>
+        <div class="badge-protocolo" id="cProto"></div>
         
-        <div class="no-print" style="margin-top:20px;">
-            <button onclick="window.print()" style="background:#28a745; width: 100%;">🖨️ Imprimir Comprovante</button>
-            <button onclick="location.reload()" style="background:#4b5563; width: 100%; margin-top:10px;">Novo Agendamento</button>
+        <div class="no-print">
+            <button onclick="window.print()" class="btn-main btn-success">🖨️ Imprimir Comprovante</button>
+            <button onclick="location.reload()" class="btn-main btn-secondary">Novo Agendamento</button>
         </div>
     </div>
 </div>
@@ -218,85 +178,4 @@
         { tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["CER","2º GMar - Barra da Tijuca"] },
         { tipo:"MF", inicio:"2026-02-23", fim:"2026-07-31", unidades:["3º GMar - Copacabana"] },
         { tipo:"TS", inicio:"2026-03-10", fim:"2026-03-13", unidades:["CBA X"] },
-        { tipo:"TS", inicio:"2026-06-30", fim:"2026-07-31", unidades:["DBM 3/M - Recreio"] },
-        { tipo:"TS", inicio:"2026-02-23", fim:"2026-03-06", unidades:["DBM 5/M - Sepetiba"] },
-    ];
-    
-    const unidadeEl = document.getElementById("unidade");
-    const dataSelect = document.getElementById("dataSelect");
-    const campoTurno = document.getElementById("campoTurno");
-    const avisoAgenda = document.getElementById("avisoAgenda");
-
-    unidadeEl.addEventListener("change", () => {
-        dataSelect.innerHTML = '<option value="">Selecione a Data</option>';
-        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
-        if (!agenda) return;
-
-        avisoAgenda.style.display = agenda.tipo === "TS" ? "block" : "none";
-        
-        let dataCursor = new Date(agenda.inicio + "T12:00:00");
-        const dataFim = new Date(agenda.fim + "T12:00:00");
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-
-        while (dataCursor <= dataFim) {
-            if (dataCursor >= hoje) {
-                const diaSemana = dataCursor.getDay();
-                let pode = (agenda.tipo === "TS" && (diaSemana === 2 || diaSemana === 5)) || 
-                           (agenda.tipo === "MF" && (diaSemana >= 1 && diaSemana <= 5));
-                
-                if (pode) {
-                    const ymd = dataCursor.toISOString().split('T')[0];
-                    const dBR = ymd.split('-').reverse().join('/');
-                    dataSelect.add(new Option(dBR, ymd));
-                }
-            }
-            dataCursor.setDate(dataCursor.getDate() + 1);
-        }
-    });
-
-    dataSelect.addEventListener("change", () => {
-        const agenda = AGENDAS.find(a => a.unidades.includes(unidadeEl.value));
-        campoTurno.style.display = (agenda && agenda.tipo === "TS") ? "block" : "none";
-    });
-
-    document.getElementById("formAgendamento").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const rg = document.getElementById("rg").value.trim();
-        const btn = document.getElementById("btnAgendar");
-        btn.disabled = true;
-        btn.innerText = "VERIFICANDO...";
-
-        try {
-            const lockRef = doc(db, "rg_locks_inspecao", rg);
-            const lockSnap = await getDoc(lockRef);
-            if (lockSnap.exists()) throw new Error("Atenção: Este RG já possui agendamento ativo.");
-
-            const dados = {
-                nome: document.getElementById("nome").value.toUpperCase(),
-                rg: rg,
-                localNome: unidadeEl.value,
-                data_br: dataSelect.value.split('-').reverse().join('/'),
-                turno: campoTurno.style.display === "block" ? document.getElementById("turno").value : "Demanda Livre",
-                criadoEm: serverTimestamp()
-            };
-
-            await setDoc(doc(collection(db, "agendamentos_inspecao")), dados);
-            await setDoc(lockRef, { rg: rg });
-
-            document.getElementById("cNome").textContent = dados.nome;
-            document.getElementById("cData").textContent = dados.data_br;
-            document.getElementById("cUnidade").textContent = dados.localNome;
-            document.getElementById("cTurno").textContent = dados.turno;
-            document.getElementById("cProto").textContent = `PROT-IS-${rg}-${new Date().getFullYear()}`;
-            
-            document.getElementById("formAgendamento").style.display = "none";
-            document.getElementById("comprovanteBox").style.display = "block";
-        } catch (err) {
-            alert(err.message);
-            btn.disabled = false;
-            btn.innerText = "Finalizar Agendamento";
-        }
-    });
-</script>
-</body>
-</html>
+        { tipo:"TS", inicio:"2026-06-30", fim:"2026-07-
