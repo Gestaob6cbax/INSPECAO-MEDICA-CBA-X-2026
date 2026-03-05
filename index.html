@@ -6,11 +6,7 @@
 <title>INSPEÇÃO DE SAÚDE 2026 - CBA X</title>
 
 <style>
-:root{
---primary:#8b0000;
---secondary:#ff0000;
---bg:#f2f2f2;
-}
+:root { --primary:#8b0000; --secondary:#ff0000; --bg:#f2f2f2; }
 
 body{
 font-family:'Segoe UI',sans-serif;
@@ -30,16 +26,13 @@ box-shadow:0 4px 10px rgba(0,0,0,0.2);
 
 .header-top img{
 max-width:100px;
-height:auto;
 margin-bottom:15px;
-filter:drop-shadow(0px 4px 8px rgba(0,0,0,0.4));
 }
 
 .header-top h2{
 margin:0;
 font-size:20px;
 text-transform:uppercase;
-letter-spacing:1px;
 }
 
 .container{
@@ -56,7 +49,6 @@ display:block;
 margin-bottom:5px;
 font-weight:bold;
 font-size:11px;
-color:#444;
 text-transform:uppercase;
 }
 
@@ -66,9 +58,7 @@ padding:14px;
 margin-bottom:20px;
 border-radius:8px;
 border:1px solid #ccc;
-box-sizing:border-box;
 background:#fafafa;
-font-size:15px;
 }
 
 .btn-main{
@@ -80,8 +70,6 @@ width:100%;
 border-radius:8px;
 font-weight:bold;
 cursor:pointer;
-text-transform:uppercase;
-font-size:16px;
 }
 
 #vagasInfo{
@@ -91,35 +79,27 @@ text-align:center;
 font-weight:bold;
 margin-bottom:20px;
 display:none;
-font-size:14px;
 }
 
-.vagas-disponiveis{
+.vagas-ok{
 background:#eaffea;
 color:#28a745;
 border:1px solid #28a745;
 }
 
-.vagas-esgotadas{
+.vagas-full{
 background:#ffeaea;
 color:#8b0000;
 border:1px solid #8b0000;
 }
 
-#comprovanteBox{
-display:none;
-text-align:center;
-border:2px solid #eee;
-padding:20px;
-border-radius:10px;
-}
 </style>
 </head>
 
 <body>
 
 <div class="header-top">
-<img src="logo_cba_x.png" alt="Logo CBA X">
+<img src="logo_cba_x.png">
 <h2>INSPEÇÃO DE SAÚDE 2026</h2>
 <p>COMANDO DE BOMBEIROS DE ÁREA - CBA X</p>
 </div>
@@ -137,83 +117,197 @@ border-radius:10px;
 <label>Celular</label>
 <input type="tel" id="telefone" required>
 
-<label>E-mail</label>
+<label>Email</label>
 <input type="email" id="email" required>
 
 <label>Local da Inspeção</label>
+
 <select id="unidade" required>
-<option value="">SELECIONE...</option>
-<option value="CER + 2º GMAR">CER + 2º GMAR</option>
-<option value="3º GMAR">3º GMAR</option>
-<option value="DBM 5/M">DBM 5/M</option>
-<option value="CBA X">CBA X</option>
-<option value="1º GMAR">1º GMAR</option>
-<option value="4º GMAR">4º GMAR</option>
-<option value="DBM 4/M">DBM 4/M</option>
+
+<option value="">Selecione</option>
+
+<option value="CER + 2º GMAR">CER + 2º GMAR - Barra</option>
+<option value="3º GMAR">3º GMAR - Copacabana</option>
+<option value="DBM 5/M">DBM5/M - Sepetiba</option>
+<option value="CBA X">CBA X - Salvamento Marítimo</option>
+<option value="1º GMAR + DBM1/M + DBM2/M">1º GMAR + DBM1/M + DBM2/M</option>
+<option value="4º GMAR + DBM6/M">4º GMAR + DBM6/M</option>
+<option value="DBM4/M + DBM3/M">DBM4/M + DBM3/M</option>
+
 </select>
 
 <label>Data</label>
-<select id="dataSelect">
-<option>Selecione o local primeiro</option>
-</select>
+
+<select id="dataSelect"></select>
 
 <div id="campoTurno" style="display:none;">
+
 <label>Turno</label>
+
 <select id="turno">
-<option value="">Escolha</option>
+
+<option value="">Selecione</option>
 <option value="Manhã">Manhã</option>
 <option value="Tarde">Tarde</option>
+
 </select>
+
 </div>
 
 <div id="vagasInfo"></div>
 
-<button class="btn-main" id="btnAgendar">Finalizar Agendamento</button>
+<button class="btn-main" id="btnAgendar">
+Finalizar Agendamento
+</button>
 
 </form>
-
-<div id="comprovanteBox">
-<h3>AGENDAMENTO CONFIRMADO</h3>
-<div id="resumo"></div>
-</div>
 
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-authDomain: "inspecao-saude-cbax.firebaseapp.com",
-projectId: "inspecao-saude-cbax",
-storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-messagingSenderId: "1011281662526",
-appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+import {
+getFirestore,
+collection,
+query,
+where,
+getDocs,
+addDoc
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig={
+apiKey:"AIzaSy...",
+authDomain:"inspecao-saude-cbax.firebaseapp.com",
+projectId:"inspecao-saude-cbax"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 
-const unidade = document.getElementById("unidade");
-const dataSelect = document.getElementById("dataSelect");
-const vagasInfo = document.getElementById("vagasInfo");
+const unidade=document.getElementById("unidade");
+const dataSelect=document.getElementById("dataSelect");
+const turno=document.getElementById("turno");
+const campoTurno=document.getElementById("campoTurno");
+const vagasInfo=document.getElementById("vagasInfo");
 
-unidade.onchange = async () => {
+const REGRAS={
 
-dataSelect.innerHTML = "<option>Carregando...</option>";
+"CER + 2º GMAR":{inicio:"2026-02-23",fim:"2026-07-31",dias:[1,2,3,4,5],vagas:5,turno:false},
 
-const q = query(collection(db,"agendamentos_inspecao"), where("localInspecao","==",unidade.value));
+"3º GMAR":{inicio:"2026-02-23",fim:"2026-07-31",dias:[1,2,3,4,5],vagas:5,turno:false},
 
-const snap = await getDocs(q);
+"DBM 5/M":{inicio:"2026-02-23",fim:"2026-03-06",dias:[2,5],vagas:10,turno:true},
 
-const total = snap.size;
+"CBA X":{inicio:"2026-03-10",fim:"2026-03-13",dias:[2,5],vagas:10,turno:true},
 
-vagasInfo.style.display="block";
-vagasInfo.innerHTML="Agendamentos existentes: "+total;
+"1º GMAR + DBM1/M + DBM2/M":{inicio:"2026-03-17",fim:"2026-05-15",dias:[2,5],vagas:7,turno:true},
+
+"4º GMAR + DBM6/M":{inicio:"2026-05-19",fim:"2026-06-26",dias:[2,5],vagas:7,turno:true},
+
+"DBM4/M + DBM3/M":{inicio:"2026-06-30",fim:"2026-07-31",dias:[2,5],vagas:7,turno:true}
+
+};
+
+unidade.onchange=()=>{
+
+dataSelect.innerHTML="";
+
+const r=REGRAS[unidade.value];
+
+campoTurno.style.display=r.turno?"block":"none";
+
+let d=new Date(r.inicio);
+const fim=new Date(r.fim);
+
+while(d<=fim){
+
+if(r.dias.includes(d.getDay())){
+
+let iso=d.toISOString().split("T")[0];
+let br=iso.split("-").reverse().join("/");
+
+dataSelect.add(new Option(br,br));
 
 }
+
+d.setDate(d.getDate()+1);
+
+}
+
+};
+
+async function conferirVagas(){
+
+const local=unidade.value;
+const data=dataSelect.value;
+const t=REGRAS[local].turno?turno.value:"Geral";
+
+if(!local||!data)return;
+
+const q=query(
+collection(db,"agendamentos_inspecao"),
+where("localInspecao","==",local),
+where("data_br","==",data),
+where("turno","==",t)
+);
+
+const snap=await getDocs(q);
+
+const usadas=snap.size;
+const limite=REGRAS[local].vagas;
+
+vagasInfo.style.display="block";
+
+if(usadas>=limite){
+
+vagasInfo.className="vagas-full";
+vagasInfo.innerHTML=`❌ ESGOTADO (${limite} vagas já preenchidas)`;
+
+}else{
+
+const restantes=limite-usadas;
+
+vagasInfo.className="vagas-ok";
+vagasInfo.innerHTML=`✅ ${restantes} vagas restantes`;
+
+}
+
+}
+
+dataSelect.onchange=conferirVagas;
+turno.onchange=conferirVagas;
+
+document.getElementById("formAgendamento").addEventListener("submit",async(e)=>{
+
+e.preventDefault();
+
+const nome=document.getElementById("nome").value;
+const rg=document.getElementById("rg").value;
+const telefone=document.getElementById("telefone").value;
+const email=document.getElementById("email").value;
+const local=unidade.value;
+const data=dataSelect.value;
+const t=REGRAS[local].turno?turno.value:"Geral";
+
+await addDoc(collection(db,"agendamentos_inspecao"),{
+
+nome:nome,
+rg:rg,
+telefone:telefone,
+email:email,
+localInspecao:local,
+data_br:data,
+turno:t
+
+});
+
+alert("Agendamento realizado com sucesso!");
+
+location.reload();
+
+});
 
 </script>
 
