@@ -76,7 +76,8 @@
             <option>2º TEN BM</option><option>1º TEN BM</option><option>CAP BM</option>
             <option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
         </select>
-            <select id="unidade" required>
+
+        <select id="unidade" required>
             <option value="">Selecione o LOCAL da Inspeção</option>
             <option>1º GMar - Botafogo</option>
             <option>DBM 1/M - Paquetá</option>
@@ -95,16 +96,19 @@
         <div id="avisoAgenda">🚨 ATENÇÃO: Inspeções nesta unidade apenas às TERÇAS e SEXTAS.</div>
         
         <select id="dataSelect" required><option value="">Selecione a Data</option></select>
-                <div id="campoTurno" style="display:none;">
+        
+        <div id="campoTurno" style="display:none;">
             <select id="turno">
                 <option value="">Selecione o Turno</option>
                 <option value="Manhã">Manhã</option>
                 <option value="Tarde">Tarde</option>
             </select>
         </div>
-           <button type="submit" id="btnAgendar">Finalizar Agendamento</button>
+        
+        <button type="submit" id="btnAgendar">Finalizar Agendamento</button>
     </form>
-        <div id="comprovanteBox">
+    
+    <div id="comprovanteBox">
         <h3>✅ AGENDAMENTO CONFIRMADO</h3>
         <div class="linha"><b>Militar:</b> <span id="cNome"></span></div>
         <div class="linha"><b>RG:</b> <span id="cRg"></span></div>
@@ -218,11 +222,9 @@
                     criadoEm: serverTimestamp()
                 };
     
-                // 1. Salva no Firebase
                 tx.set(agRef, dados);
                 tx.set(lockRef, { rg: rgNorm, criadoEm: serverTimestamp() });
                 
-                // 2. Envia para a Planilha do Google (DADOS COMPLETOS)
                 fetch("https://script.google.com/macros/s/AKfycbxIJt65s66K11eVJlBJQeg_6oJd02Zs3yu7gJ-Pdh3Q6lYGgM9e9vR8r-fFfggdQ95DHw/exec", {
                     method: "POST",
                     mode: "no-cors",
@@ -230,24 +232,9 @@
                     body: JSON.stringify(dados)
                 });
     
-                // 3. Atualiza a tela de Comprovante
                 document.getElementById("cNome").textContent = dados.nome;
                 document.getElementById("cRg").textContent = dados.rg;
                 document.getElementById("cUnidade").textContent = dados.unidade;
                 document.getElementById("cData").textContent = dados.data_br;
                 document.getElementById("cTurno").textContent = dados.turno;
-                document.getElementById("cProto").textContent = `IM26-${rgNorm}-${dados.data.replace(/-/g,"")}`;
-            });
-    
-            document.getElementById("formAgendamento").style.display = "none";
-            document.getElementById("comprovanteBox").style.display = "block";
-    
-        } catch (err) {
-            alert(err.message === "RG_JA_AGENDADO" ? "⚠️ Este RG já possui um agendamento para 2026." : "❌ Erro ao salvar. Verifique sua conexão.");
-            btn.disabled = false;
-            btn.innerText = "Finalizar Agendamento";
-        }
-    });
-</script>
-</body>
-</html>
+                document.getElementById("cProto").textContent = `IM26-${rgNorm}-${dados.data.
