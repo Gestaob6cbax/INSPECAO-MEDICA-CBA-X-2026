@@ -9,70 +9,100 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
     <style>
-        :root { --cba-red: #b71c1c; --cba-blue: #0a2c6d; }
+        :root { --cba-red: #b71c1c; --cba-blue: #0a2c6d; --cba-gold: #c5a059; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .premium-card { width: 100%; max-width: 480px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); border-top: 8px solid var(--cba-red); }
-        header { text-align: center; margin-bottom: 25px; }
-        header img { width: 90px; }
-        header h2 { color: var(--cba-blue); margin: 10px 0 5px; font-size: 1.3rem; text-transform: uppercase; }
-        .section-title { background: var(--cba-red); color: white; padding: 8px 15px; font-size: 0.75rem; font-weight: bold; border-radius: 5px; margin-top: 25px; text-transform: uppercase; text-align: center; }
-        label { display: block; margin-top: 15px; font-weight: 700; color: #333; font-size: 0.75rem; text-transform: uppercase; }
-        input, select { width: 100%; padding: 14px; margin-top: 6px; border: 2px solid #dfe4ea; border-radius: 10px; box-sizing: border-box; font-size: 16px; background-color: #fcfcfc; }
+        header { text-align: center; margin-bottom: 20px; }
+        header img { width: 80px; }
+        header h2 { color: var(--cba-blue); margin: 10px 0 5px; font-size: 1.2rem; text-transform: uppercase; }
+        .section-title { background: var(--cba-red); color: white; padding: 8px; font-size: 0.7rem; font-weight: bold; border-radius: 5px; margin-top: 20px; text-transform: uppercase; text-align: center; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #333; font-size: 0.75rem; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dfe4ea; border-radius: 10px; font-size: 16px; }
         
-        .vagas-badge { margin-top: 10px; padding: 12px; border-radius: 10px; text-align: center; font-size: 0.9rem; font-weight: bold; display: none; border: 1px solid; }
-        .vagas-ok { background: #e8f5e9; color: #1b5e20; border-color: #c8e6c9; }
-        .vagas-esgotado { background: #ffebee; color: #b71c1c; border-color: #ffcdd2; }
+        /* Estilo do Comprovante (O que aparece após salvar) */
+        #comprovante { display: none; text-align: center; padding: 20px; border: 3px dashed var(--cba-red); border-radius: 15px; background: #fff; }
+        .comp-header { color: #27ae60; font-weight: bold; margin-bottom: 20px; }
+        .comp-item { margin: 12px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; text-align: left; }
+        .comp-label { font-size: 0.65rem; color: #666; font-weight: bold; text-transform: uppercase; }
+        .comp-value { font-size: 1.1rem; color: var(--cba-blue); font-weight: bold; }
+        
+        .vagas-badge { margin-top: 10px; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; display: none; font-size: 0.85rem; }
+        .vagas-ok { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
+        .vagas-esgotado { background: #ffebee; color: #b71c1c; border: 1px solid #ffcdd2; }
+        
+        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, #8e1616 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
+        .btn-print { background: #2ecc71; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
-        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, #8e1616 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 30px; font-size: 1.1rem; text-transform: uppercase; }
+        @media print {
+            body { background: white; padding: 0; }
+            .premium-card { box-shadow: none; border: none; width: 100%; }
+            .btn-print, .btn-confirmar, button { display: none !important; }
+            #comprovante { border: 2px solid #000; display: block !important; }
+        }
     </style>
 </head>
 <body>
 
 <div class="premium-card">
-    <header>
+    <header id="card-header">
         <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-MEDICA-CBA-X-2026/main/logo_cba_x.png" alt="CBA X">
         <h2>Inspeção Médica 2026</h2>
-        <p style="font-weight: bold; font-size: 0.8rem; color: #666;">CBA X - SALVAMENTO MARÍTIMO</p>
+        <p style="font-size: 0.8rem; color: #666; font-weight: bold;">CBA X - SALVAMENTO MARÍTIMO</p>
     </header>
 
     <div id="form-content">
-        <div class="section-title">Identificação Militar</div>
-        <label>Posto / Graduação</label>
+        <div class="section-title">Dados do Militar</div>
         <select id="posto">
-            <option value="">Selecione...</option>
-            <option>SD BM</option><option>CB BM</option><option>3º SGT BM</option><option>2º SGT BM</option><option>1º SGT BM</option><option>SUBTEN BM</option>
-            <option>2º TEN BM</option><option>1º TEN BM</option><option>CAP BM</option><option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
+            <option value="">Posto/Graduação...</option>
+            <option>SD BM</option><option>CB BM</option><option>3º SGT BM</option><option>2º SGT BM</option>
+            <option>1º SGT BM</option><option>SUBTEN BM</option><option>2º TEN BM</option><option>1º TEN BM</option>
+            <option>CAP BM</option><option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
         </select>
         <input type="text" id="nome" placeholder="NOME COMPLETO" oninput="this.value = this.value.toUpperCase()">
         <input type="number" id="rg" placeholder="RG MILITAR">
-        
-        <input type="tel" id="telefone" placeholder="TELEFONE (DDD + NÚMERO)">
-        <input type="email" id="email" placeholder="E-MAIL">
 
-        <div class="section-title">Local e Data</div>
+        <div class="section-title">Local e Turno</div>
         <label>Unidade de Inspeção</label>
-        <select id="unidadeDestino" onchange="atualizarVagas()">
-            <option value="">Selecione o GMAR...</option>
-            <option value="1GMAR">1º GMAR - BOTAFOGO</option>
-            <option value="2GMAR">2º GMAR - BARRA</option>
-            <option value="3GMAR">3º GMAR - COPACABANA</option>
-            <option value="4GMAR">4º GMAR - ITAIPU</option>
+        <select id="unidadeDestino" onchange="configurarDatas()">
+            <option value="">Selecione o Local...</option>
+            <option value="2GMAR">2º GMAR (Barra)</option>
+            <option value="3GMAR">3º GMAR (Copacabana)</option>
+            <option value="CBAX">CBA X (Salvamento Marítimo)</option>
+            <option value="1GMAR">1º GMAR + DBM 1/M + DBM 2/M</option>
+            <option value="4GMAR">4º GMAR + DBM 6/M (Itaipu)</option>
+            <option value="RECREIO">DBM 4/M + DBM 3/M (Recreio)</option>
         </select>
 
-        <label>Data Escolhida</label>
+        <label>Data</label>
         <select id="data" onchange="atualizarVagas()">
-            <option value="">Selecione a data...</option>
-            <option>10/03/2026</option><option>17/03/2026</option><option>24/03/2026</option><option>31/03/2026</option>
+            <option value="">Selecione o local primeiro...</option>
+        </select>
+
+        <label>Turno</label>
+        <select id="turno" onchange="atualizarVagas()">
+            <option value="Manhã">Manhã (08:00 às 12:00)</option>
+            <option value="Tarde">Tarde (13:00 às 17:00)</option>
         </select>
 
         <div id="statusVagas" class="vagas-badge"></div>
-
         <button id="btnSalvar" class="btn-confirmar" onclick="salvar()">Confirmar Agendamento</button>
+    </div>
+
+    <div id="comprovante">
+        <div class="comp-header">✅ AGENDAMENTO CONFIRMADO</div>
+        <div class="comp-item"><div class="comp-label">Militar:</div><div id="res-nome" class="comp-value"></div></div>
+        <div class="comp-item"><div class="comp-label">RG:</div><div id="res-rg" class="comp-value"></div></div>
+        <div class="comp-item"><div class="comp-label">Local:</div><div id="res-local" class="comp-value"></div></div>
+        <div class="comp-item"><div class="comp-label">Data e Turno:</div><div id="res-data" class="comp-value"></div></div>
+        
+        <button class="btn-print" onclick="window.print()">🖨️ IMPRIMIR / SALVAR PDF</button>
+        <p style="font-size: 0.7rem; color: #888; margin-top: 15px;">Apresente este comprovante no dia da inspeção.</p>
+        <button onclick="location.reload()" style="background:none; border:none; color:blue; cursor:pointer; text-decoration:underline;">Fazer outro agendamento</button>
     </div>
 </div>
 
 <script>
-    // Suas chaves da Inspeção Médica
+    // Configurações do seu Firebase (Inspeção Médica)
     const firebaseConfig = {
         apiKey: "AIzaSyAPUZftC2cq-khKiNq6dHBqkQeaoNWrjRc",
         authDomain: "inspecao-medica-cbax.firebaseapp.com",
@@ -84,61 +114,84 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    const escalaMedica = {
+        "2GMAR": { vagas: 5, datas: ["09/03/2026","10/03/2026","11/03/2026","12/03/2026","13/03/2026"] }, 
+        "3GMAR": { vagas: 5, datas: ["09/03/2026","10/03/2026","11/03/2026","12/03/2026","13/03/2026"] },
+        "CBAX":  { vagas: 10, datas: ["10/03/2026","13/03/2026"] },
+        "1GMAR": { vagas: 7, datas: ["17/03/2026","20/03/2026","24/03/2026","27/03/2026","31/03/2026","03/04/2026","07/04/2026","14/04/2026","17/04/2026","24/04/2026","28/04/2026","05/05/2026","08/05/2026","12/05/2026","15/05/2026"] },
+        "4GMAR": { vagas: 7, datas: ["19/05/2026","22/05/2026","26/05/2026","29/05/2026","02/06/2026","05/06/2026","09/06/2026","12/06/2026","16/06/2026","19/06/2026","23/06/2026","26/06/2026"] },
+        "RECREIO": { vagas: 7, datas: ["30/06/2026","03/07/2026","07/07/2026","10/07/2026","14/07/2026","17/07/2026","21/07/2026","24/07/2026","28/07/2026","31/07/2026"] }
+    };
+
+    function configurarDatas() {
+        const local = document.getElementById("unidadeDestino").value;
+        const dataSelect = document.getElementById("data");
+        dataSelect.innerHTML = '<option value="">Selecione a data...</option>';
+        if (local && escalaMedica[local]) {
+            escalaMedica[local].datas.forEach(d => {
+                let opt = document.createElement("option");
+                opt.value = d; opt.innerText = d;
+                dataSelect.appendChild(opt);
+            });
+        }
+    }
+
     async function atualizarVagas() {
         const local = document.getElementById("unidadeDestino").value;
         const dataSel = document.getElementById("data").value;
+        const turnoSel = document.getElementById("turno").value;
         const badge = document.getElementById("statusVagas");
-
         if (!local || !dataSel) return;
 
-        badge.style.display = "block";
-        badge.innerText = "🔍 CONSULTANDO VAGAS...";
-
-        const snapshot = await db.collection("agendamentos")
-            .where("unidadeDestino", "==", local)
+        badge.style.display = "block"; badge.innerText = "🔍 Verificando...";
+        
+        const snap = await db.collection("agendamentos")
+            .where("unidadeID", "==", local)
             .where("data", "==", dataSel)
-            .get();
+            .where("turno", "==", turnoSel).get();
 
-        const restam = 14 - snapshot.size;
+        const limite = escalaMedica[local].vagas;
+        const restam = limite - snap.size;
 
         if (restam <= 0) {
-            badge.innerText = "❌ DATA ESGOTADA";
-            badge.className = "vagas-badge vagas-esgotado";
+            badge.innerText = "❌ TURNO ESGOTADO"; badge.className = "vagas-badge vagas-esgotado";
             document.getElementById("btnSalvar").disabled = true;
         } else {
-            badge.innerText = `✅ ${restam} VAGAS DISPONÍVEIS`;
-            badge.className = "vagas-badge vagas-ok";
+            badge.innerText = `✅ ${restam} VAGAS DISPONÍVEIS`; badge.className = "vagas-badge vagas-ok";
             document.getElementById("btnSalvar").disabled = false;
         }
     }
 
     async function salvar() {
+        const btn = document.getElementById("btnSalvar");
         const d = {
             posto: document.getElementById("posto").value,
             nome: document.getElementById("nome").value.trim(),
             rg: document.getElementById("rg").value.trim(),
-            telefone: document.getElementById("telefone").value.trim(),
-            email: document.getElementById("email").value.trim().toLowerCase(),
-            unidadeDestino: document.getElementById("unidadeDestino").value,
+            unidadeID: document.getElementById("unidadeDestino").value,
+            unidadeNome: document.getElementById("unidadeDestino").options[document.getElementById("unidadeDestino").selectedIndex].text,
             data: document.getElementById("data").value,
+            turno: document.getElementById("turno").value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // Validação para garantir que o militar preencheu o contato
-        if (Object.values(d).some(v => !v)) {
-            return alert("Por favor, preencha todos os campos, incluindo telefone e e-mail.");
-        }
+        if (!d.posto || !d.nome || !d.rg || !d.data) return alert("Preencha todos os campos!");
+
+        btn.innerText = "SALVANDO..."; btn.disabled = true;
 
         try {
-            const check = await db.collection("agendamentos").where("rg", "==", d.rg).get();
-            if (!check.empty) return alert("Este RG já possui um agendamento realizado!");
-
             await db.collection("agendamentos").add(d);
-            alert("Agendamento confirmado com sucesso!");
-            location.reload();
-        } catch (e) { 
-            alert("Erro ao salvar. Verifique a conexão."); 
-        }
+            
+            // MOSTRA O COMPROVANTE NA TELA
+            document.getElementById("form-content").style.display = "none";
+            document.getElementById("comprovante").style.display = "block";
+            
+            document.getElementById("res-nome").innerText = d.posto + " " + d.nome;
+            document.getElementById("res-rg").innerText = d.rg;
+            document.getElementById("res-local").innerText = d.unidadeNome;
+            document.getElementById("res-data").innerText = d.data + " (" + d.turno + ")";
+            
+        } catch (e) { alert("Erro ao salvar. Verifique a conexão."); btn.disabled = false; }
     }
 </script>
 </body>
