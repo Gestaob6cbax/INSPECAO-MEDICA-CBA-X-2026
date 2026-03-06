@@ -45,6 +45,9 @@
         </select>
         <input type="text" id="nome" placeholder="NOME COMPLETO" oninput="this.value = this.value.toUpperCase()">
         <input type="number" id="rg" placeholder="RG MILITAR">
+        
+        <input type="tel" id="telefone" placeholder="TELEFONE (DDD + NÚMERO)">
+        <input type="email" id="email" placeholder="E-MAIL">
 
         <div class="section-title">Local e Data</div>
         <label>Unidade de Inspeção</label>
@@ -69,7 +72,7 @@
 </div>
 
 <script>
-    // Configurações do seu Firebase
+    // Suas chaves da Inspeção Médica
     const firebaseConfig = {
         apiKey: "AIzaSyAPUZftC2cq-khKiNq6dHBqkQeaoNWrjRc",
         authDomain: "inspecao-medica-cbax.firebaseapp.com",
@@ -114,16 +117,21 @@
             posto: document.getElementById("posto").value,
             nome: document.getElementById("nome").value.trim(),
             rg: document.getElementById("rg").value.trim(),
+            telefone: document.getElementById("telefone").value.trim(),
+            email: document.getElementById("email").value.trim().toLowerCase(),
             unidadeDestino: document.getElementById("unidadeDestino").value,
             data: document.getElementById("data").value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        if (Object.values(d).some(v => !v)) return alert("Por favor, preencha todos os campos.");
+        // Validação para garantir que o militar preencheu o contato
+        if (Object.values(d).some(v => !v)) {
+            return alert("Por favor, preencha todos os campos, incluindo telefone e e-mail.");
+        }
 
         try {
             const check = await db.collection("agendamentos").where("rg", "==", d.rg).get();
-            if (!check.empty) return alert("Este RG já possui um agendamento!");
+            if (!check.empty) return alert("Este RG já possui um agendamento realizado!");
 
             await db.collection("agendamentos").add(d);
             alert("Agendamento confirmado com sucesso!");
