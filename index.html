@@ -3,188 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inspeção Médica 2026 - CBA X</title>
+    <title>ADM - Inspeção Médica 2026</title>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { --cba-red: #b71c1c; --cba-blue: #0a2c6d; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; display: flex; justify-content: center; }
-        .premium-card { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 10px solid var(--cba-red); box-sizing: border-box; }
-        header { text-align: center; margin-bottom: 15px; }
-        header img { width: 80px; }
-        .section-title { background: var(--cba-red); color: white; padding: 8px; font-size: 0.8rem; font-weight: bold; border-radius: 5px; margin: 20px 0 10px; text-transform: uppercase; text-align: center; }
-        label { display: block; margin-top: 12px; font-weight: bold; color: #333; font-size: 0.85rem; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dfe4ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-        .vagas-badge { margin-top: 10px; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; display: none; font-size: 0.9rem; }
-        .vagas-ok { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
-        .vagas-esgotado { background: #ffebee; color: #b71c1c; border: 1px solid #ffcdd2; }
-        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, #8e1616 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; font-size: 1rem; }
-        
-        /* PAINEL DE SUCESSO PADRONIZADO */
-        #painel-sucesso { display: none; text-align: center; }
-        .confirmacao-caixa { background: #f8f9fa; border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin-top: 20px; text-align: left; }
-        .item-resumo { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; font-size: 0.9rem; }
-        .item-resumo:last-child { border-bottom: none; }
-        .label-resumo { font-weight: bold; color: var(--cba-blue); text-transform: uppercase; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding-bottom: 50px; }
+        header { background: var(--cba-red); color: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--cba-blue); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .container { max-width: 1200px; margin: 25px auto; padding: 0 20px; }
+        .stats-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; flex: 1; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid var(--cba-blue); }
+        .card strong { display: block; font-size: 28px; color: #333; }
+        .controls { background: white; padding: 15px; border-radius: 12px; display: flex; gap: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); align-items: center; }
+        .search-box { flex-grow: 1; }
+        .search-box input { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #dfe4ea; outline: none; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; color: white; }
+        .btn-refresh { background: var(--cba-blue); }
+        .btn-export { background: #2e7d32; }
+        .table-wrap { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 11px; color: #555; text-transform: uppercase; border-bottom: 2px solid #eee; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; font-size: 13px; }
+        .badge-unidade { background: #e3f2fd; color: #0d47a1; padding: 4px 8px; border-radius: 5px; font-weight: bold; }
+        .badge-turno { background: #f5f5f5; color: #666; padding: 3px 8px; border-radius: 10px; font-size: 11px; }
+        .btn-del { color: #d32f2f; background: none; border: 1px solid #ffcdd2; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+        .import-box { margin-top: 40px; padding: 20px; background: #fff; border-radius: 12px; border: 2px dashed #bbb; }
     </style>
 </head>
 <body>
-
-<div class="premium-card">
-    <header>
-        <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-MEDICA-CBA-X-2026/main/logo_cba_x.png" alt="CBA X">
-        <h2 style="color: var(--cba-blue); margin: 10px 0;">Inspeção Médica 2026</h2>
-        <p style="font-size: 0.85rem; font-weight: bold; color: #555;">CBA X - INSPEÇÃO DE SAÚDE</p>
-    </header>
-
-    <div id="form-content">
-        <div class="section-title">Dados do Militar</div>
-        
-        <label>Unidade onde serve</label>
-        <select id="unidadeOrigem">
-            <option value="">Selecione sua unidade...</option>
-            <option>CBA X</option><option>1º GMAR</option><option>2º GMAR</option>
-            <option>3º GMAR</option><option>4º GMAR</option><option>DBM 1/M</option>
-            <option>DBM 2/M</option><option>DBM 3/M</option><option>DBM 4/M</option>
-            <option>DBM 5/M</option><option>DBM 6/M</option>
-        </select>
-
-        <label>Posto / Graduação</label>
-        <select id="posto">
-            <option value="">Selecione...</option>
-            <option>SD BM</option><option>CB BM</option><option>3º SGT BM</option><option>2º SGT BM</option><option>1º SGT BM</option><option>SUBTEN BM</option>
-            <option>2º TEN BM</option><option>1º TEN BM</option><option>CAP BM</option><option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
-        </select>
-        
-        <input type="text" id="nome" placeholder="NOME COMPLETO" oninput="this.value = this.value.toUpperCase()">
-        <input type="number" id="rg" placeholder="RG MILITAR">
-        <input type="email" id="email" placeholder="E-MAIL">
-        <input type="tel" id="telefone" placeholder="TELEFONE / WHATSAPP">
-
-        <div class="section-title">Local e Data da Inspeção</div>
-        
-        <label>Local da Inspeção (Onde você irá realizar)</label>
-        <select id="unidadeDestino" onchange="gerarDatas()">
-            <option value="">Selecione o local...</option>
-            <option value="CBA X">CBA X</option>
-            <option value="1º GMAR">1º GMAR + DBM1/M +DBM2/M</option>
-            <option value="4º GMAR">4º GMAR+ DBM6/M</option>
-            <option value="DBM 3/M">DBM3/M + DBM 4/M</option>
-        </select>
-
-        <label>Data Disponível</label>
-        <select id="data" onchange="verificarVagas()">
-            <option value="">Selecione o local primeiro...</option>
-        </select>
-
-        <div id="divTurno" style="display:none;">
-            <label>Turno</label>
-            <select id="turno" onchange="verificarVagas()">
-                <option value="Manhã">Manhã (08:00 às 12:00)</option>
-                <option value="Tarde">Tarde (13:00 às 17:00)</option>
-            </select>
-        </div>
-
-        <div id="statusVagas" class="vagas-badge"></div>
-        <button id="btnSalvar" class="btn-confirmar" onclick="salvar()">Confirmar Agendamento</button>
+<header><h1>PAINEL ADM - INSPEÇÃO MÉDICA 2026</h1></header>
+<div class="container">
+    <div class="stats-row">
+        <div class="card"><span>Militares Agendados</span><strong id="contador">0</strong></div>
+        <div class="card"><span>Database</span><strong id="db-status" style="color:green; font-size:18px;">ONLINE</strong></div>
     </div>
-
-    <div id="painel-sucesso">
-        <div style="font-size: 50px;">✅</div>
-        <h2 style="color: var(--cba-blue);">AGENDAMENTO REALIZADO</h2>
-        
-        <div class="confirmacao-caixa">
-            <div class="item-resumo"><span class="label-resumo">Nome:</span> <span id="res-nome"></span></div>
-            <div class="item-resumo"><span class="label-resumo">RG:</span> <span id="res-rg"></span></div>
-            <div class="item-resumo"><span class="label-resumo">Data:</span> <span id="res-data"></span></div>
-            <div class="item-resumo"><span class="label-resumo">Local:</span> <span id="res-local"></span></div>
-        </div>
-        
-        <button class="btn-confirmar" onclick="location.reload()">Novo Agendamento</button>
+    <div class="controls">
+        <div class="search-box"><input type="text" id="inputBusca" placeholder="🔍 Pesquisar por RG, Nome ou Unidade..." onkeyup="filtrarTabela()"></div>
+        <button class="btn btn-refresh" onclick="buscarDados()">🔄 Atualizar</button>
+        <button class="btn btn-export" onclick="exportarExcel()">📊 Exportar</button>
+    </div>
+    <div class="table-wrap">
+        <table id="tabelaDados">
+            <thead><tr><th>Unidade</th><th>Data</th><th>Turno</th><th>Militar</th><th>RG</th><th style="text-align:center;">Ações</th></tr></thead>
+            <tbody id="corpoTabela"></tbody>
+        </table>
+    </div>
+    <div class="import-box">
+        <h3>📥 Importar Histórico (Excel)</h3>
+        <textarea id="areaExcel" style="width:100%; height:80px;" placeholder="Cole aqui: Data | Turno | Unidade | Nome | RG"></textarea>
+        <button onclick="importarLote()" style="width:100%; padding:15px; margin-top:10px; background:var(--cba-blue); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">🚀 Sincronizar Agora</button>
     </div>
 </div>
-
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
-        authDomain: "inspecao-saude-cbax.firebaseapp.com",
-        projectId: "inspecao-saude-cbax",
-        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
-        messagingSenderId: "1011281662526",
-        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
-    };
-    firebase.initializeApp(firebaseConfig);
+    const firebaseConfig = { apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY", authDomain: "inspecao-saude-cbax.firebaseapp.com", projectId: "inspecao-saude-cbax", storageBucket: "inspecao-saude-cbax.firebasestorage.app", messagingSenderId: "1011281662526", appId: "1:1011281662526:web:1028e8a8d140684e98376f" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const REGRAS = {
-        "CBA X":    { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
-        "1º GMAR":  { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7,  turno: true },
-        "4º GMAR":  { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7,  turno: true },
-        "DBM 4/M":  { inicio: "2026-06-30", fim: "2026-07-31", dias: [2,5], vagas: 7,  turno: true }
-    };
-
-    function gerarDatas() {
-        const uni = document.getElementById("unidadeDestino").value;
-        const selData = document.getElementById("data");
-        const divT = document.getElementById("divTurno");
-        selData.innerHTML = '<option value="">Selecione...</option>';
-        if (!uni) return;
-        const r = REGRAS[uni];
-        divT.style.display = r.turno ? "block" : "none";
-        let atual = new Date(r.inicio + "T12:00:00");
-        let fim = new Date(r.fim + "T12:00:00");
-        while (atual <= fim) {
-            if (r.dias.includes(atual.getDay())) {
-                let dStr = atual.toLocaleDateString('pt-BR');
-                let opt = document.createElement("option");
-                opt.value = dStr; opt.innerText = dStr;
-                selData.appendChild(opt);
-            }
-            atual.setDate(atual.getDate() + 1);
-        }
-    }
-
-    async function verificarVagas() {
-        const uni = document.getElementById("unidadeDestino").value;
-        const dt = document.getElementById("data").value;
-        const turno = document.getElementById("turno").value;
-        const badge = document.getElementById("statusVagas");
-        if (!uni || !dt) return;
-        badge.style.display = "block";
-        badge.innerText = "Consultando...";
-        const snap = await db.collection("agendamentos_saude").where("unidadeID", "==", uni).where("data", "==", dt).where("turno", "==", turno).get();
-        const restam = REGRAS[uni].vagas - snap.size;
-        badge.innerText = restam > 0 ? `✅ RESTAM ${restam} VAGAS` : "❌ ESGOTADO";
-        badge.className = restam > 0 ? "vagas-badge vagas-ok" : "vagas-badge vagas-esgotado";
-    }
-
-    async function salvar() {
-        const btn = document.getElementById("btnSalvar");
-        const d = {
-            unidadeOrigem: document.getElementById("unidadeOrigem").value,
-            posto: document.getElementById("posto").value,
-            nome: document.getElementById("nome").value.toUpperCase(),
-            rg: document.getElementById("rg").value,
-            email: document.getElementById("email").value,
-            unidadeID: document.getElementById("unidadeDestino").value,
-            data: document.getElementById("data").value,
-            turno: document.getElementById("turno").value,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        if(!d.unidadeOrigem || !d.nome || !d.rg || !d.data) { alert("Preencha tudo!"); return; }
-        btn.innerText = "SALVANDO..."; btn.disabled = true;
-
+    async function buscarDados() {
+        const corpo = document.getElementById("corpoTabela");
         try {
-            await db.collection("agendamentos_saude").add(d);
-            document.getElementById("res-nome").innerText = d.nome;
-            document.getElementById("res-rg").innerText = d.rg;
-            document.getElementById("res-data").innerText = d.data;
-            document.getElementById("res-local").innerText = d.unidadeID;
-            document.getElementById("form-content").style.display = "none";
-            document.getElementById("painel-sucesso").style.display = "block";
-        } catch (e) { alert("Erro!"); btn.disabled = false; }
+            const snap = await db.collection("agendamentos_saude").get();
+            let lista = [];
+            snap.forEach(doc => lista.push({ id: doc.id, ...doc.data() }));
+            
+            // Ordenação por Data (Brasileira)
+            lista.sort((a,b) => {
+                const da = a.data.split('/').reverse().join('');
+                const db = b.data.split('/').reverse().join('');
+                return da.localeCompare(db);
+            });
+
+            let html = "";
+            lista.forEach(d => {
+                html += `<tr>
+                    <td><span class="badge-unidade">${d.unidadeID}</span></td>
+                    <td style="font-weight:bold; color:var(--cba-red);">${d.data}</td>
+                    <td><span class="badge-turno">${d.turno || 'Único'}</span></td>
+                    <td style="text-transform:uppercase;">${d.nome}</td>
+                    <td><code>${d.rg}</code></td>
+                    <td style="text-align:center;"><button class="btn-del" onclick="remover('${d.id}')">🗑️</button></td>
+                </tr>`;
+            });
+            corpo.innerHTML = html || "<tr><td colspan='6' style='text-align:center;'>Nenhum registro encontrado.</td></tr>";
+            document.getElementById("contador").innerText = lista.length;
+        } catch (e) { console.error(e); }
     }
+
+    async function remover(id) { if(confirm("Deseja excluir este militar?")) { await db.collection("agendamentos_saude").doc(id).delete(); buscarDados(); } }
+    
+    function filtrarTabela() {
+        const v = document.getElementById("inputBusca").value.toUpperCase();
+        document.querySelectorAll("#corpoTabela tr").forEach(r => r.style.display = r.innerText.toUpperCase().includes(v) ? "" : "none");
+    }
+
+    function exportarExcel() {
+        const wb = XLSX.utils.table_to_book(document.getElementById("tabelaDados"));
+        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_2026.xlsx");
+    }
+
+    window.onload = buscarDados;
 </script>
 </body>
 </html>
