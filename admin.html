@@ -28,7 +28,11 @@
         td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #eee; }
         tr:hover { background-color: #fafafa; }
         .badge-local { background: #ffebee; color: #c62828; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; }
-        .contato-info { font-size: 11px; color: #555; display: block; }
+        
+        /* Estilo do Importador */
+        .import-box { margin-top: 40px; padding: 25px; background: #fff3f3; border-radius: 10px; border: 2px dashed #d32f2f; margin-bottom: 50px; }
+        .import-box h3 { color: #d32f2f; margin-top: 0; }
+        textarea { width: 100%; height: 120px; border-radius: 8px; border: 1px solid #ccc; padding: 10px; font-family: monospace; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -41,7 +45,7 @@
 <div class="container">
     <div class="stats-row">
         <div class="stat-card"><span>Total de Inspecionados</span><strong id="contador">0</strong></div>
-        <div class="stat-card"><span>Status do Sistema</span><strong id="db-status" style="color:orange; font-size: 16px;">CONECTANDO...</strong></div>
+        <div class="stat-card"><span>Status do Banco de Dados</span><strong id="db-status" style="color:orange; font-size: 16px;">CONECTANDO...</strong></div>
     </div>
 
     <div class="controls">
@@ -49,7 +53,7 @@
         <button class="btn-refresh" onclick="carregarDados()">🔄 Atualizar Lista</button>
         <button id="btnExcluirMassa" class="btn-danger" onclick="excluirMassa()">🗑️ Excluir Selecionados (<span id="numSel">0</span>)</button>
         <div style="flex-grow: 1;"></div>
-        <button class="btn-export" onclick="exportar()">📊 Exportar para Excel</button>
+        <button class="btn-export" onclick="exportar()">📊 Exportar Excel</button>
     </div>
 
     <div class="table-container">
@@ -59,8 +63,8 @@
                     <th><input type="checkbox" id="selTudo" onclick="toggleTudo()"></th>
                     <th>Local Inspeção</th>
                     <th>Unidade Origem</th>
-                    <th>Data / Turno</th>
-                    <th>Militar</th>
+                    <th>Data</th>
+                    <th>Posto/Nome</th>
                     <th>RG</th>
                     <th>E-mail</th>
                     <th>Telefone</th>
@@ -68,9 +72,18 @@
                 </tr>
             </thead>
             <tbody id="corpoTabela">
-                <tr><td colspan="9" style="text-align:center; padding:30px;">Sincronizando com o banco de dados...</td></tr>
+                <tr><td colspan="9" style="text-align:center; padding:30px;">Aguardando conexão...</td></tr>
             </tbody>
         </table>
+    </div>
+
+    <div class="import-box">
+        <h3>📥 Importar Histórico de Agendamentos (Excel)</h3>
+        <p style="font-size: 13px; color: #555;">No Excel, selecione e copie as colunas: <b>[RG] [Local da Inspeção] [Data]</b> e cole abaixo:</p>
+        <textarea id="dadosExcelMed" placeholder="Exemplo de colagem:&#10;123456	CBA X	10/03/2026&#10;789012	1º GMAR	12/03/2026"></textarea>
+        <button onclick="importarMed()" style="background: #0a2c6d; color: white; margin-top: 15px; padding: 15px; width: 100%; border-radius: 8px; font-size: 15px;">
+            🚀 Sincronizar Vagas com a Planilha Antiga
+        </button>
     </div>
 </div>
 
@@ -87,6 +100,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Carregar dados da coleção agendamentos_saude
     async function carregarDados() {
         const tabela = document.getElementById("corpoTabela");
         const status = document.getElementById("db-status");
@@ -102,26 +116,55 @@
                 cont++;
                 html += `<tr>
                     <td><input type="checkbox" class="checkRow" value="${doc.id}" onchange="checkMassa()"></td>
-                    <td><span class="badge-local">${d.unidadeID || "---"}</span></td>
+                    <td><span class="badge-local">${d.unidadeID || d.unidadeNome || "---"}</span></td>
                     <td>${d.unidadeOrigem || "---"}</td>
-                    <td><strong>${d.data}</strong><br><small>${d.turno || "Único"}</small></td>
+                    <td><strong>${d.data}</strong></td>
                     <td>${(d.posto || "") + " " + (d.nome || "")}</td>
                     <td>${d.rg || "---"}</td>
-                    <td><span class="contato-info">${d.email || "Não inf."}</span></td>
-                    <td><span class="contato-info">${d.telefone || "Não inf."}</span></td>
-                    <td><button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="excluirUnico('${doc.id}')" title="Excluir">🗑️</button></td>
+                    <td>${d.email || "---"}</td>
+                    <td>${d.telefone || "---"}</td>
+                    <td><button style="color:red; background:none; border:none; cursor:pointer;" onclick="excluirUnico('${doc.id}')">🗑️</button></td>
                 </tr>`;
             });
 
-            tabela.innerHTML = html || "<tr><td colspan='9' style='text-align:center;'>Nenhum agendamento encontrado.</td></tr>";
+            tabela.innerHTML = html || "<tr><td colspan='9' style='text-align:center;'>Nenhum registro encontrado.</td></tr>";
             document.getElementById("contador").innerText = cont;
             status.innerText = "ONLINE"; status.style.color = "green";
         } catch (e) {
-            status.innerText = "ERRO DE CONEXÃO"; status.style.color = "red";
+            status.innerText = "ERRO"; status.style.color = "red";
             console.error(e);
         }
     }
 
+    // Função para Importar dados do Excel e preencher as vagas
+    async function importarMed() {
+        const texto = document.getElementById("dadosExcelMed").value;
+        if (!texto.trim()) return alert("Cole os dados do Excel primeiro!");
+        
+        const linhas = texto.split('\n');
+        let cont = 0;
+
+        if (!confirm(`Importar ${linhas.length} militares? Isso ocupará as vagas no calendário.`)) return;
+
+        for (let linha of linhas) {
+            const col = linha.split('\t'); 
+            if (col.length >= 3) {
+                const dados = {
+                    rg: col[0].trim(),
+                    unidadeID: col[1].trim(), 
+                    data: col[2].trim(),
+                    origem: "IMPORTAÇÃO_PLANILHA",
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                await db.collection("agendamentos_saude").add(dados);
+                cont++;
+            }
+        }
+        alert(`Sucesso! ${cont} militares inseridos no sistema médico.`);
+        carregarDados();
+    }
+
+    // Funções de Filtro e Seleção
     function filtrar() {
         const val = document.getElementById("busca").value.toUpperCase();
         const rows = document.querySelectorAll("#corpoTabela tr");
@@ -141,7 +184,7 @@
     }
 
     async function excluirUnico(id) {
-        if(confirm("Deseja realmente excluir este registro?")) {
+        if(confirm("Excluir este agendamento?")) {
             await db.collection("agendamentos_saude").doc(id).delete();
             carregarDados();
         }
@@ -149,24 +192,21 @@
 
     async function excluirMassa() {
         const sel = document.querySelectorAll(".checkRow:checked");
-        if(confirm(`Excluir definitivamente ${sel.length} registros?`)) {
+        if(confirm(`Excluir ${sel.length} registros selecionados?`)) {
             const batch = db.batch();
-            sel.forEach(c => {
-                const ref = db.collection("agendamentos_saude").doc(c.value);
-                batch.delete(ref);
-            });
+            sel.forEach(c => batch.delete(db.collection("agendamentos_saude").doc(c.value)));
             await batch.commit();
             carregarDados();
         }
     }
 
     function exportar() {
-        const table = document.getElementById("tabelaDados");
-        const wb = XLSX.utils.table_to_book(table, {sheet: "Inspeção Médica"});
-        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_2026.xlsx");
+        const wb = XLSX.utils.table_to_book(document.getElementById("tabelaDados"));
+        XLSX.writeFile(wb, "Inspeção_Médica_CBAX.xlsx");
     }
 
     window.onload = carregarDados;
 </script>
+
 </body>
 </html>
