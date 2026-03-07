@@ -29,10 +29,10 @@
         tr:hover { background-color: #fafafa; }
         .badge-local { background: #ffebee; color: #c62828; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; }
         
-        /* Estilo do Importador */
+        /* Estilo do Quadro de Importação */
         .import-box { margin-top: 40px; padding: 25px; background: #fff3f3; border-radius: 10px; border: 2px dashed #d32f2f; margin-bottom: 50px; }
         .import-box h3 { color: #d32f2f; margin-top: 0; }
-        textarea { width: 100%; height: 120px; border-radius: 8px; border: 1px solid #ccc; padding: 10px; font-family: monospace; box-sizing: border-box; }
+        textarea { width: 100%; height: 150px; border-radius: 8px; border: 1px solid #ccc; padding: 10px; font-family: monospace; box-sizing: border-box; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -45,7 +45,7 @@
 <div class="container">
     <div class="stats-row">
         <div class="stat-card"><span>Total de Inspecionados</span><strong id="contador">0</strong></div>
-        <div class="stat-card"><span>Status do Banco de Dados</span><strong id="db-status" style="color:orange; font-size: 16px;">CONECTANDO...</strong></div>
+        <div class="stat-card"><span>Status do Sistema</span><strong id="db-status" style="color:orange; font-size: 16px;">CONECTANDO...</strong></div>
     </div>
 
     <div class="controls">
@@ -63,8 +63,8 @@
                     <th><input type="checkbox" id="selTudo" onclick="toggleTudo()"></th>
                     <th>Local Inspeção</th>
                     <th>Unidade Origem</th>
-                    <th>Data</th>
-                    <th>Posto/Nome</th>
+                    <th>Data / Turno</th>
+                    <th>Militar</th>
                     <th>RG</th>
                     <th>E-mail</th>
                     <th>Telefone</th>
@@ -72,17 +72,17 @@
                 </tr>
             </thead>
             <tbody id="corpoTabela">
-                <tr><td colspan="9" style="text-align:center; padding:30px;">Aguardando conexão...</td></tr>
+                <tr><td colspan="9" style="text-align:center; padding:30px;">Sincronizando...</td></tr>
             </tbody>
         </table>
     </div>
 
     <div class="import-box">
-        <h3>📥 Importar Histórico de Agendamentos (Excel)</h3>
-        <p style="font-size: 13px; color: #555;">No Excel, selecione e copie as colunas: <b>[RG] [Local da Inspeção] [Data]</b> e cole abaixo:</p>
-        <textarea id="dadosExcelMed" placeholder="Exemplo de colagem:&#10;123456	CBA X	10/03/2026&#10;789012	1º GMAR	12/03/2026"></textarea>
-        <button onclick="importarMed()" style="background: #0a2c6d; color: white; margin-top: 15px; padding: 15px; width: 100%; border-radius: 8px; font-size: 15px;">
-            🚀 Sincronizar Vagas com a Planilha Antiga
+        <h3>📥 Importar Histórico de Agendamentos</h3>
+        <p style="font-size: 13px; color: #555;">Copie as colunas do seu Excel na ordem: <b>Data | Turno | Unidade | Nome | RG</b> e cole abaixo:</p>
+        <textarea id="dadosExcelMed" placeholder="Cole aqui os dados da sua planilha..."></textarea>
+        <button onclick="importarMed()" style="background: #0a2c6d; color: white; margin-top: 15px; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer;">
+            🚀 Sincronizar Vagas e Atualizar Contadores
         </button>
     </div>
 </div>
@@ -100,11 +100,10 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Carregar dados da coleção agendamentos_saude
     async function carregarDados() {
         const tabela = document.getElementById("corpoTabela");
         const status = document.getElementById("db-status");
-        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center;'>Buscando registros...</td></tr>";
+        tabela.innerHTML = "<tr><td colspan='9' style='text-align:center;'>Buscando...</td></tr>";
 
         try {
             const snap = await db.collection("agendamentos_saude").orderBy("timestamp", "desc").get();
@@ -116,9 +115,9 @@
                 cont++;
                 html += `<tr>
                     <td><input type="checkbox" class="checkRow" value="${doc.id}" onchange="checkMassa()"></td>
-                    <td><span class="badge-local">${d.unidadeID || d.unidadeNome || "---"}</span></td>
+                    <td><span class="badge-local">${d.unidadeID || "---"}</span></td>
                     <td>${d.unidadeOrigem || "---"}</td>
-                    <td><strong>${d.data}</strong></td>
+                    <td><strong>${d.data}</strong><br><small>${d.turno || "Único"}</small></td>
                     <td>${(d.posto || "") + " " + (d.nome || "")}</td>
                     <td>${d.rg || "---"}</td>
                     <td>${d.email || "---"}</td>
@@ -132,39 +131,43 @@
             status.innerText = "ONLINE"; status.style.color = "green";
         } catch (e) {
             status.innerText = "ERRO"; status.style.color = "red";
-            console.error(e);
         }
     }
 
-    // Função para Importar dados do Excel e preencher as vagas
+    // FUNÇÃO DE IMPORTAÇÃO CORRIGIDA PARA A SUA PLANILHA
     async function importarMed() {
         const texto = document.getElementById("dadosExcelMed").value;
-        if (!texto.trim()) return alert("Cole os dados do Excel primeiro!");
+        if (!texto.trim()) return alert("Por favor, cole os dados antes de clicar.");
         
         const linhas = texto.split('\n');
-        let cont = 0;
+        let importados = 0;
 
-        if (!confirm(`Importar ${linhas.length} militares? Isso ocupará as vagas no calendário.`)) return;
+        if (!confirm(`Importar ${linhas.length} militares? Isso ocupará as vagas dessas datas.`)) return;
 
         for (let linha of linhas) {
             const col = linha.split('\t'); 
-            if (col.length >= 3) {
+            // Ordem da sua planilha: [0]Data, [1]Turno, [2]Unidade, [3]Nome, [4]RG
+            if (col.length >= 5) {
                 const dados = {
-                    rg: col[0].trim(),
-                    unidadeID: col[1].trim(), 
-                    data: col[2].trim(),
-                    origem: "IMPORTAÇÃO_PLANILHA",
+                    data: col[0].trim(),
+                    turno: col[1].trim(),
+                    unidadeID: col[2].trim(), // Local da inspeção
+                    nome: col[3].trim(),
+                    rg: col[4].trim(),
+                    origem: "IMPORTAÇÃO_SISTEMA_ANTIGO",
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 };
+
                 await db.collection("agendamentos_saude").add(dados);
-                cont++;
+                importados++;
             }
         }
-        alert(`Sucesso! ${cont} militares inseridos no sistema médico.`);
+        alert(`Sucesso! ${importados} militares foram sincronizados.`);
         carregarDados();
+        document.getElementById("dadosExcelMed").value = "";
     }
 
-    // Funções de Filtro e Seleção
+    // Auxiliares (Filtro, Exclusão, Exportar)
     function filtrar() {
         const val = document.getElementById("busca").value.toUpperCase();
         const rows = document.querySelectorAll("#corpoTabela tr");
@@ -184,7 +187,7 @@
     }
 
     async function excluirUnico(id) {
-        if(confirm("Excluir este agendamento?")) {
+        if(confirm("Deseja excluir?")) {
             await db.collection("agendamentos_saude").doc(id).delete();
             carregarDados();
         }
@@ -192,7 +195,7 @@
 
     async function excluirMassa() {
         const sel = document.querySelectorAll(".checkRow:checked");
-        if(confirm(`Excluir ${sel.length} registros selecionados?`)) {
+        if(confirm(`Excluir ${sel.length} registros?`)) {
             const batch = db.batch();
             sel.forEach(c => batch.delete(db.collection("agendamentos_saude").doc(c.value)));
             await batch.commit();
@@ -202,7 +205,7 @@
 
     function exportar() {
         const wb = XLSX.utils.table_to_book(document.getElementById("tabelaDados"));
-        XLSX.writeFile(wb, "Inspeção_Médica_CBAX.xlsx");
+        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_CBAX.xlsx");
     }
 
     window.onload = carregarDados;
