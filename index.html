@@ -50,6 +50,22 @@
     <div id="form-content">
         <div class="section-title">Dados do Militar</div>
         
+       <label>Unidade de Origem (Onde serve)</label>
+        <select id="unidadeOrigem">
+            <option value="">Selecione sua unidade...</option>
+            <option>CBA X - SALVAMENTO MARÍTIMO</option>
+            <option>1º GMAR (Botafogo)</option>
+            <option>2º GMAR (Barra)</option>
+            <option>3º GMAR (Copacabana)</option>
+            <option>4º GMAR (Itaipu)</option>
+            <option>DBM 1/M (Paquetá)</option>
+            <option>DBM 2/M (Piscinão)</option>
+            <option>DBM 3/M (Recreio)</option>
+            <option>DBM 4/M (Guaratiba)</option>
+            <option>DBM 5/M (Sepetiba)</option>
+            <option>DBM 6/M (Itaipu)</option>
+        </select>
+
         <label>Posto/Graduação</label>
         <select id="posto">
             <option value="">Selecione...</option>
@@ -58,6 +74,7 @@
             <option>CAP BM</option><option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
         </select>
         
+       
         <label>Nome Completo</label>
         <input type="text" id="nome" placeholder="NOME SEM ABREVIAÇÕES" oninput="this.value = this.value.toUpperCase()">
 
@@ -72,18 +89,17 @@
 
         <div class="section-title">Local e Data da Inspeção</div>
         
-        <label>Sua Unidade (Regra de Agendamento)</label>
-        <select id="unidadeRegra" onchange="gerarDatas()">
-            <option value="">Selecione onde você serve...</option>
-            <option>CER + 2º GMAR</option>
-            <option>3º GMAR</option>
-            <option>DBM 5/M</option>
-            <option>CBA X</option>
-            <option>1º GMAR</option>
-            <option>4º GMAR</option>
-            <option>DBM 4/M</option>
+        <label>Onde deseja realizar a inspeção?</label>
+        <select id="unidadeDestino" onchange="configurarDatas()">
+            <option value="">Escolha a Unidade...</option>
+            <option value="CER">CER (Barra da Tijuca)</option>
+            <option value="3GMAR">3º GMAR (Copacabana)</option>
+            <option value="CBAX">CBA X (Salvamento Marítimo)</option>
+            <option value="1GMAR">1º GMAR + DBM 1/M + DBM 2/M</option>
+            <option value="4GMAR">4º GMAR + DBM 6/M (Itaipu)</option>
+            <option value="RECREIO">DBM 4/M + DBM 3/M (Recreio)</option>
         </select>
-
+        
         <label>Data Disponível</label>
         <select id="data" onchange="atualizarVagas()">
             <option value="">Selecione a unidade primeiro...</option>
