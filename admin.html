@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADM - Inspeção Médica 2026</title>
+    <title>ADM - Inspeção Médica & Odonto 2026</title>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -17,15 +17,11 @@
         .stat-card span { display: block; font-size: 14px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
         .stat-card strong { font-size: 28px; color: #333; }
         .controls { background: white; padding: 20px; border-radius: 12px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); flex-wrap: wrap; }
-        
-        /* Campo de Busca */
         .search-box { padding: 12px; border: 2px solid #ddd; border-radius: 8px; width: 300px; font-size: 14px; }
-        
         button { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; display: flex; align-items: center; gap: 8px; }
         .btn-refresh { background: #007bff; color: white; }
         .btn-danger { background: #dc3545; color: white; display: none; }
         .btn-export { background: #28a745; color: white; }
-        
         .table-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 11px; color: #666; border-bottom: 2px solid #eee; text-transform: uppercase; }
@@ -38,30 +34,30 @@
 <body>
 
 <header>
-    <h1>Painel de Controle - Inspeção Médica 2026</h1>
-    <p>CBA X - Comando de Bombeiros de Área</p>
+    <h1>Painel de Controle - Geral 2026</h1>
+    <p>CBA X - Inspeção Médica e Odontológica</p>
 </header>
 
 <div class="container">
     <div class="stats-row">
         <div class="stat-card">
-            <span>Militares Agendados</span>
+            <span>Total de Agendamentos</span>
             <strong id="contador">0</strong>
         </div>
         <div class="stat-card">
-            <span>Status da Conexão</span>
+            <span>Status do Banco de Dados</span>
             <strong id="db-status" style="color: orange; font-size: 18px;">SINCRONIZANDO...</strong>
         </div>
     </div>
 
     <div class="controls">
-        <input type="text" id="busca" class="search-box" placeholder="🔍 Buscar por Nome ou RG..." onkeyup="filtrarTabela()">
-        <button class="btn-refresh" onclick="carregarDados()">🔄 Sincronizar Agora</button>
+        <input type="text" id="busca" class="search-box" placeholder="🔍 Buscar Nome, RG ou Unidade..." onkeyup="filtrarTabela()">
+        <button class="btn-refresh" onclick="carregarDados()">🔄 Sincronizar Tudo</button>
         <button id="btnExcluirMassa" class="btn-danger" onclick="cancelarSelecionados()">
             🗑️ Excluir Selecionados (<span id="numSel">0</span>)
         </button>
         <div style="flex-grow: 1;"></div>
-        <button class="btn-export" onclick="exportarExcel()">📊 Exportar Relatório Excel</button>
+        <button class="btn-export" onclick="exportarExcel()">📊 Gerar Relatório Excel</button>
     </div>
 
     <div class="table-container">
@@ -69,17 +65,17 @@
             <thead>
                 <tr>
                     <th><input type="checkbox" id="selecionarTodos" onclick="toggleTodos()"></th>
-                    <th>Local de Inspeção</th>
-                    <th>Unidade de Origem</th>
+                    <th>Local da Inspeção</th>
+                    <th>Origem (Militar)</th>
                     <th>Data</th>
-                    <th>Turno</th>
-                    <th>Nome do Militar</th>
+                    <th>Turno / Tipo</th>
+                    <th>Militar</th>
                     <th>RG</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabela">
-                <tr><td colspan="8" style="padding: 40px; text-align: center;">Buscando registros no banco de dados...</td></tr>
+                <tr><td colspan="8" style="padding: 40px; text-align: center;">Buscando registros...</td></tr>
             </tbody>
         </table>
     </div>
@@ -95,12 +91,9 @@
         appId: "1:1011281662526:web:1028e8a8d140684e98376f"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Função para converter data brasileira (DD/MM/YYYY) em objeto Date para ordenar
     function converterParaData(str) {
         if(!str || str === "---") return new Date(2099, 0, 1);
         const partes = str.split('/');
@@ -112,12 +105,14 @@
         const contador = document.getElementById("contador");
         const status = document.getElementById("db-status");
         
-        tabela.innerHTML = "<tr><td colspan='8' style='text-align:center; padding:20px;'>🔄 Organizando dados...</td></tr>";
+        tabela.innerHTML = "<tr><td colspan='8' style='text-align:center; padding:20px;'>🔄 Lendo Banco de Dados...</td></tr>";
 
         try {
-            const [snap1, snap2] = await Promise.all([
+            // AQUI O PENTE FINO: Agora lemos agendamentos, agendamentos_medica E agendamentos_odonto
+            const [snap1, snap2, snap3] = await Promise.all([
                 db.collection("agendamentos").get(),
-                db.collection("agendamentos_medica").get()
+                db.collection("agendamentos_medica").get(),
+                db.collection("agendamentos_odonto").get()
             ]);
 
             let todos = [];
@@ -128,11 +123,11 @@
                     todos.push({
                         id: doc.id,
                         colecao: colNome,
-                        local: d.unidade || d.localInspecao || d.localNome || "Não inf.",
-                        origem: d.unidadeServe || d.unidadeMilitar || d.unidadeOrigem || "Não inf.",
-                        data: d.data_br || d.data || "---",
-                        turno: d.turno || "Livre Demanda",
-                        nome: (d.nome || "SEM NOME").toUpperCase(),
+                        local: d.unidadeNome || d.unidade || d.localInspecao || "Não inf.",
+                        origem: d.unidadeOrigem || d.unidadeServe || d.unidadeMilitar || "Não inf.",
+                        data: d.data || d.data_br || "---",
+                        turno: d.turno || (colNome === "agendamentos_odonto" ? "ODONTOLOGIA" : "Livre Demanda"),
+                        nome: (d.posto ? d.posto + " " : "") + (d.nome || "SEM NOME").toUpperCase(),
                         rg: d.rg || "---"
                     });
                 });
@@ -140,8 +135,8 @@
 
             processar(snap1, "agendamentos");
             processar(snap2, "agendamentos_medica");
+            processar(snap3, "agendamentos_odonto");
 
-            // ORDENAÇÃO: Primeiro por Data, depois por Local
             todos.sort((a, b) => {
                 const dataA = converterParaData(a.data);
                 const dataB = converterParaData(b.data);
@@ -157,7 +152,7 @@
                     <td><span class="badge-local">${item.local}</span></td>
                     <td>${item.origem}</td>
                     <td><strong>${item.data}</strong></td>
-                    <td>${item.turno}</td>
+                    <td><small>${item.turno}</small></td>
                     <td>${item.nome}</td>
                     <td>${item.rg}</td>
                     <td><button class="btn-delete-row" onclick="excluirIndividual('${item.colecao}', '${item.id}', '${item.nome}', '${item.rg}')">🗑️</button></td>
@@ -169,20 +164,17 @@
             status.innerText = "CONECTADO";
             status.style.color = "green";
             
-            if (todos.length === 0) tabela.innerHTML = "<tr><td colspan='8' style='text-align:center;'>Nenhum registro encontrado.</td></tr>";
-            
         } catch (e) {
             console.error(e);
             status.innerText = "ERRO DE CONEXÃO";
             status.style.color = "red";
-            tabela.innerHTML = "<tr><td colspan='8' style='text-align:center; color:red;'>Erro ao sincronizar.</td></tr>";
+            tabela.innerHTML = "<tr><td colspan='8' style='text-align:center; color:red;'>Erro ao sincronizar dados.</td></tr>";
         }
     }
 
     function filtrarTabela() {
         const termo = document.getElementById("busca").value.toUpperCase();
         const linhas = document.querySelectorAll("#tabela tr");
-        
         linhas.forEach(linha => {
             const texto = linha.innerText.toUpperCase();
             linha.style.display = texto.includes(termo) ? "" : "none";
@@ -201,16 +193,14 @@
 
     function atualizarBotaoMassa() {
         const selecionados = document.querySelectorAll(".checkItem:checked").length;
-        const btn = document.getElementById("btnExcluirMassa");
         document.getElementById("numSel").innerText = selecionados;
-        btn.style.display = selecionados > 0 ? "flex" : "none";
+        document.getElementById("btnExcluirMassa").style.display = selecionados > 0 ? "flex" : "none";
     }
 
     async function excluirIndividual(colecao, id, nome, rg) {
         if (confirm(`Excluir permanentemente o agendamento de ${nome}?`)) {
             try {
                 await db.collection(colecao).doc(id).delete();
-                if(rg && rg !== "---") await db.collection("rg_locks").doc(rg).delete();
                 carregarDados();
             } catch (e) { alert("Erro ao excluir."); }
         }
@@ -218,13 +208,9 @@
 
     async function cancelarSelecionados() {
         const checks = document.querySelectorAll(".checkItem:checked");
-        if (confirm(`ATENÇÃO: Você está excluindo ${checks.length} registros. Confirmar?`)) {
+        if (confirm(`Deseja excluir esses ${checks.length} registros?`)) {
             for (let cb of checks) {
-                const col = cb.getAttribute("data-col");
-                const id = cb.value;
-                const rg = cb.getAttribute("data-rg");
-                await db.collection(col).doc(id).delete();
-                if(rg && rg !== "---") await db.collection("rg_locks").doc(rg).delete();
+                await db.collection(cb.getAttribute("data-col")).doc(cb.value).delete();
             }
             carregarDados();
         }
@@ -232,7 +218,7 @@
 
     function exportarExcel() {
         const wb = XLSX.utils.table_to_book(document.getElementById("tabelaPrincipal"));
-        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_CBAX_2026.xlsx");
+        XLSX.writeFile(wb, "Relatorio_Geral_CBAX_2026.xlsx");
     }
 
     window.onload = carregarDados;
