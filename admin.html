@@ -20,103 +20,54 @@
 
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
 
-        /* Header Premium */
         header { 
-            background: white; 
-            padding: 20px 30px; 
-            border-radius: 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border-left: 10px solid var(--cba-red);
-            margin-bottom: 25px;
+            background: white; padding: 20px 30px; border-radius: 15px; display: flex; 
+            justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-left: 10px solid var(--cba-red); margin-bottom: 25px;
         }
 
         .header-info h1 { margin: 0; color: var(--cba-blue); font-size: 1.6rem; }
         .header-info p { margin: 5px 0 0; color: #666; font-weight: bold; font-size: 0.9rem; }
 
-        /* Cards de Estatísticas */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
         .stat-card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 15px; 
-            text-align: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
+            background: white; padding: 20px; border-radius: 15px; text-align: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.3s;
         }
         .stat-card:hover { transform: translateY(-5px); }
         .stat-card h3 { margin: 0; color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
         .stat-card p { margin: 10px 0 0; font-size: 2.2rem; font-weight: bold; color: var(--cba-blue); }
 
-        /* Controles */
         .controls-box { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 15px; 
-            display: flex; 
-            gap: 15px; 
-            margin-bottom: 25px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            align-items: center;
+            background: white; padding: 20px; border-radius: 15px; display: flex; 
+            gap: 15px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); align-items: center;
         }
         #lupa { flex-grow: 1; padding: 12px 20px; border: 2px solid #eee; border-radius: 10px; outline: none; transition: 0.3s; font-size: 1rem; }
         #lupa:focus { border-color: var(--cba-blue); }
 
         .btn { 
-            padding: 12px 20px; 
-            border: none; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            transition: 0.3s;
-            color: white;
+            padding: 12px 20px; border: none; border-radius: 10px; font-weight: bold; 
+            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; color: white;
         }
         .btn-refresh { background: var(--cba-blue); }
         .btn-excel { background: var(--success); }
         .btn-danger { background: var(--cba-red); }
         .btn:hover { opacity: 0.85; transform: scale(1.02); }
 
-        /* Tabela Premium */
-        .table-container { 
-            background: white; 
-            border-radius: 15px; 
-            overflow: hidden; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-        }
+        .table-container { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: #888; border-bottom: 2px solid #eee; }
-        td { padding: 15px; border-bottom: 1px solid #f1f1f1; font-size: 0.9rem; color: #333; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 0.7rem; text-transform: uppercase; color: #888; border-bottom: 2px solid #eee; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; font-size: 0.85rem; color: #333; }
         tr:hover { background: #f9f9f9; }
         
-        .badge-turno { padding: 4px 8px; border-radius: 5px; font-size: 0.75rem; font-weight: bold; }
+        .badge-turno { padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
         .manha { background: #fff3e0; color: #e65100; }
         .tarde { background: #e3f2fd; color: #0d47a1; }
 
         .btn-del { color: var(--cba-red); background: #ffebee; border: 1px solid #ffcdd2; padding: 6px; border-radius: 8px; cursor: pointer; }
 
-        /* Import Section */
-        .import-box { 
-            background: #fff; 
-            padding: 25px; 
-            border-radius: 15px; 
-            margin-top: 40px; 
-            border: 2px dashed #ccc;
-        }
-        textarea { 
-            width: 100%; 
-            height: 100px; 
-            margin: 15px 0; 
-            padding: 15px; 
-            border-radius: 10px; 
-            border: 1px solid #ddd; 
-            font-family: monospace;
-            box-sizing: border-box;
-        }
+        .import-box { background: #fff; padding: 25px; border-radius: 15px; margin-top: 40px; border: 2px dashed #ccc; }
+        textarea { width: 100%; height: 100px; margin: 15px 0; padding: 15px; border-radius: 10px; border: 1px solid #ddd; font-family: monospace; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -135,7 +86,7 @@
     </div>
 </header>
 
-<div class="stats-grid" id="statsGrid">
+<div class="stats-grid">
     <div class="stat-card"><h3>Total Agendados</h3><p id="totalGeral">0</p></div>
     <div class="stat-card"><h3>Turno Manhã</h3><p id="totalManha">0</p></div>
     <div class="stat-card"><h3>Turno Tarde</h3><p id="totalTarde">0</p></div>
@@ -155,20 +106,22 @@
                 <th>Militar</th>
                 <th>RG</th>
                 <th>Origem</th>
-                <th>Local Inspeção</th>
+                <th>Telefone</th>
+                <th>E-mail</th>
+                <th>Local</th>
                 <th>Ações</th>
             </tr>
         </thead>
         <tbody id="corpoTabela">
-            <tr><td colspan="7" style="text-align:center; padding:40px;">Sincronizando registros...</td></tr>
+            <tr><td colspan="9" style="text-align:center; padding:40px;">Sincronizando registros...</td></tr>
         </tbody>
     </table>
 </div>
 
 <div class="import-box">
-    <h3 style="margin:0; color: var(--warning);">📥 Importar Dados do Excel (Sincronização)</h3>
-    <p style="font-size: 0.8rem; color: #777; margin-top: 5px;">Cole as colunas na ordem: <b>Data | Turno | Local Inspeção | Unidade Origem | Nome | Posto | RG</b></p>
-    <textarea id="textoExcel" placeholder="Cole aqui as linhas copiadas da sua planilha..."></textarea>
+    <h3 style="margin:0; color: var(--warning);">📥 Importar Dados do Excel</h3>
+    <p style="font-size: 0.8rem; color: #777; margin-top: 5px;">Ordem: <b>Data | Turno | Local | Origem | Nome | Posto | RG | Telefone | E-mail</b></p>
+    <textarea id="textoExcel" placeholder="Cole as linhas da planilha aqui..."></textarea>
     <button class="btn btn-refresh" style="width: 100%; justify-content: center; background: var(--success);" onclick="importarDados()">🚀 Sincronizar com Banco de Dados</button>
 </div>
 
@@ -187,7 +140,7 @@
 
     async function carregarDados() {
         const corpo = document.getElementById("corpoTabela");
-        corpo.innerHTML = '<tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>';
+        corpo.innerHTML = '<tr><td colspan="9" style="text-align:center;">Carregando...</td></tr>';
         
         try {
             const snap = await db.collection("agendamentos_saude").get();
@@ -201,7 +154,7 @@
                 if(d.turno === "Tarde") t++;
             });
 
-            // Ordenar por data (recente primeiro)
+            // Ordenar por data
             lista.sort((a,b) => b.timestamp - a.timestamp);
 
             let html = "";
@@ -213,12 +166,14 @@
                     <td>${d.posto} ${d.nome}</td>
                     <td><code>${d.rg}</code></td>
                     <td>${d.unidadeOrigem}</td>
+                    <td>${d.telefone || '-'}</td>
+                    <td><small>${d.email || '-'}</small></td>
                     <td><small>${d.unidadeDestino}</small></td>
                     <td><button class="btn-del" onclick="excluirRegistro('${d.id}')">🗑️</button></td>
                 </tr>`;
             });
 
-            corpo.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">Nenhum agendamento.</td></tr>';
+            corpo.innerHTML = html || '<tr><td colspan="9" style="text-align:center;">Nenhum agendamento.</td></tr>';
             document.getElementById("totalGeral").innerText = lista.length;
             document.getElementById("totalManha").innerText = m;
             document.getElementById("totalTarde").innerText = t;
@@ -229,7 +184,6 @@
     async function importarDados() {
         const texto = document.getElementById("textoExcel").value;
         if(!texto.trim()) return alert("Cole os dados primeiro!");
-        
         const linhas = texto.split('\n');
         let contador = 0;
 
@@ -244,6 +198,8 @@
                     nome: c[4]?.trim().toUpperCase(),
                     posto: c[5]?.trim().toUpperCase(),
                     rg: c[6]?.trim(),
+                    telefone: c[7]?.trim() || "Não informado",
+                    email: c[8]?.trim() || "Não informado",
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 contador++;
@@ -255,19 +211,19 @@
     }
 
     async function excluirRegistro(id) {
-        if(confirm("Deseja excluir este militar e liberar a vaga?")) {
+        if(confirm("Excluir este agendamento?")) {
             await db.collection("agendamentos_saude").doc(id).delete();
             carregarDados();
         }
     }
 
     async function resetarTudo() {
-        if(confirm("🚨 ATENÇÃO: Deseja apagar TODOS os registros de Inspeção Médica?")) {
+        if(confirm("🚨 ZERAR TODO O BANCO DE DADOS?")) {
             const snap = await db.collection("agendamentos_saude").get();
             const batch = db.batch();
             snap.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
-            alert("Banco de dados zerado!");
+            alert("Banco zerado!");
             carregarDados();
         }
     }
@@ -286,6 +242,5 @@
 
     window.onload = carregarDados;
 </script>
-
 </body>
 </html>
