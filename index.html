@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Odontologia 2026 - CBA X</title>
+    <title>Inspeção Médica 2026 - CBA X</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
     <style>
-        :root { --cba-blue: #0a2c6d; --cba-gold: #c5a059; }
+        :root { --cba-red: #d32f2f; --cba-blue: #0a2c6d; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; }
-        .premium-card { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 10px solid var(--cba-blue); box-sizing: border-box; }
+        .premium-card { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 10px solid var(--cba-red); box-sizing: border-box; }
         header { text-align: center; margin-bottom: 15px; }
         header img { width: 75px; }
         .section-title { background: var(--cba-blue); color: white; padding: 8px; font-size: 0.75rem; font-weight: bold; border-radius: 5px; margin: 20px 0 10px; text-transform: uppercase; text-align: center; }
         label { display: block; margin-top: 10px; font-weight: bold; color: #333; font-size: 0.8rem; }
         input, select { width: 100%; padding: 12px; margin-top: 4px; border: 2px solid #dfe4ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
         
-        #comprovante { display: none; text-align: center; padding: 20px; border: 3px dashed var(--cba-blue); border-radius: 15px; background: #fff; margin-top: 10px; }
+        #comprovante { display: none; text-align: center; padding: 20px; border: 3px dashed var(--cba-red); border-radius: 15px; background: #fff; margin-top: 10px; }
         .comp-item { margin: 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; text-align: left; }
         .comp-label { font-size: 0.65rem; color: #666; font-weight: bold; text-transform: uppercase; }
         .comp-value { font-size: 1.05rem; color: var(--cba-blue); font-weight: bold; }
         
         .vagas-badge { margin-top: 10px; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; display: none; font-size: 0.9rem; }
-        .vagas-ok { background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
-        .vagas-esgotado { background: #ffebee; color: #b71c1c; border: 1px solid #ffcdd2; }
+        .vagas-ok { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .vagas-esgotado { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
         
-        .btn-confirmar { background: linear-gradient(135deg, var(--cba-blue) 0%, #061a41 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; border-bottom: 4px solid var(--cba-gold); }
-        .btn-confirmar:disabled { background: #ccc; border-bottom: none; cursor: not-allowed; }
+        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, #8e0000 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
+        .btn-confirmar:disabled { background: #ccc; cursor: not-allowed; }
         .btn-print { background: #2ecc71; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
         @media print {
@@ -43,8 +43,8 @@
 <div class="premium-card">
     <header>
         <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-MEDICA-CBA-X-2026/main/logo_cba_x.png" alt="CBA X">
-        <h2 style="color: var(--cba-blue); margin: 10px 0; font-size: 1.3rem;">Odontologia 2026</h2>
-        <p style="font-size: 0.8rem; font-weight: bold; color: #666;">CBA X - SAÚDE BUCAL</p>
+        <h2 style="color: var(--cba-red); margin: 10px 0; font-size: 1.3rem;">Inspeção Médica 2026</h2>
+        <p style="font-size: 0.8rem; font-weight: bold; color: #666;">CBA X - JUNTA DE SAÚDE</p>
     </header>
 
     <div id="form-content">
@@ -58,38 +58,32 @@
             <option>CAP BM</option><option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
         </select>
 
-        <label>Unidade de Origem (Onde serve)</label>
-        <select id="unidadeServe">
-            <option value="">Onde você está lotado?</option>
-            <option>CBA X</option><option>1º GMAR</option><option>2º GMAR</option><option>3º GMAR</option><option>4º GMAR</option><option>DBM 1/M (PAQUETÁ)</option><option>DBM 2/M (PISAN)</option><option>DBM 3/M (RECREIO)</option><option>DBM 4/M (GUARATIBA)</option><option>DBM 5/M (SEPETIBA)</option><option>DBM 6/M (ITAIPU)</option>
-        </select>
-
         <label>Nome Completo</label>
         <input type="text" id="nome" placeholder="NOME SEM ABREVIAÇÕES" oninput="this.value = this.value.toUpperCase()">
 
         <label>RG Militar</label>
         <input type="number" id="rg" placeholder="DIGITE SEU RG">
-      
-        <label>E-mail</label>
-        <input type="email" id="email" placeholder="exemplo@email.com">
 
-        <label>Telefone / WhatsApp</label>
-        <input type="tel" id="telefone" placeholder="(XX) 9XXXX-XXXX">
+        <label>Unidade de Origem</label>
+        <select id="unidadeServe">
+            <option value="">Onde você serve?</option>
+            <option>CBA X</option><option>1º GMAR</option><option>2º GMAR</option><option>3º GMAR</option><option>4º GMAR</option><option>DBM 1/M (PAQUETÁ)</option><option>DBM 2/M (PISAN)</option><option>DBM 3/M (RECREIO)</option><option>DBM 4/M (GUARATIBA)</option><option>DBM 5/M (SEPETIBA)</option><option>DBM 6/M (ITAIPU)</option>
+        </select>
 
-        <div class="section-title">Local e Data</div>
+        <div class="section-title">Local e Data da Inspeção</div>
         
-        <label>Local de Destino (Onde fará a inspeção)</label>
+        <label>Local da Inspeção</label>
         <select id="unidadeDestino" onchange="configurarDatas()">
-            <option value="">Escolha para onde deseja ir...</option>
+            <option value="">Escolha o local...</option>
             <option value="1GMAR">1º GMAR - BOTAFOGO</option>
             <option value="GBS">GBS - BARRA DA TIJUCA</option>
             <option value="3GMAR">3º GMAR - COPACABANA</option>
-            <option value="4GMAR">4º GMAR - ITAIPU (CEPO)</option>
+            <option value="4GMAR">4º GMAR - ITAIPU</option>
         </select>
 
-        <label>Data</label>
+        <label>Data Disponível</label>
         <select id="data" onchange="atualizarVagas()">
-            <option value="">Selecione a unidade primeiro...</option>
+            <option value="">Selecione o local primeiro...</option>
         </select>
 
         <div id="statusVagas" class="vagas-badge"></div>
@@ -97,11 +91,11 @@
     </div>
 
     <div id="comprovante">
-        <div style="color: #27ae60; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">✅ AGENDAMENTO REALIZADO</div>
+        <div style="color: #27ae60; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">✅ AGENDAMENTO CONFIRMADO</div>
         <div class="comp-item"><div class="comp-label">Militar:</div><div id="res-nome" class="comp-value"></div></div>
         <div class="comp-item"><div class="comp-label">RG:</div><div id="res-rg" class="comp-value"></div></div>
-        <div class="comp-item"><div class="comp-label">Lotação:</div><div id="res-origem" class="comp-value"></div></div>
-        <div class="comp-item"><div class="comp-label">Local do Atendimento:</div><div id="res-local" class="comp-value"></div></div>
+        <div class="comp-item"><div class="comp-label">Unidade:</div><div id="res-origem" class="comp-value"></div></div>
+        <div class="comp-item"><div class="comp-label">Local da Inspeção:</div><div id="res-local" class="comp-value"></div></div>
         <div class="comp-item"><div class="comp-label">Data:</div><div id="res-data" class="comp-value"></div></div>
         
         <button class="btn-print" onclick="window.print()">🖨️ IMPRIMIR / SALVAR PDF</button>
@@ -110,30 +104,31 @@
 </div>
 
 <script>
-   const firebaseConfig = {
-    apiKey: "AIzaSyAPUZftC2cq-khKiNq6dHBqkQeaoNWrjRc",
-    authDomain: "inspecao-medica-cbax.firebaseapp.com",
-    projectId: "inspecao-medica-cbax",
-    storageBucket: "inspecao-medica-cbax.firebasestorage.app",
-    messagingSenderId: "1171422846",
-    appId: "1:1171422846:web:39b7e005699370ac22e22f"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkq2D8JFuxzPTI2z_Iirg3rYfSFfPJRXY",
+        authDomain: "inspecao-saude-cbax.firebaseapp.com",
+        projectId: "inspecao-saude-cbax",
+        storageBucket: "inspecao-saude-cbax.firebasestorage.app",
+        messagingSenderId: "1011281662526",
+        appId: "1:1011281662526:web:1028e8a8d140684e98376f"
+    };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-  const escalaOdonto = {
-        "1GMAR": { vagas: 14, datas: ["11/03/2026","18/03/2026","25/03/2026","01/04/2026","08/04/2026","06/05/2026","13/05/2026","20/05/2026","27/05/2026","03/06/2026","10/06/2026","17/06/2026","24/06/2026","01/07/2026","08/07/2026","15/07/2026","22/07/2026","29/07/2026"] },
-        "GBS": { vagas: 21, datas: ["10/03/2026","17/03/2026","24/03/2026","31/03/2026","28/04/2026","05/05/2026","12/05/2026","19/05/2026","26/05/2026","02/06/2026","09/06/2026","16/06/2026","23/06/2026","30/06/2026","07/07/2026","14/07/2026","21/07/2026","28/07/2026"] },
-        "3GMAR": { vagas: 11, datas: ["10/03/2026","17/03/2026","24/03/2026","31/03/2026","07/04/2026","14/04/2026","28/04/2026","05/05/2026","12/05/2026","19/05/2026","26/05/2026","02/06/2026","09/06/2026","16/06/2026","23/06/2026","30/06/2026","07/07/2026","14/07/2026","21/07/2026","28/07/2026"] },
-        "4GMAR": { vagas: 13, datas: ["10/04/2026","17/04/2026","08/05/2026","15/05/2026","22/05/2026","29/05/2026","05/06/2026","12/06/2026","19/06/2026","26/06/2026","03/07/2026","10/07/2026","17/07/2026","24/07/2026","31/07/2026"] }
+    const escalaMedica = {
+        "1GMAR": { vagas: 30, datas: ["12/03/2026","19/03/2026","26/03/2026"] },
+        "GBS": { vagas: 45, datas: ["11/03/2026","18/03/2026","25/03/2026"] },
+        "3GMAR": { vagas: 25, datas: ["13/03/2026","20/03/2026","27/03/2026"] },
+        "4GMAR": { vagas: 20, datas: ["14/03/2026","21/03/2026","28/03/2026"] }
     };
 
     function configurarDatas() {
         const local = document.getElementById("unidadeDestino").value;
         const ds = document.getElementById("data");
         ds.innerHTML = '<option value="">Selecione a data...</option>';
-        if (local && escalaOdonto[local]) {
-            escalaOdonto[local].datas.forEach(d => {
+        if (local && escalaMedica[local]) {
+            escalaMedica[local].datas.forEach(d => {
                 let o = document.createElement("option"); o.value = d; o.innerText = d;
                 ds.appendChild(o);
             });
@@ -143,18 +138,23 @@
     async function atualizarVagas() {
         const local = document.getElementById("unidadeDestino").value;
         const dt = document.getElementById("data").value;
-        const b = document.getElementById("statusVagas");
+        const badge = document.getElementById("statusVagas");
         if (!local || !dt) return;
 
-        b.style.display = "block"; b.innerText = "🔍 Verificando...";
-        const snap = await db.collection("agendamentos_odonto").where("unidadeID", "==", local).where("data", "==", dt).get();
-        const restam = escalaOdonto[local].vagas - snap.size;
+        badge.style.display = "block"; badge.innerText = "🔍 Verificando...";
+        
+        // Busca na coleção agendamentos_saude (MÉDICA)
+        const snap = await db.collection("agendamentos_saude").where("unidadeID", "==", local).where("data", "==", dt).get();
+        const ocupadas = snap.size;
+        const restam = escalaMedica[local].vagas - ocupadas;
 
         if (restam <= 0) {
-            b.innerText = "❌ VAGAS ESGOTADAS"; b.className = "vagas-badge vagas-esgotado";
+            badge.innerText = "❌ VAGAS ESGOTADAS"; 
+            badge.className = "vagas-badge vagas-esgotado";
             document.getElementById("btnSalvar").disabled = true;
         } else {
-            b.innerText = `✅ ${restam} VAGAS DISPONÍVEIS`; b.className = "vagas-badge vagas-ok";
+            badge.innerText = `✅ ${restam} VAGAS DISPONÍVEIS`; 
+            badge.className = "vagas-badge vagas-ok";
             document.getElementById("btnSalvar").disabled = false;
         }
     }
@@ -165,21 +165,20 @@
             posto: document.getElementById("posto").value,
             nome: document.getElementById("nome").value.trim(),
             rg: document.getElementById("rg").value.trim(),
-            unidadeOrigem: document.getElementById("unidadeServe").value.trim(), // Ajustado aqui
-            email: document.getElementById("email").value.trim(),
-            telefone: document.getElementById("telefone").value.trim(),
+            unidadeOrigem: document.getElementById("unidadeServe").value,
             unidadeID: document.getElementById("unidadeDestino").value,
             unidadeNome: document.getElementById("unidadeDestino").options[document.getElementById("unidadeDestino").selectedIndex].text,
             data: document.getElementById("data").value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        if (!d.posto || !d.nome || !d.rg || !d.unidadeOrigem || !d.data) return alert("Preencha todos os campos obrigatórios!");
+        if (!d.posto || !d.nome || !d.rg || !d.unidadeOrigem || !d.data) return alert("Preencha tudo!");
 
         btn.innerText = "SALVANDO..."; btn.disabled = true;
 
         try {
-            await db.collection("agendamentos_odonto").add(d);
+            // Salva na coleção MÉDICA
+            await db.collection("agendamentos_saude").add(d);
             document.getElementById("form-content").style.display = "none";
             document.getElementById("comprovante").style.display = "block";
             document.getElementById("res-nome").innerText = d.posto + " " + d.nome;
