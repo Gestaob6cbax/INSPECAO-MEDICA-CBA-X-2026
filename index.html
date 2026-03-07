@@ -126,7 +126,6 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // REGRAS ATUALIZADAS PARA OS NOVOS GRUPOS
     const REGRAS = {
         "CBA X":    { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
         "1º GMAR":  { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7,  turno: true },
@@ -202,34 +201,52 @@
         const data = document.getElementById("data").value;
         const uniDestino = document.getElementById("unidadeDestino").value;
         const uniOrigem = document.getElementById("unidadeOrigem").value;
+        const nome = document.getElementById("nome").value.toUpperCase();
+        const posto = document.getElementById("posto").value;
         const r = REGRAS[uniDestino];
 
-        const d = {
-            unidadeOrigem: uniOrigem,
-            posto: document.getElementById("posto").value,
-            nome: document.getElementById("nome").value.toUpperCase(),
-            rg: rg,
-            email: document.getElementById("email").value,
-            telefone: document.getElementById("telefone").value,
-            unidadeDestino: uniDestino,
-            data: data,
-            turno: r.turno ? document.getElementById("turno").value : "Único",
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        if (!d.posto || !d.nome || !d.rg || !d.data || !d.unidadeOrigem || !d.unidadeDestino) {
-            return alert("Por favor, preencha todos os campos obrigatórios!");
+        if (!posto || !nome || !rg || !data || !uniOrigem || !uniDestino) {
+            return alert("⚠️ Por favor, preencha todos os campos obrigatórios!");
         }
 
-        btn.innerText = "SALVANDO..."; btn.disabled = true;
+        btn.innerText = "⏳ VERIFICANDO RG..."; 
+        btn.disabled = true;
 
         try {
+            // TRAVA DE RG: Verifica se este RG já existe
+            const consultaRG = await db.collection("agendamentos_saude").where("rg", "==", rg).get();
+
+            if (!consultaRG.empty) {
+                alert("❌ ERRO: Este RG (" + rg + ") já possui um agendamento para a Inspeção Médica 2026.");
+                btn.innerText = "Confirmar Agendamento";
+                btn.disabled = false;
+                return;
+            }
+
+            const d = {
+                unidadeOrigem: uniOrigem,
+                posto: posto,
+                nome: nome,
+                rg: rg,
+                email: document.getElementById("email").value,
+                telefone: document.getElementById("telefone").value,
+                unidadeDestino: uniDestino,
+                data: data,
+                turno: r.turno ? document.getElementById("turno").value : "Único",
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
             await db.collection("agendamentos_saude").add(d);
             document.getElementById("form-content").style.display = "none";
             document.getElementById("comprovante").style.display = "block";
             document.getElementById("res-nome").innerText = d.posto + " " + d.nome;
-            document.getElementById("res-info").innerText = `RG: ${d.rg} | Origem: ${d.unidadeOrigem} | Local: ${d.unidadeDestino} | Data: ${d.data} (${d.turno})`;
-        } catch (e) { alert("Erro ao salvar!"); btn.disabled = false; }
+            document.getElementById("res-info").innerText = `RG: ${d.rg} | Local: ${d.unidadeDestino} | Data: ${d.data} (${d.turno})`;
+
+        } catch (e) { 
+            alert("⚠️ Erro ao salvar!"); 
+            btn.innerText = "Confirmar Agendamento";
+            btn.disabled = false; 
+        }
     }
 </script>
 </body>
