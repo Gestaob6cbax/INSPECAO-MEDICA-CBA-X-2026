@@ -59,7 +59,23 @@
             <option>1º SGT BM</option><option>SUBTEN BM</option><option>2º TEN BM</option><option>1º TEN BM</option>
             <option>CAP BM</option><option>MAJ BM</option><option>TEN CEL BM</option><option>CEL BM</option>
         </select>
-
+        
+        <label>Unidade de Origem (Onde serve)</label>
+        <select id="unidadeOrigem">
+            <option value="">Selecione sua unidade...</option>
+            <option>CBA X - SALVAMENTO MARÍTIMO</option>
+            <option>1º GMAR (Botafogo)</option>
+            <option>2º GMAR (Barra)</option>
+            <option>3º GMAR (Copacabana)</option>
+            <option>4º GMAR (Itaipu)</option>
+            <option>DBM 1/M (Paquetá)</option>
+            <option>DBM 2/M (Piscinão)</option>
+            <option>DBM 3/M (Recreio)</option>
+            <option>DBM 4/M (Guaratiba)</option>
+            <option>DBM 5/M (Sepetiba)</option>
+            <option>DBM 6/M (Itaipu)</option>
+        </select>
+        
         <label>Nome Completo</label>
         <input type="text" id="nome" placeholder="NOME SEM ABREVIAÇÕES" oninput="this.value = this.value.toUpperCase()">
 
@@ -80,7 +96,7 @@
         <label>Onde deseja realizar a inspeção?</label>
         <select id="unidadeDestino" onchange="configurarDatas()">
             <option value="">Escolha a Unidade...</option>
-            <option value="2GMAR">2º GMAR (Barra)</option>
+            <option value="CER">CER(AS INSPEÇOES SERÃO NO GBS ATÉ A INAUGURAÇÃO DA UNIDADE 2ºGMAR BARRA)</option>
             <option value="3GMAR">3º GMAR (Copacabana)</option>
             <option value="CBAX">CBA X (Salvamento Marítimo)</option>
             <option value="1GMAR">1º GMAR + DBM 1/M + DBM 2/M</option>
@@ -127,16 +143,17 @@
         messagingSenderId: "1171422846",
         appId: "1:1171422846:web:39b7e005699370ac22e22f"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    const escalaMedica = {
-        "CBAX":  { vagas: 10, datas: ["10/03/2026", "13/03/2026"] },
-        "2GMAR": { vagas: 5, datas: ["09/03/2026","10/03/2026","11/03/2026","12/03/2026","13/03/2026"] },
-        "3GMAR": { vagas: 5, datas: ["09/03/2026","10/03/2026","11/03/2026","12/03/2026","13/03/2026"] },
-        "1GMAR": { vagas: 7, datas: ["17/03/2026","20/03/2026","24/03/2026","27/03/2026","31/03/2026"] },
-        "4GMAR": { vagas: 7, datas: ["19/05/2026","22/05/2026","26/05/2026","29/05/2026"] },
-        "RECREIO": { vagas: 7, datas: ["30/06/2026","03/07/2026","07/07/2026","10/07/2026"] }
+    const REGRAS = {
+        "CER + 2º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
+        "3º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
+        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 10, turno: true },
+        "CBA X": { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
+        "1º GMAR": { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7, turno: true },
+        "4º GMAR": { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7, turno: true },
+        "DBM 4/M": { inicio: "2026-06-30", fim: "2026-07-31", dias: [2,5], vagas: 7, turno: true }
     };
 
     function configurarDatas() {
