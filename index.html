@@ -9,25 +9,32 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
     <style>
-        :root { --cba-red: #d32f2f; --cba-blue: #0a2c6d; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; }
+        :root { 
+            --cba-red: #b71c1c; /* Vermelho mais forte */
+            --cba-dark-red: #7f0000; 
+        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .premium-card { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 10px solid var(--cba-red); box-sizing: border-box; }
         header { text-align: center; margin-bottom: 15px; }
         header img { width: 75px; }
-        .section-title { background: var(--cba-blue); color: white; padding: 8px; font-size: 0.75rem; font-weight: bold; border-radius: 5px; margin: 20px 0 10px; text-transform: uppercase; text-align: center; }
+        
+        /* Ajuste das Seções para Vermelho */
+        .section-title { background: var(--cba-red); color: white; padding: 10px; font-size: 0.75rem; font-weight: bold; border-radius: 5px; margin: 20px 0 10px; text-transform: uppercase; text-align: center; }
+        
         label { display: block; margin-top: 10px; font-weight: bold; color: #333; font-size: 0.8rem; }
         input, select { width: 100%; padding: 12px; margin-top: 4px; border: 2px solid #dfe4ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
         
         #comprovante { display: none; text-align: center; padding: 20px; border: 3px dashed var(--cba-red); border-radius: 15px; background: #fff; margin-top: 10px; }
         .comp-item { margin: 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; text-align: left; }
         .comp-label { font-size: 0.65rem; color: #666; font-weight: bold; text-transform: uppercase; }
-        .comp-value { font-size: 1.05rem; color: var(--cba-blue); font-weight: bold; }
+        .comp-value { font-size: 1.05rem; color: var(--cba-red); font-weight: bold; }
         
         .vagas-badge { margin-top: 10px; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; display: none; font-size: 0.9rem; }
         .vagas-ok { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
         .vagas-esgotado { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
         
-        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, #8e0000 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
+        /* Botão Confirmar em Vermelho */
+        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, var(--cba-dark-red) 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
         .btn-confirmar:disabled { background: #ccc; cursor: not-allowed; }
         .btn-print { background: #2ecc71; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
@@ -143,7 +150,6 @@
 
         badge.style.display = "block"; badge.innerText = "🔍 Verificando...";
         
-        // Busca na coleção agendamentos_saude (MÉDICA)
         const snap = await db.collection("agendamentos_saude").where("unidadeID", "==", local).where("data", "==", dt).get();
         const ocupadas = snap.size;
         const restam = escalaMedica[local].vagas - ocupadas;
@@ -177,7 +183,6 @@
         btn.innerText = "SALVANDO..."; btn.disabled = true;
 
         try {
-            // Salva na coleção MÉDICA
             await db.collection("agendamentos_saude").add(d);
             document.getElementById("form-content").style.display = "none";
             document.getElementById("comprovante").style.display = "block";
