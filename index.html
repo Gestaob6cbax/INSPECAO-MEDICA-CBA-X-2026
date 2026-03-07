@@ -162,30 +162,51 @@
     }
 
     async function atualizarVagas() {
-        const uni = document.getElementById("unidadeRegra").value;
+        const uni = document.getElementById("unidadeDestino").value;
         const dt = document.getElementById("data").value;
-        const turno = document.getElementById("turno").value;
+        const turnoSel = document.getElementById("turno").value;
         const badge = document.getElementById("statusVagas");
+        
         if (!uni || !dt) return;
 
-        badge.style.display = "block"; badge.innerText = "🔍 CONSULTANDO VAGAS...";
+        badge.style.display = "block"; 
+        badge.innerText = "🔍 Verificando disponibilidade...";
 
         const r = REGRAS[uni];
-        let query = db.collection("agendamentos_saude").where("unidadeID", "==", uni).where("data", "==", dt);
-        if (r.turno) query = query.where("turno", "==", turno);
+        
+        try {
+            // O segredo está aqui: buscar todos os documentos daquela data e local
+            // O Firebase vai contar quantos "RGs" (registros) existem lá
+            let consulta = db.collection("agendamentos_saude")
+                             .where("unidadeID", "==", uni)
+                             .where("data", "==", dt);
 
-        const snap = await query.get();
-        const ocupadas = snap.size;
-        const restam = r.vagas - ocupadas;
+            if (r.turno) {
+                consulta = consulta.where("turno", "==", turnoSel);
+            }
 
-        if (restam <= 0) {
-            badge.innerText = `❌ ${turno.toUpperCase()} ESGOTADO`;
-            badge.className = "vagas-badge vagas-esgotado";
-            document.getElementById("btnSalvar").disabled = true;
-        } else {
-            badge.innerText = `✅ ${restam} VAGAS DISPONÍVEIS (${turno})`;
-            badge.className = "vagas-badge vagas-ok";
-            document.getElementById("btnSalvar").disabled = false;
+            const snapshot = await consulta.get();
+            
+            // O snapshot.size é o pulo do gato: ele diz exatamente quantos militares (RGs) já ocuparam vaga
+            const totalJaAgendados = snapshot.size; 
+            const limiteVagas = r.vagas;
+            const restam = limiteVagas - totalJaAgendados;
+
+            // Log para você conferir no F12 se quiser:
+            console.log(`Local: ${uni} | Data: ${dt} | Ocupadas: ${totalJaAgendados}`);
+
+            if (restam <= 0) {
+                badge.innerText = "❌ VAGAS ESGOTADAS PARA ESTE DIA/TURNO";
+                badge.className = "vagas-badge vagas-esgotado";
+                document.getElementById("btnSalvar").disabled = true;
+            } else {
+                badge.innerText = `✅ DISPONÍVEL: ${restam} VAGAS RESTANTES`;
+                badge.className = "vagas-badge vagas-ok";
+                document.getElementById("btnSalvar").disabled = false;
+            }
+        } catch (error) {
+            console.error("Erro ao ler RGs:", error);
+            badge.innerText = "⚠️ Erro ao consultar banco de dados";
         }
     }
 
