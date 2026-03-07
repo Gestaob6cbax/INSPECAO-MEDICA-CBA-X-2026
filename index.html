@@ -9,40 +9,23 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
     <style>
-        :root { 
-            --cba-red: #b71c1c; /* Vermelho mais forte */
-            --cba-dark-red: #7f0000; 
-        }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; margin: 0; padding: 10px; display: flex; justify-content: center; }
+        :root { --cba-red: #b71c1c; --cba-dark: #1a1a1a; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .premium-card { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 10px solid var(--cba-red); box-sizing: border-box; }
         header { text-align: center; margin-bottom: 15px; }
         header img { width: 75px; }
-        
-        /* Ajuste das Seções para Vermelho */
         .section-title { background: var(--cba-red); color: white; padding: 10px; font-size: 0.75rem; font-weight: bold; border-radius: 5px; margin: 20px 0 10px; text-transform: uppercase; text-align: center; }
-        
         label { display: block; margin-top: 10px; font-weight: bold; color: #333; font-size: 0.8rem; }
         input, select { width: 100%; padding: 12px; margin-top: 4px; border: 2px solid #dfe4ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-        
+        .vagas-badge { margin-top: 10px; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; display: none; font-size: 0.9rem; }
+        .vagas-ok { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .vagas-esgotado { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, #7f0000 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; width: 100%; }
+        .btn-confirmar:disabled { background: #ccc; cursor: not-allowed; }
         #comprovante { display: none; text-align: center; padding: 20px; border: 3px dashed var(--cba-red); border-radius: 15px; background: #fff; margin-top: 10px; }
         .comp-item { margin: 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; text-align: left; }
         .comp-label { font-size: 0.65rem; color: #666; font-weight: bold; text-transform: uppercase; }
         .comp-value { font-size: 1.05rem; color: var(--cba-red); font-weight: bold; }
-        
-        .vagas-badge { margin-top: 10px; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; display: none; font-size: 0.9rem; }
-        .vagas-ok { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .vagas-esgotado { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
-        
-        /* Botão Confirmar em Vermelho */
-        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, var(--cba-dark-red) 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
-        .btn-confirmar:disabled { background: #ccc; cursor: not-allowed; }
-        .btn-print { background: #2ecc71; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-
-        @media print {
-            body { background: white; padding: 0; }
-            .btn-print, .btn-confirmar, .section-title, header, button { display: none !important; }
-            #comprovante { border: 2px solid #000; display: block !important; margin: 0; }
-        }
     </style>
 </head>
 <body>
@@ -73,11 +56,11 @@
 
         <label>Unidade de Origem</label>
         <select id="unidadeServe">
-            <option value="">Onde você serve?</option>
+            <option value="">Selecione sua unidade...</option>
             <option>CBA X</option><option>1º GMAR</option><option>2º GMAR</option><option>3º GMAR</option><option>4º GMAR</option><option>DBM 1/M (PAQUETÁ)</option><option>DBM 2/M (PISAN)</option><option>DBM 3/M (RECREIO)</option><option>DBM 4/M (GUARATIBA)</option><option>DBM 5/M (SEPETIBA)</option><option>DBM 6/M (ITAIPU)</option>
         </select>
 
-        <div class="section-title">Local e Data da Inspeção</div>
+        <div class="section-title">Local e Data</div>
         
         <label>Local da Inspeção</label>
         <select id="unidadeDestino" onchange="configurarDatas()">
@@ -85,10 +68,10 @@
             <option value="1GMAR">1º GMAR - BOTAFOGO</option>
             <option value="GBS">GBS - BARRA DA TIJUCA</option>
             <option value="3GMAR">3º GMAR - COPACABANA</option>
-            <option value="4GMAR">4º GMAR - ITAIPU</option>
+            <option value="4GMAR">4º GMAR - ITAIPU (CEPO)</option>
         </select>
 
-        <label>Data Disponível</label>
+        <label>Data</label>
         <select id="data" onchange="atualizarVagas()">
             <option value="">Selecione o local primeiro...</option>
         </select>
@@ -101,12 +84,9 @@
         <div style="color: #27ae60; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">✅ AGENDAMENTO CONFIRMADO</div>
         <div class="comp-item"><div class="comp-label">Militar:</div><div id="res-nome" class="comp-value"></div></div>
         <div class="comp-item"><div class="comp-label">RG:</div><div id="res-rg" class="comp-value"></div></div>
-        <div class="comp-item"><div class="comp-label">Unidade:</div><div id="res-origem" class="comp-value"></div></div>
-        <div class="comp-item"><div class="comp-label">Local da Inspeção:</div><div id="res-local" class="comp-value"></div></div>
+        <div class="comp-item"><div class="comp-label">Local:</div><div id="res-local" class="comp-value"></div></div>
         <div class="comp-item"><div class="comp-label">Data:</div><div id="res-data" class="comp-value"></div></div>
-        
-        <button class="btn-print" onclick="window.print()">🖨️ IMPRIMIR / SALVAR PDF</button>
-        <button onclick="location.reload()" style="background:none; border:none; color:blue; cursor:pointer; text-decoration:underline; font-size: 0.8rem; margin-top: 15px;">Novo Agendamento</button>
+        <button class="btn-confirmar" onclick="window.print()" style="background: #2ecc71;">🖨️ IMPRIMIR COMPROVANTE</button>
     </div>
 </div>
 
@@ -123,11 +103,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // DATAS E VAGAS ATUALIZADAS PARA INSPEÇÃO MÉDICA 2026
     const escalaMedica = {
-        "1GMAR": { vagas: 30, datas: ["12/03/2026","19/03/2026","26/03/2026"] },
-        "GBS": { vagas: 45, datas: ["11/03/2026","18/03/2026","25/03/2026"] },
-        "3GMAR": { vagas: 25, datas: ["13/03/2026","20/03/2026","27/03/2026"] },
-        "4GMAR": { vagas: 20, datas: ["14/03/2026","21/03/2026","28/03/2026"] }
+        "1GMAR": { vagas: 40, datas: ["10/03/2026", "17/03/2026", "24/03/2026", "31/03/2026", "07/04/2026"] },
+        "GBS": { vagas: 50, datas: ["11/03/2026", "18/03/2026", "25/03/2026", "01/04/2026", "08/04/2026"] },
+        "3GMAR": { vagas: 35, datas: ["12/03/2026", "19/03/2026", "26/03/2026", "02/04/2026", "09/04/2026"] },
+        "4GMAR": { vagas: 30, datas: ["13/03/2026", "20/03/2026", "27/03/2026", "03/04/2026", "10/04/2026"] }
     };
 
     function configurarDatas() {
@@ -148,14 +129,15 @@
         const badge = document.getElementById("statusVagas");
         if (!local || !dt) return;
 
-        badge.style.display = "block"; badge.innerText = "🔍 Verificando...";
+        badge.style.display = "block"; badge.innerText = "🔍 Verificando vagas...";
         
+        // Busca na coleção agendamentos_saude
         const snap = await db.collection("agendamentos_saude").where("unidadeID", "==", local).where("data", "==", dt).get();
         const ocupadas = snap.size;
         const restam = escalaMedica[local].vagas - ocupadas;
 
         if (restam <= 0) {
-            badge.innerText = "❌ VAGAS ESGOTADAS"; 
+            badge.innerText = "❌ VAGAS ESGOTADAS PARA ESTA DATA"; 
             badge.className = "vagas-badge vagas-esgotado";
             document.getElementById("btnSalvar").disabled = true;
         } else {
@@ -178,9 +160,9 @@
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        if (!d.posto || !d.nome || !d.rg || !d.unidadeOrigem || !d.data) return alert("Preencha tudo!");
+        if (!d.posto || !d.nome || !d.rg || !d.unidadeOrigem || !d.data) return alert("Por favor, preencha todos os campos!");
 
-        btn.innerText = "SALVANDO..."; btn.disabled = true;
+        btn.innerText = "PROCESSANDO..."; btn.disabled = true;
 
         try {
             await db.collection("agendamentos_saude").add(d);
@@ -188,10 +170,13 @@
             document.getElementById("comprovante").style.display = "block";
             document.getElementById("res-nome").innerText = d.posto + " " + d.nome;
             document.getElementById("res-rg").innerText = d.rg;
-            document.getElementById("res-origem").innerText = d.unidadeOrigem;
             document.getElementById("res-local").innerText = d.unidadeNome;
             document.getElementById("res-data").innerText = d.data;
-        } catch (e) { alert("Erro ao salvar."); btn.disabled = false; }
+        } catch (e) { 
+            alert("Erro ao salvar agendamento."); 
+            btn.disabled = false; 
+            btn.innerText = "Confirmar Agendamento";
+        }
     }
 </script>
 </body>
