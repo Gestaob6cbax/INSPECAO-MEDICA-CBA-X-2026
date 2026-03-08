@@ -93,7 +93,7 @@
 </div>
 
 <div class="controls-box">
-    <input type="text" id="lupa" placeholder="🔍 Pesquise por Nome, RG ou Unidade..." onkeyup="filtrar()">
+    <input type="text" id="lupa" placeholder="🔍 Pesquise por Nome, RG ou Unidade (Ex: CER)..." onkeyup="filtrar()">
     <button class="btn btn-refresh" onclick="carregarDados()">🔄 Atualizar</button>
 </div>
 
@@ -154,7 +154,7 @@
                 if(d.turno === "Tarde") t++;
             });
 
-            // Ordenar por data
+            // Ordenar por data (mais recentes primeiro)
             lista.sort((a,b) => b.timestamp - a.timestamp);
 
             let html = "";
@@ -173,7 +173,7 @@
                 </tr>`;
             });
 
-            corpo.innerHTML = html || '<tr><td colspan="9" style="text-align:center;">Nenhum agendamento.</td></tr>';
+            corpo.innerHTML = html || '<tr><td colspan="9" style="text-align:center;">Nenhum agendamento encontrado.</td></tr>';
             document.getElementById("totalGeral").innerText = lista.length;
             document.getElementById("totalManha").innerText = m;
             document.getElementById("totalTarde").innerText = t;
@@ -186,44 +186,55 @@
         if(!texto.trim()) return alert("Cole os dados primeiro!");
         const linhas = texto.split('\n');
         let contador = 0;
+        let ignorados = 0;
 
         for(let l of linhas) {
+            if(!l.trim()) continue;
             const c = l.split('\t');
             if(c.length >= 7) {
-                await db.collection("agendamentos_saude").add({
-                    data: c[0]?.trim(),
-                    turno: c[1]?.trim(),
-                    unidadeDestino: c[2]?.trim(),
-                    unidadeOrigem: c[3]?.trim(),
-                    nome: c[4]?.trim().toUpperCase(),
-                    posto: c[5]?.trim().toUpperCase(),
-                    rg: c[6]?.trim(),
-                    telefone: c[7]?.trim() || "Não informado",
-                    email: c[8]?.trim() || "Não informado",
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                contador++;
+                const rgImport = c[6]?.trim();
+                
+                // Trava anti-duplicidade na importação
+                const check = await db.collection("agendamentos_saude").where("rg", "==", rgImport).get();
+                
+                if(check.empty) {
+                    await db.collection("agendamentos_saude").add({
+                        data: c[0]?.trim(),
+                        turno: c[1]?.trim(),
+                        unidadeDestino: c[2]?.trim(),
+                        unidadeOrigem: c[3]?.trim(),
+                        nome: c[4]?.trim().toUpperCase(),
+                        posto: c[5]?.trim().toUpperCase(),
+                        rg: rgImport,
+                        telefone: c[7]?.trim() || "Não informado",
+                        email: c[8]?.trim() || "Não informado",
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    contador++;
+                } else {
+                    ignorados++;
+                }
             }
         }
-        alert(contador + " militares sincronizados!");
+        alert(`${contador} militares sincronizados! (${ignorados} já existiam e foram pulados)`);
         document.getElementById("textoExcel").value = "";
         carregarDados();
     }
 
     async function excluirRegistro(id) {
-        if(confirm("Excluir este agendamento?")) {
+        if(confirm("Deseja realmente excluir este agendamento?")) {
             await db.collection("agendamentos_saude").doc(id).delete();
             carregarDados();
         }
     }
 
     async function resetarTudo() {
-        if(confirm("🚨 ZERAR TODO O BANCO DE DADOS?")) {
+        if(confirm("🚨 ATENÇÃO: Deseja ZERAR TODO o banco de dados da Inspeção Médica?")) {
             const snap = await db.collection("agendamentos_saude").get();
             const batch = db.batch();
             snap.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
-            alert("Banco zerado!");
+            alert("Banco de dados resetado com sucesso!");
             carregarDados();
         }
     }
@@ -231,13 +242,16 @@
     function baixarPlanilha() {
         const table = document.getElementById("tabelaADM");
         const wb = XLSX.utils.table_to_book(table);
-        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_2026.xlsx");
+        XLSX.writeFile(wb, "Relatorio_Geral_Inspecao_Medica_2026.xlsx");
     }
 
     function filtrar() {
         const busca = document.getElementById("lupa").value.toUpperCase();
         const rows = document.querySelectorAll("#corpoTabela tr");
-        rows.forEach(r => r.style.display = r.innerText.toUpperCase().includes(busca) ? "" : "none");
+        rows.forEach(r => {
+            // Verifica se o texto da linha contém a busca
+            r.style.display = r.innerText.toUpperCase().includes(busca) ? "" : "none";
+        });
     }
 
     window.onload = carregarDados;
