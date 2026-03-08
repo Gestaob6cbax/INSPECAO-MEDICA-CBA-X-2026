@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
     <style>
-        :root { --cba-red: #b71c1c; --cba-blue: #0a2c6d; }
+        :root { --cba-red: #b71c1c; --cba-vinho: #8e1616; --cba-blue: #0a2c6d; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .premium-card { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 10px solid var(--cba-red); box-sizing: border-box; }
         header { text-align: center; margin-bottom: 15px; }
@@ -22,7 +22,7 @@
         .vagas-ok { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
         .vagas-esgotado { background: #ffebee; color: #b71c1c; border: 1px solid #ffcdd2; }
         
-        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, #8e1616 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; font-size: 1rem; transition: 0.3s; }
+        .btn-confirmar { background: linear-gradient(135deg, var(--cba-red) 0%, var(--cba-vinho) 100%); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; font-size: 1rem; transition: 0.3s; }
         .btn-confirmar:disabled { background: #ccc !important; cursor: not-allowed; opacity: 0.6; }
 
         #comprovante { display: none; text-align: center; padding: 20px; border: 3px dashed var(--cba-red); border-radius: 15px; background: #fff; margin-top: 10px; }
@@ -39,7 +39,7 @@
     <header>
         <img src="https://raw.githubusercontent.com/gestaob6cbax/INSPECAO-MEDICA-CBA-X-2026/main/logo_cba_x.png" alt="CBA X">
         <h2 style="color: var(--cba-blue); margin: 10px 0;">Inspeção Médica 2026</h2>
-        <p style="font-size: 0.85rem; font-weight: bold; color: #555;">CBA X - Inspeção Médica 2026</p>
+        <p style="font-size: 0.85rem; font-weight: bold; color: #555;">CBA X - JUNTA DE SAÚDE</p>
     </header>
 
     <div id="form-content">
@@ -47,11 +47,19 @@
 
         <label>Unidade de Origem</label>
         <select id="unidadeOrigem">
-            <option value="">Selecione...</option>
-            <option>CBA X</option>
-            <option>1º GMAR</option><option>2º GMAR</option><option>3º GMAR</option><option>4º GMAR</option>
-            <option>DBM 1/M</option><option>DBM 2/M</option><option>DBM 3/M</option>
-            <option>DBM 4/M</option><option>DBM 5/M</option><option>DBM 6/M</option>
+            <option value="">Selecione a Unidade...</option>
+            <option value="CBA X">CBA X</option>
+            <option value="CER">CER</option>
+            <option value="1º GMAR">1º GMAR - Botafogo</option>
+            <option value="2º GMAR">2º GMAR - Barra da Tijuca</option>
+            <option value="3º GMAR">3º GMAR - Copacabana</option>
+            <option value="4º GMAR">4º GMAR - Itaipu</option>
+            <option value="DBM 1/M">DBM 1/M - Paquetá</option>
+            <option value="DBM 2/M">DBM 2/M - Piscinão de Ramos</option>
+            <option value="DBM 3/M">DBM 3/M - Recreio dos Bandeirantes</option>
+            <option value="DBM 4/M">DBM 4/M - Barra de Guaratiba</option>
+            <option value="DBM 5/M">DBM 5/M - Sepetiba</option>
+            <option value="DBM 6/M">DBM 6/M</option>
         </select>
         
         <label>Posto/Graduação</label>
@@ -105,10 +113,10 @@
     </div>
 
     <div id="comprovante">
-        <div style="color: #8e1616; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">✅ AGENDAMENTO CONFIRMADO</div>
+        <div style="color: var(--cba-vinho); font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">✅ AGENDAMENTO CONFIRMADO</div>
         <p id="res-nome" style="font-weight: bold; color: var(--cba-blue); font-size: 1.1rem;"></p>
-        <p id="res-info" style="font-size: 0.9rem; color: #555;"></p>
-        <button class="btn-confirmar" onclick="window.print()" style="background: #2ecc71;">🖨️ IMPRIMIR / SALVAR PDF</button>
+        <p id="res-info" style="font-size: 0.95rem; color: #333; line-height: 1.6;"></p>
+        <button class="btn-confirmar" onclick="window.print()">🖨️ IMPRIMIR / SALVAR PDF</button>
         <button onclick="location.reload()" style="background:none; border:none; color:blue; cursor:pointer; text-decoration:underline; font-size: 0.8rem; margin-top: 15px;">Realizar outro agendamento</button>
     </div>
 </div>
@@ -239,7 +247,9 @@
             document.getElementById("form-content").style.display = "none";
             document.getElementById("comprovante").style.display = "block";
             document.getElementById("res-nome").innerText = d.posto + " " + d.nome;
-            document.getElementById("res-info").innerText = `RG: ${d.rg} | Local: ${d.unidadeDestino} | Data: ${d.data} (${d.turno})`;
+            
+            // ALTERAÇÃO AQUI: Nome do serviço destacado no comprovante
+            document.getElementById("res-info").innerText = `FINALIDADE: INSPEÇÃO MÉDICA 2026\nRG: ${d.rg} | Local: ${d.unidadeDestino}\nData: ${d.data} | Turno: ${d.turno}`;
 
         } catch (e) { 
             alert("⚠️ Erro ao salvar!"); 
