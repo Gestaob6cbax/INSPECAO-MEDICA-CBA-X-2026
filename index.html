@@ -88,7 +88,7 @@
         <select id="unidadeDestino" onchange="gerarDatas()">
             <option value="">Selecione o local...</option>
             <option value="CBA X">CBA X</option>
-            <option value="CER X">CER + 2º GMAR - BARRA DA TIJUCA</option>
+            <option value="CER X">CER + 2º GMAR</option>
             <option value="1º GMAR">1º GMAR + DBM 1/M + DBM 2/M</option>
             <option value="4º GMAR">4º GMAR + DBM 6/M</option>
             <option value="DBM 3/M">DBM 3/M + DBM 4/M</option>
@@ -116,7 +116,7 @@
     <div id="comprovante">
         <div style="color: var(--cba-vinho); font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">✅ AGENDAMENTO CONFIRMADO</div>
         <p id="res-nome" style="font-weight: bold; color: var(--cba-blue); font-size: 1.1rem;"></p>
-        <p id="res-info" style="font-size: 0.95rem; color: #333; line-height: 1.6;"></p>
+        <p id="res-info" style="font-size: 0.95rem; color: #333; line-height: 1.6; white-space: pre-line;"></p>
         <button class="btn-confirmar" onclick="window.print()">🖨️ IMPRIMIR / SALVAR PDF</button>
         <button onclick="location.reload()" style="background:none; border:none; color:blue; cursor:pointer; text-decoration:underline; font-size: 0.8rem; margin-top: 15px;">Realizar outro agendamento</button>
     </div>
@@ -136,14 +136,13 @@
     const db = firebase.firestore();
 
     const REGRAS = {
-      const REGRAS = {
-        "CER + 2º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
+        "CER X": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
         "3º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
-        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 0,  turno: false }
+        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 0,  turno: false },
         "CBA X": { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
         "1º GMAR": { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7, turno: true },
         "4º GMAR": { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7, turno: true },
-        "DBM 4/M": { inicio: "2026-06-30", fim: "2026-07-31", dias: [2,5], vagas: 7, turno: true }
+        "DBM 3/M": { inicio: "2026-06-30", fim: "2026-07-31", dias: [2,5], vagas: 7, turno: true }
     };
          
     function gerarDatas() {
@@ -252,7 +251,6 @@
             document.getElementById("comprovante").style.display = "block";
             document.getElementById("res-nome").innerText = d.posto + " " + d.nome;
             
-            // ALTERAÇÃO AQUI: Nome do serviço destacado no comprovante
             document.getElementById("res-info").innerText = `FINALIDADE: INSPEÇÃO MÉDICA 2026\nRG: ${d.rg} | Local: ${d.unidadeDestino}\nData: ${d.data} | Turno: ${d.turno}`;
 
         } catch (e) { 
