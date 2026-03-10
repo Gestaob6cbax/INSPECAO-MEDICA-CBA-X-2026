@@ -139,7 +139,7 @@
     const REGRAS = {
         "CER X": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
         "3º GMAR": { inicio: "2026-02-23", fim: "2026-07-31", dias: [1,2,3,4,5], vagas: 5, turno: false },
-        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 0,  turno: false },
+        "DBM 5/M": { inicio: "2026-02-23", fim: "2026-03-06", dias: [2,5], vagas: 0, turno: false },
         "CBA X": { inicio: "2026-03-10", fim: "2026-03-13", dias: [2,5], vagas: 10, turno: true },
         "1º GMAR": { inicio: "2026-03-17", fim: "2026-05-15", dias: [2,5], vagas: 7, turno: true },
         "4º GMAR": { inicio: "2026-05-19", fim: "2026-06-26", dias: [2,5], vagas: 7, turno: true },
@@ -150,8 +150,16 @@
         const uni = document.getElementById("unidadeDestino").value;
         const selData = document.getElementById("data");
         const divT = document.getElementById("divTurno");
+        const badge = document.getElementById("statusVagas");
+        const btn = document.getElementById("btnSalvar");
+
         selData.innerHTML = '<option value="">Selecione...</option>';
+        badge.style.display = "none";
+        badge.innerText = "";
+        btn.disabled = true;
+
         if (!uni || !REGRAS[uni]) return;
+
         const r = REGRAS[uni];
         divT.style.display = r.turno ? "block" : "none";
         
@@ -161,7 +169,8 @@
             if (r.dias.includes(atual.getDay())) {
                 let dStr = atual.toLocaleDateString('pt-BR');
                 let opt = document.createElement("option");
-                opt.value = dStr; opt.innerText = dStr;
+                opt.value = dStr;
+                opt.innerText = dStr;
                 selData.appendChild(opt);
             }
             atual.setDate(atual.getDate() + 1);
@@ -176,6 +185,7 @@
         const btn = document.getElementById("btnSalvar");
 
         if (!uni || !dt) return;
+
         badge.style.display = "block";
         badge.innerText = "🔍 Consultando disponibilidade...";
         badge.className = "vagas-badge";
@@ -199,21 +209,27 @@
             if (restam <= 0) {
                 badge.innerText = `❌ ESGOTADO`;
                 badge.className = "vagas-badge vagas-esgotado";
+                btn.disabled = true;
             } else {
                 badge.innerText = `✅ RESTAM ${restam} VAGAS`;
                 badge.className = "vagas-badge vagas-ok";
                 btn.disabled = false;
             }
-        } catch (e) { badge.innerText = "⚠️ Erro ao verificar vagas."; }
+        } catch (e) {
+            console.error("Erro ao verificar vagas:", e);
+            badge.innerText = "⚠️ Erro ao verificar vagas.";
+            badge.className = "vagas-badge vagas-esgotado";
+            btn.disabled = true;
+        }
     }
 
     async function salvar() {
         const btn = document.getElementById("btnSalvar");
-        const rg = document.getElementById("rg").value;
+        const rg = document.getElementById("rg").value.trim();
         const data = document.getElementById("data").value;
         const uniDestino = document.getElementById("unidadeDestino").value;
         const uniOrigem = document.getElementById("unidadeOrigem").value;
-        const nome = document.getElementById("nome").value.toUpperCase();
+        const nome = document.getElementById("nome").value.toUpperCase().trim();
         const posto = document.getElementById("posto").value;
         const r = REGRAS[uniDestino];
 
@@ -221,7 +237,7 @@
             return alert("⚠️ Por favor, preencha todos os campos obrigatórios!");
         }
 
-        btn.innerText = "⏳ PROCESSANDO..."; 
+        btn.innerText = "⏳ PROCESSANDO...";
         btn.disabled = true;
 
         try {
@@ -234,20 +250,39 @@
                 return;
             }
 
+            let query = db.collection("agendamentos_saude").where("unidadeDestino", "==", uniDestino).where("data", "==", data);
+            if (r.turno) query = query.where("turno", "==", document.getElementById("turno").value);
+
+            const snap = await query.get();
+            if (snap.size >= r.vagas) {
+                alert("❌ Não há mais vagas disponíveis para esta data/turno.");
+                btn.innerText = "Confirmar Agendamento";
+                btn.disabled = true;
+                await verificarVagas();
+                return;
+            }
+
+            const partes = data.split("/");
+            const dataISO = partes[2] + "-" + partes[1] + "-" + partes[0];
+
             const d = {
                 unidadeOrigem: uniOrigem,
+                origem: uniOrigem,
                 posto: posto,
                 nome: nome,
                 rg: rg,
                 email: document.getElementById("email").value || "Não informado",
                 telefone: document.getElementById("telefone").value || "Não informado",
                 unidadeDestino: uniDestino,
+                unidadeID: uniDestino,
                 data: data,
+                dataISO: dataISO,
                 turno: r.turno ? document.getElementById("turno").value : "Único",
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             await db.collection("agendamentos_saude").add(d);
+
             document.getElementById("form-content").style.display = "none";
             document.getElementById("comprovante").style.display = "block";
             document.getElementById("res-nome").innerText = d.posto + " " + d.nome;
@@ -255,6 +290,7 @@
             document.getElementById("res-info").innerText = `FINALIDADE: INSPEÇÃO MÉDICA 2026\nRG: ${d.rg} | Local: ${d.unidadeDestino}\nData: ${d.data} | Turno: ${d.turno}`;
 
         } catch (e) { 
+            console.error("Erro ao salvar:", e);
             alert("⚠️ Erro ao salvar!"); 
             btn.innerText = "Confirmar Agendamento";
             btn.disabled = false; 
