@@ -170,6 +170,49 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    function normalizarDataParaBR(dataBruta) {
+        let data = String(dataBruta || "").trim();
+
+        if (data.startsWith("'")) data = data.substring(1).trim();
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+            const [ano, mes, dia] = data.split("-");
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        if (data.includes("/")) {
+            const partes = data.split("/");
+            if (partes.length === 3) {
+                let [dia, mes, ano] = partes.map(p => p.trim());
+                if (ano.length === 2) ano = "20" + ano;
+                return `${dia.padStart(2,"0")}/${mes.padStart(2,"0")}/${ano}`;
+            }
+        }
+
+        return data;
+    }
+
+    function gerarDataISO(dataBruta) {
+        let data = String(dataBruta || "").trim();
+
+        if (data.startsWith("'")) data = data.substring(1).trim();
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+            return data;
+        }
+
+        if (data.includes("/")) {
+            const partes = data.split("/");
+            if (partes.length === 3) {
+                let [dia, mes, ano] = partes.map(p => p.trim());
+                if (ano.length === 2) ano = "20" + ano;
+                return `${ano}-${mes.padStart(2,"0")}-${dia.padStart(2,"0")}`;
+            }
+        }
+
+        return "";
+    }
+
     async function carregarDados() {
         const corpo = document.getElementById("corpoTabela");
         try {
@@ -180,18 +223,30 @@
 
             snap.forEach(doc => {
                 const d = doc.data();
-                lista.push({id: doc.id, ...d});
+
+                const unidadeOrigem = d.unidadeOrigem || d.origem || "";
+                const unidadeDestino = d.unidadeDestino || d.unidadeID || "";
+                const data = normalizarDataParaBR(d.data || "");
+                const dataISO = d.dataISO || gerarDataISO(d.data || "");
+
+                lista.push({
+                    id: doc.id,
+                    ...d,
+                    unidadeOrigemNormalizada: unidadeOrigem,
+                    unidadeDestinoNormalizada: unidadeDestino,
+                    dataNormalizada: data,
+                    dataISOCalculada: dataISO
+                });
                 
-                // Contabilização para os Cards
-                if(d.unidadeOrigem) unidadesMap[d.unidadeOrigem] = (unidadesMap[d.unidadeOrigem] || 0) + 1;
-                if(d.unidadeDestino) polosMap[d.unidadeDestino] = (polosMap[d.unidadeDestino] || 0) + 1;
+                if (unidadeOrigem) unidadesMap[unidadeOrigem] = (unidadesMap[unidadeOrigem] || 0) + 1;
+                if (unidadeDestino) polosMap[unidadeDestino] = (polosMap[unidadeDestino] || 0) + 1;
             });
 
-            // Ordenação Cronológica (Data)
             lista.sort((a,b) => {
-                const dataA = a.data.split('/').reverse().join('-');
-                const dataB = b.data.split('/').reverse().join('-');
-                return dataB.localeCompare(dataA);
+                const dataA = a.dataISOCalculada || "";
+                const dataB = b.dataISOCalculada || "";
+                if (dataA !== dataB) return dataA.localeCompare(dataB);
+                return (a.turno || "").localeCompare(b.turno || "");
             });
 
             let html = "";
@@ -202,17 +257,17 @@
                 if(turnoLabel === "Tarde") turnoClass = "tarde";
 
                 html += `<tr>
-                    <td style="white-space:nowrap;"><b>${d.data}</b></td>
+                    <td style="white-space:nowrap;"><b>${d.dataNormalizada || "-"}</b></td>
                     <td><span class="badge-turno ${turnoClass}">${turnoLabel}</span></td>
                     <td><span style="font-weight:700; color:var(--cba-blue);">${d.posto || 'N/I'}</span></td>
-                    <td style="text-transform:uppercase; font-size:0.8rem;">${d.nome}</td>
-                    <td><code style="background:#eee; padding:2px 5px; border-radius:4px;">${d.rg}</code></td>
-                    <td style="font-weight:600;">${d.unidadeOrigem}</td>
+                    <td style="text-transform:uppercase; font-size:0.8rem;">${d.nome || "-"}</td>
+                    <td><code style="background:#eee; padding:2px 5px; border-radius:4px;">${d.rg || "-"}</code></td>
+                    <td style="font-weight:600;">${d.unidadeOrigemNormalizada || "-"}</td>
                     <td>${d.telefone || '-'}</td>
                     <td style="font-size:0.75rem; color:#666;">${d.email || '-'}</td>
-                    <td style="color:var(--cba-red); font-weight:700;">${d.unidadeDestino}</td>
+                    <td style="color:var(--cba-red); font-weight:700;">${d.unidadeDestinoNormalizada || "-"}</td>
                     <td style="text-align:center;">
-                        <button class="btn-excluir" onclick="excluirRegistro('${d.id}', '${d.nome}')" title="Excluir Militar">🗑️</button>
+                        <button class="btn-excluir" onclick="excluirRegistro('${d.id}', '${(d.nome || '').replace(/'/g, "\\'")}')" title="Excluir Militar">🗑️</button>
                     </td>
                 </tr>`;
             });
@@ -249,40 +304,68 @@
         const texto = campoTexto.value.trim();
         if(!texto) return alert("Erro: O campo de texto está vazio.");
 
-        const linhas = texto.split('\n');
+        const linhas = texto.split('\n').map(l => l.trim()).filter(l => l);
         let contador = 0;
+        let ignoradas = [];
         
-        // Desativar botão durante processamento
         const btnImport = document.querySelector(".import-box button");
         btnImport.innerText = "⏳ PROCESSANDO...";
         btnImport.disabled = true;
 
-        for(let l of linhas) {
-            const col = l.split('\t');
-            if(col.length >= 7) {
-                try {
-                    await db.collection("agendamentos_saude").add({
-                        data: col[0]?.trim(),
+        try {
+            for (let i = 0; i < linhas.length; i += 400) {
+                const lote = linhas.slice(i, i + 400);
+                const batch = db.batch();
+
+                lote.forEach((l, idx) => {
+                    const col = l.split('\t');
+
+                    if(col.length < 7) {
+                        ignoradas.push(`Linha ${i + idx + 1}`);
+                        return;
+                    }
+
+                    const dataBR = normalizarDataParaBR(col[0]?.trim() || "");
+                    const dataISO = gerarDataISO(col[0]?.trim() || "");
+
+                    const ref = db.collection("agendamentos_saude").doc();
+                    batch.set(ref, {
+                        data: dataBR,
+                        dataISO: dataISO,
                         turno: col[1]?.trim() || "Único",
-                        unidadeDestino: col[2]?.trim(),
-                        unidadeOrigem: col[3]?.trim(),
-                        nome: col[4]?.trim().toUpperCase(),
-                        posto: col[5]?.trim().toUpperCase(),
-                        rg: col[6]?.trim(),
+                        unidadeDestino: col[2]?.trim() || "",
+                        unidadeID: col[2]?.trim() || "",
+                        unidadeOrigem: col[3]?.trim() || "",
+                        origem: col[3]?.trim() || "",
+                        nome: (col[4]?.trim() || "").toUpperCase(),
+                        posto: (col[5]?.trim() || "").toUpperCase(),
+                        rg: col[6]?.trim() || "",
                         telefone: col[7]?.trim() || "N/I",
                         email: col[8]?.trim() || "N/I",
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     contador++;
-                } catch(err) { console.error("Erro na linha:", l, err); }
+                });
+
+                await batch.commit();
             }
+
+            let msg = "Sucesso: " + contador + " registros foram importados!";
+            if (ignoradas.length > 0) {
+                msg += "\nLinhas ignoradas: " + ignoradas.slice(0, 10).join(", ");
+            }
+
+            alert(msg);
+            campoTexto.value = "";
+            carregarDados();
+
+        } catch(err) {
+            console.error("Erro ao importar:", err);
+            alert("Erro ao importar os dados.");
+        } finally {
+            btnImport.innerText = "🚀 PROCESSAR E SALVAR NO FIREBASE";
+            btnImport.disabled = false;
         }
-        
-        alert("Sucesso: " + contador + " registros foram importados!");
-        campoTexto.value = "";
-        btnImport.innerText = "🚀 PROCESSAR E SALVAR NO FIREBASE";
-        btnImport.disabled = false;
-        carregarDados();
     }
 
     async function excluirRegistro(id, nome) {
@@ -317,13 +400,39 @@
     }
 
     function baixarPlanilha() {
-        const tabela = document.getElementById("tabelaADM");
-        const nomeArquivo = "Relatorio_Inspecao_Medica_CBAX_2026.xlsx";
-        const wb = XLSX.utils.table_to_book(tabela, {sheet: "Agendamentos"});
-        XLSX.writeFile(wb, nomeArquivo);
+        const rows = document.querySelectorAll("#corpoTabela tr");
+        let dados = [];
+
+        rows.forEach(r => {
+            const c = r.querySelectorAll("td");
+            if (c.length === 10) {
+                dados.push({
+                    Data: c[0].innerText.trim(),
+                    Turno: c[1].innerText.trim(),
+                    Posto_Grad: c[2].innerText.trim(),
+                    Militar: c[3].innerText.trim(),
+                    RG: c[4].innerText.trim(),
+                    Origem: c[5].innerText.trim(),
+                    Contato: c[6].innerText.trim(),
+                    Email: c[7].innerText.trim(),
+                    Local_da_Inspecao: c[8].innerText.trim()
+                });
+            }
+        });
+
+        const ws = XLSX.utils.json_to_sheet(dados);
+
+        const range = XLSX.utils.decode_range(ws["!ref"]);
+        for (let row = range.s.r + 1; row <= range.e.r; row++) {
+            const dataCell = XLSX.utils.encode_cell({ r: row, c: 0 });
+            if (ws[dataCell]) ws[dataCell].t = "s";
+        }
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
+        XLSX.writeFile(wb, "Relatorio_Inspecao_Medica_CBAX_2026.xlsx");
     }
 
-    // Inicialização ao abrir a página
     window.onload = carregarDados;
 </script>
 </body>
